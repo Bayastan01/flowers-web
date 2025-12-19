@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Flower Market - Создать объявление</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://telegram.org/js/telegram-web-app.js?1"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+  <!-- слой лепестков -->
+  <div id="petalLayer" aria-hidden="true"></div>
+
+  <div class="container">
+    <div class="progress-bar" id="progressBar">
+        <div class="progress-step"><div class="step-number active">1</div><div class="step-label active">Медиа</div></div>
+        <div class="progress-step"><div class="step-number">2</div><div class="step-label">Описание</div></div>
+        <div class="progress-step"><div class="step-number">3</div><div class="step-label">Цена</div></div>
+        <div class="progress-step"><div class="step-number">4</div><div class="step-label">Контакты</div></div>
+        <div class="progress-step"><div class="step-number">5</div><div class="step-label">Локация</div></div>
+        <div class="progress-step"><div class="step-number">6</div><div class="step-label">Превью</div></div>
+    </div>
+
+    <div class="header">
+        <h1><i class="fas fa-flower-tulip"></i> Flower Market Kyrgyzstan</h1>
+        <p>Создайте красивое объявление о продаже цветов</p>
+    </div>
+  </div>
+
+  <div class="notification" id="notification">
+      <i class="fas fa-exclamation-circle notification-icon"></i>
+      <div class="notification-content">
+          <div class="notification-title" id="notificationTitle">Ошибка</div>
+          <div class="notification-message" id="notificationMessage"></div>
+      </div>
+  </div>
+
+  <div class="container">
+    <div class="form-container" id="formContainer">
+      <!-- Шаг 1 -->
+      <div class="form-step active" id="step1">
+          <h2 class="step-title"><i class="fas fa-camera"></i> Загрузите фото и видео</h2>
+          <div class="form-group">
+              <div class="photo-upload" id="mediaUpload" role="button" aria-label="Загрузить медиа">
+                  <i class="fas fa-cloud-upload-alt photo-upload-icon"></i>
+                  <p>Нажмите для загрузки фото и видео</p>
+                  <p class="input-hint">Выберите фото или видео из галереи. Можно загрузить до 10 файлов</p>
+                  <div id="mediaHint" class="field-hint">Загрузите хотя бы одно фото или видео для продолжения</div>
+                  <div class="file-progress" id="fileProgress" style="display: none; margin-top: 10px;">
+                      <div class="progress-bar-container">
+                          <div class="progress-bar-fill" id="progressBarFill"></div>
+                      </div>
+                      <span id="progressText">0%</span>
+                  </div>
+              </div>
+              <input type="file" id="mediaInput" accept="image/*,video/*" multiple>
+              <div id="mediaPreview"></div>
+          </div>
+          <div class="navigation">
+              <button class="btn" onclick="nextStep()" id="nextBtn1" disabled>Далее <i class="fas fa-arrow-right"></i></button>
+          </div>
+      </div>
+
+      <!-- Шаг 2 -->
+      <div class="form-step" id="step2">
+          <h2 class="step-title"><i class="fas fa-edit"></i> Описание товара</h2>
+          <div class="form-group">
+              <label for="description" class="field-required">Опишите ваш товар:</label>
+              <textarea id="description" placeholder="Например: Свежие розы из Эквадора, идеально подходят для свадебных букетов. Доставка по городу."></textarea>
+              <p class="input-hint">Минимум 3 символа. Опишите ваши цветы подробно</p>
+              <div id="descriptionHint" class="field-hint">Описание должно содержать минимум 3 символа</div>
+          </div>
+          <div class="navigation">
+              <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
+              <button class="btn" onclick="nextStep()" id="nextBtn2" disabled>Далее <i class="fas fa-arrow-right"></i></button>
+          </div>
+      </div>
+
+      <!-- Шаг 3 -->
+      <div class="form-step" id="step3">
+          <h2 class="step-title"><i class="fas fa-tag"></i> Укажите цену</h2>
+          <div class="form-group">
+              <label for="price" class="field-required">Цена в сомах:</label>
+              
+              <div class="price-buttons">
+                  <div class="price-btn active" id="priceBtnNegotiable" onclick="setNegotiablePrice()">
+                      <i class="fas fa-handshake"></i> Договорная
+                  </div>
+                  <div class="price-btn" id="priceBtnEnter" onclick="focusPriceInput()">
+                      <i class="fas fa-edit"></i> Ввести цену
+                  </div>
+              </div>
+              
+              <input type="text" id="price" placeholder="Договорная" readonly>
+              <p class="input-hint">Укажите цену только цифрами или нажмите "Договорная"</p>
+              <div id="priceHint" class="field-hint">Укажите цену для продолжения</div>
+          </div>
+          <div class="navigation">
+              <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
+              <button class="btn" onclick="nextStep()" id="nextBtn3">Далее <i class="fas fa-arrow-right"></i></button>
+          </div>
+      </div>
+
+      <!-- Шаг 4 -->
+      <div class="form-step" id="step4">
+          <h2 class="step-title"><i class="fas fa-phone"></i> Контакты для связи</h2>
+          <div class="contact-options">
+              <div class="contact-option active" id="telegramOption" onclick="selectContactType('telegram')" role="button">
+                  <i class="fab fa-telegram"></i>
+                  <p>Telegram</p>
+                  <small>Ввести username</small>
+              </div>
+              <div class="contact-option" id="phoneOption" onclick="selectContactType('phone')" role="button">
+                  <i class="fas fa-mobile-alt"></i>
+                  <p>Телефон</p>
+                  <small>Ввести номер</small>
+              </div>
+              <div class="contact-option" id="noContactOption" onclick="selectContactType('none')" role="button">
+                  <i class="fas fa-eye-slash"></i>
+                  <p>Не указывать</p>
+                  <small>Без контактов</small>
+              </div>
+          </div>
+          <div class="form-group" id="telegramInputGroup">
+              <label for="telegram" class="field-required">Введите Telegram username:</label>
+              <input type="text" id="telegram" placeholder="@username">
+              <p class="input-hint">Только английские буквы, цифры и подчеркивание</p>
+              <div id="telegramHint" class="field-hint">Введите Telegram username для продолжения</div>
+          </div>
+          <div class="form-group" id="phoneInputGroup" style="display: none;">
+              <label for="phone" class="field-required">Введите номер телефона:</label>
+              <input type="tel" id="phone" placeholder="+996 XXX XXX XXX">
+              <p class="input-hint">Формат: +996XXXYYYZZZ (без пробелов)</p>
+              <div id="phoneHint" class="field-hint">Введите номер телефона для продолжения</div>
+          </div>
+          <div class="navigation">
+              <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
+              <button class="btn" onclick="nextStep()" id="nextBtn4" disabled>Далее <i class="fas fa-arrow-right"></i></button>
+          </div>
+      </div>
+
+      <!-- Шаг 5 -->
+      <div class="form-step" id="step5">
+          <h2 class="step-title"><i class="fas fa-map-marker-alt"></i> Локация</h2>
+          <div class="form-group">
+              <button class="btn auto-location-btn" onclick="getTelegramLocation()" id="telegramLocationBtn" style="margin-bottom: 20px;">
+                  <i class="fas fa-location-crosshairs"></i> Определить мое местоположение через Telegram
+              </button>
+              
+              <div class="location-select-group">
+                  <div class="form-group">
+                      <label for="regionSelect" class="field-required">Регион:</label>
+                      <select id="regionSelect">
+                          <option value="">Выберите регион</option>
+                          <option value="Бишкек">г. Бишкек</option>
+                          <option value="Ош">г. Ош</option>
+                          <option value="Чуйская">Чуйская область</option>
+                          <option value="Ошская">Ошская область</option>
+                          <option value="Джалал-Абадская">Джалал-Абадская область</option>
+                          <option value="Иссык-Кульская">Иссык-Кульская область</option>
+                          <option value="Нарынская">Нарынская область</option>
+                          <option value="Таласская">Таласская область</option>
+                          <option value="Баткенская">Баткенская область</option>
+                      </select>
+                      <div id="regionHint" class="field-hint">Выберите регион для продолжения</div>
+                  </div>
+                  
+                  <div class="form-group">
+                      <label for="citySelect" class="field-required">Город/Район:</label>
+                      <select id="citySelect">
+                          <option value="">Сначала выберите регион</option>
+                      </select>
+                      <div id="cityHint" class="field-hint">Выберите город/район для продолжения</div>
+                  </div>
+              </div>
+              
+              <div class="form-group">
+                  <label for="addressInput">Точный адрес (необязательно):</label>
+                  <input type="text" id="addressInput" placeholder="Улица, дом, квартира">
+                  <p class="input-hint">Укажите улицу, дом или название района для точности</p>
+              </div>
+              
+              <div class="map-container" id="mapContainer">
+                  <div class="map-controls">
+                      <button class="map-btn" id="locateBtn" title="Мое местоположение"><i class="fas fa-location-crosshairs"></i></button>
+                      <button class="map-btn" id="zoomInBtn" title="Приблизить"><i class="fas fa-plus"></i></button>
+                      <button class="map-btn" id="zoomOutBtn" title="Отдалить"><i class="fas fa-minus"></i></button>
+                  </div>
+                  <div class="location-pin">
+                      <i class="fas fa-map-pin"></i>
+                  </div>
+                  <div class="map-address-display" id="addressDisplay">
+                      <i class="fas fa-info-circle"></i> Укажите место на карте или используйте поиск
+                  </div>
+                  <div class="map-layer-controls">
+                      <button class="layer-btn active" id="mapLayerBtn"><i class="fas fa-map"></i> Карта</button>
+                      <button class="layer-btn" id="satelliteLayerBtn"><i class="fas fa-satellite"></i> Спутник</button>
+                  </div>
+              </div>
+              
+              <button class="btn btn-secondary" onclick="getCurrentLocation()" id="locationBtn" style="margin-top: 15px;">
+                  <i class="fas fa-location-crosshairs"></i> Использовать текущую геолокацию
+              </button>
+          </div>
+          <div class="navigation">
+              <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
+              <button class="btn" onclick="nextStep()" id="nextBtn5" disabled>Далее <i class="fas fa-arrow-right"></i></button>
+          </div>
+      </div>
+
+      <!-- Шаг 6 -->
+      <div class="form-step" id="step6">
+          <h2 class="step-title"><i class="fas fa-eye"></i> Превью объявления</h2>
+
+          <div class="preview-item"><div class="preview-label">Фото и видео</div><div id="previewMedia" class="photos-grid"></div></div>
+          <div class="preview-item"><div class="preview-label">Описание</div><div class="preview-value" id="previewDescription"></div></div>
+          <div class="preview-item"><div class="preview-label">Цена</div><div class="preview-value" id="previewPrice"></div></div>
+          <div class="preview-item"><div class="preview-label">Контакты</div><div class="preview-value" id="previewContacts"></div></div>
+          <div class="preview-item"><div class="preview-label">Локация</div><div class="preview-value" id="previewLocation"></div></div>
+
+          <div class="navigation">
+              <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
+              <button class="btn" onclick="submitForm()" id="submitBtn">Опубликовать <i class="fas fa-paper-plane"></i></button>
+          </div>
+      </div>
+    </div>
+
+    <!-- Экран успешной публикации -->
+    <div class="form-container" id="successScreen" style="display: none;">
+        <div class="success-screen">
+            <i class="fas fa-check-circle success-icon"></i>
+            <h2 class="success-title">Объявление успешно опубликовано!</h2>
+            <p class="success-message">Ваше объявление было опубликовано в канале.<br>Теперь его могут видеть все покупатели.</p>
+
+            <div class="success-steps">
+                <div class="success-step"><div class="step-badge">1</div><div class="step-text">Объявление опубликовано в канале с включенными комментариями</div></div>
+                <div class="success-step"><div class="step-badge">2</div><div class="step-text">Покупатели могут связаться с вами через комментарии или указанные контакты</div></div>
+                <div class="success-step"><div class="step-badge">3</div><div class="step-text">Объявление будет активно 7 дней</div></div>
+            </div>
+
+            <div id="postLinkContainer" style="margin: 20px 0;">
+                <a href="#" id="postLink" target="_blank" style="display: inline-block; background: #667eea; color: white; padding: 12px 24px; border-radius: 10px; text-decoration: none; font-weight: 600;">
+                    <i class="fas fa-external-link-alt"></i> Перейти к объявлению с комментариями
+                </a>
+            </div>
+
+            <div id="telegramCloseSection" style="display: none; margin-top: 20px;">
+                <button class="btn btn-secondary" onclick="closeTelegramApp()" style="margin-top: 10px;">
+                    <i class="fas fa-times"></i> Закрыть приложение
+                </button>
+            </div>
+
+            <button class="btn" onclick="createNewAd()" style="margin-top: 30px;">
+                <i class="fas fa-plus"></i> Создать новое объявление
+            </button>
+        </div>
+    </div>
+  </div>
+
+  <!-- Leaflet для карт -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Основной JavaScript файл -->
+  <script src="script.js" defer></script>
+</body>
+</html>
