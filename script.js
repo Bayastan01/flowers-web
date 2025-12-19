@@ -71,11 +71,8 @@ function initMediaUpload() {
         return;
     }
     
-    // Обработчик клика по области загрузки
-    mediaUpload.addEventListener('click', function(e) {
-        console.log('Клик по mediaUpload');
-        mediaInput.click();
-    });
+    // Теперь mediaUpload - это label, который связан с input через for="mediaInput"
+    // Не нужно добавлять обработчик клика вручную
     
     // Обработчик выбора файлов
     mediaInput.addEventListener('change', function(e) {
@@ -83,10 +80,17 @@ function initMediaUpload() {
         if (e.target.files.length > 0) {
             handleMediaFiles(e.target.files);
         }
+        
+        // Сброс значения input, чтобы можно было снова выбрать те же файлы
+        this.value = '';
     });
     
     // Добавляем стили для курсора
     mediaUpload.style.cursor = 'pointer';
+    
+    // Обновляем начальное состояние
+    updateMediaCounter();
+    checkStep1Fields();
 }
 
 // Обработка медиафайлов
@@ -731,10 +735,8 @@ function checkTelegram() {
 }
 
 function initButtons() {
-    // Инициализация медиа загрузки
-    initMediaUpload();
-    
     // Инициализация кнопок навигации (уже есть в HTML)
+    // Добавьте здесь другие инициализации кнопок, если необходимо
 }
 
 function initFields() {
@@ -744,6 +746,9 @@ function initFields() {
         priceInput.value = 'Договорная';
         priceInput.readOnly = true;
     }
+    
+    // Инициализация медиа загрузки (ВАЖНО!)
+    initMediaUpload();
     
     // Обработчики событий
     const descriptionInput = document.getElementById('description');

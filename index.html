@@ -42,11 +42,11 @@
 
   <div class="container">
     <div class="form-container" id="formContainer">
-      <!-- Шаг 1 -->
+      <!-- Шаг 1 - ИСПРАВЛЕННЫЙ -->
       <div class="form-step active" id="step1">
           <h2 class="step-title"><i class="fas fa-camera"></i> Загрузите фото и видео</h2>
           <div class="form-group">
-              <div class="photo-upload" id="mediaUpload" role="button" aria-label="Загрузить медиа">
+              <label for="mediaInput" class="photo-upload" id="mediaUpload" aria-label="Загрузить медиа">
                   <i class="fas fa-cloud-upload-alt photo-upload-icon"></i>
                   <p>Нажмите для загрузки фото и видео</p>
                   <p class="input-hint">Выберите фото или видео из галереи. Можно загрузить до 10 файлов</p>
@@ -57,8 +57,8 @@
                       </div>
                       <span id="progressText">0%</span>
                   </div>
-              </div>
-              <input type="file" id="mediaInput" accept="image/*,video/*" multiple>
+              </label>
+              <input type="file" id="mediaInput" accept="image/*,video/*" multiple style="display: none;">
               <div id="mediaPreview"></div>
           </div>
           <div class="navigation">
