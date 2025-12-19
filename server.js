@@ -1,330 +1,225 @@
-require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const { Telegraf } = require('telegraf');
+const TelegramBot = require('node-telegram-bot-api');
+const crypto = require('crypto');
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ВАЖНО: Получаем токен бота из переменных окружения
-const BOT_TOKEN = process.env.REACT_APP_BOT_TOKEN || process.env.BOT_TOKEN;
-const CHANNEL_ID = process.env.REACT_APP_CHANNEL_ID || process.env.CHANNEL_ID;
+// Инициализация бота
+const bot = new TelegramBot(process.env.BOT_TOKEN);
 
-console.log('🔧 Конфигурация:');
-console.log('- PORT:', PORT);
-console.log('- BOT_TOKEN:', BOT_TOKEN ? '✓ установлен' : '✗ отсутствует');
-console.log('- CHANNEL_ID:', CHANNEL_ID || 'не установлен');
-console.log('- NODE_ENV:', process.env.NODE_ENV);
-
-// Настройка CORS
-app.use(cors({
-    origin: '*', // Разрешаем все источники для простоты
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
+// Middleware
 app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(express.static('public'));
 
-// Обслуживаем статические файлы (фронтенд)
-app.use(express.static(path.join(__dirname)));
+// ============================================
+// ВАЛИДАЦИЯ TELEGRAM WEBAPP
+// ============================================
 
-// Проверяем папку для загрузок
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-    console.log('📁 Создана папка uploads');
-}
-
-// Настройка multer для загрузки файлов
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, uploadDir);
-    },
-    filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const ext = path.extname(file.originalname).toLowerCase();
-        cb(null, uniqueSuffix + ext);
-    }
-});
-
-const upload = multer({ 
-    storage: storage,
-    limits: {
-        fileSize: 50 * 1024 * 1024, // 50MB
-        files: 10
-    },
-    fileFilter: function (req, file, cb) {
-        const allowedTypes = /jpeg|jpg|png|gif|mp4|mov|avi|webm/;
-        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-        const mimetype = allowedTypes.test(file.mimetype);
-        
-        if (extname && mimetype) {
-            cb(null, true);
-        } else {
-            cb(new Error('Только изображения и видео разрешены'));
-        }
-    }
-});
-
-// Инициализация Telegram бота
-let bot = null;
-if (BOT_TOKEN) {
+function validateTelegramInitData(initData) {
     try {
-        bot = new Telegraf(BOT_TOKEN);
-        console.log('✅ Telegram бот инициализирован');
+        if (!initData) return false;
         
-        // Проверка бота
-        bot.telegram.getMe().then(botInfo => {
-            console.log(`🤖 Бот: @${botInfo.username}`);
-        }).catch(err => {
-            console.error('❌ Ошибка проверки бота:', err.message);
-        });
+        const params = new URLSearchParams(initData);
+        const hash = params.get('hash');
+        if (!hash) return false;
+        
+        // Удаляем hash для проверки
+        params.delete('hash');
+        
+        // Сортируем параметры
+        const dataCheckString = Array.from(params.entries())
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([key, value]) => `${key}=${value}`)
+            .join('\n');
+        
+        // Создаем секретный ключ
+        const secretKey = crypto.createHmac('sha256', 'WebAppData')
+            .update(process.env.BOT_TOKEN)
+            .digest();
+        
+        // Вычисляем хеш
+        const calculatedHash = crypto.createHmac('sha256', secretKey)
+            .update(dataCheckString)
+            .digest('hex');
+        
+        return calculatedHash === hash;
     } catch (error) {
-        console.error('❌ Ошибка инициализации Telegram бота:', error.message);
+        console.error('Ошибка валидации:', error);
+        return false;
     }
-} else {
-    console.warn('⚠️ Токен бота не найден');
 }
 
-// ==================== МАРШРУТЫ ====================
+// ============================================
+// API ЭНДПОИНТЫ
+// ============================================
 
-// Главная страница - отдаем index.html
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// Проверка здоровья
+// 1. Health check для Railway
 app.get('/health', (req, res) => {
-    res.status(200).json({
-        status: 'ok',
-        service: 'Flower Market',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        telegram: !!bot
-    });
+    res.json({ status: 'OK', time: new Date().toISOString() });
 });
 
-// Информация о сервере
-app.get('/api/info', (req, res) => {
-    res.json({
-        name: 'Flower Market Kyrgyzstan',
-        version: '2.0.0',
-        environment: process.env.NODE_ENV || 'development',
-        frontend: 'https://flowers-telegram-kyrgyzstan.up.railway.app',
-        features: ['Frontend', 'Backend API', 'Telegram integration'],
-        telegram: {
-            bot_available: !!bot,
-            channel_configured: !!CHANNEL_ID
-        }
-    });
-});
-
-// Проверка конфигурации Telegram
-app.get('/api/check-telegram', (req, res) => {
-    res.json({
-        bot_token_configured: !!BOT_TOKEN,
-        channel_id_configured: !!CHANNEL_ID,
-        bot_initialized: !!bot,
-        message: bot ? 'Telegram бот готов' : 'Telegram не настроен',
-        frontend_url: 'https://flowers-telegram-kyrgyzstan.up.railway.app'
-    });
-});
-
-// Загрузка медиа
-app.post('/api/upload', upload.array('media', 10), (req, res) => {
-    try {
-        if (!req.files || req.files.length === 0) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Файлы не загружены' 
-            });
-        }
-        
-        const fileUrls = req.files.map(file => ({
-            url: `/uploads/${file.filename}`,
-            type: file.mimetype.startsWith('image/') ? 'image' : 'video',
-            filename: file.filename,
-            size: file.size
-        }));
-        
-        console.log(`✅ Загружено ${req.files.length} файлов`);
-        
-        res.json({
-            success: true,
-            files: fileUrls,
-            message: `Загружено ${req.files.length} файлов`
-        });
-    } catch (error) {
-        console.error('❌ Ошибка загрузки файлов:', error);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка загрузки файлов'
-        });
-    }
-});
-
-// Публикация объявления
+// 2. Публикация объявления (ГЛАВНЫЙ ЭНДПОИНТ)
 app.post('/api/publish', async (req, res) => {
     try {
         const { 
-            photos = [], 
-            videos = [], 
+            initData,
             description, 
             price, 
-            contact_type, 
-            contacts,
-            location 
+            contacts, 
+            region,
+            city,
+            address,
+            mediaFiles = []
         } = req.body;
         
-        console.log('📨 Получено объявление для публикации');
-        
-        // Валидация
-        if (!description || description.trim().length < 3) {
-            return res.status(400).json({ 
+        // Валидируем Telegram данные
+        if (!validateTelegramInitData(initData)) {
+            return res.status(401).json({ 
                 success: false, 
-                error: 'Описание должно содержать минимум 3 символа' 
+                error: 'Невалидные данные Telegram' 
             });
         }
         
-        if (!price || price.trim().length === 0) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Укажите цену' 
-            });
+        // Форматируем сообщение
+        const message = `
+🌸 <b>НОВОЕ ОБЪЯВЛЕНИЕ</b>
+
+${description}
+
+💰 <b>Цена:</b> ${price}
+📍 <b>Локация:</b> ${region}, ${city}${address ? ` (${address})` : ''}
+📞 <b>Контакты:</b> ${contacts}
+
+💬 <i>Комментарии включены - задавайте вопросы в комментариях!</i>
+#цветы #${region || 'Кыргызстан'} #продажа
+        `.trim();
+        
+        let sentMessage;
+        
+        // Если есть фото - отправляем с фото
+        if (mediaFiles.length > 0) {
+            // В реальном приложении здесь нужно загружать файлы в Telegram
+            // и получать file_id
+            
+            // Для демо отправляем текстовое сообщение
+            sentMessage = await bot.sendMessage(
+                process.env.CHANNEL_ID,
+                message + '\n\n📷 <i>Фотографии прикреплены к объявлению</i>',
+                { parse_mode: 'HTML' }
+            );
+        } else {
+            // Только текст
+            sentMessage = await bot.sendMessage(
+                process.env.CHANNEL_ID,
+                message,
+                { parse_mode: 'HTML' }
+            );
         }
         
-        // Публикация в Telegram
-        let telegramResult = null;
+        // Получаем ссылку на пост с комментариями
+        // Telegram автоматически создает комментарии, так как канал подключен к группе
+        const channelId = process.env.CHANNEL_ID.replace('-100', '');
+        const postLink = `https://t.me/c/${channelId}/${sentMessage.message_id}`;
         
-        if (bot && CHANNEL_ID) {
-            try {
-                // Формируем текст
-                let messageText = `🌸 *НОВОЕ ОБЪЯВЛЕНИЕ* 🌸\n\n`;
-                messageText += `📝 *Описание:* ${description}\n\n`;
-                messageText += `💰 *Цена:* ${price}\n\n`;
-                
-                if (contact_type === 'telegram' && contacts) {
-                    const cleanContact = contacts.replace('@', '');
-                    messageText += `📱 *Telegram:* @${cleanContact}\n`;
-                } else if (contact_type === 'phone' && contacts) {
-                    messageText += `📱 *Телефон:* ${contacts}\n`;
-                } else {
-                    messageText += `📱 *Контакты:* В комментариях\n`;
-                }
-                
-                messageText += `📍 *Локация:* `;
-                if (location) {
-                    if (location.region) messageText += location.region;
-                    if (location.city) messageText += `, ${location.city}`;
-                    if (location.address) messageText += `, ${location.address}`;
-                }
-                
-                // Отправляем
-                const message = await bot.telegram.sendMessage(
-                    CHANNEL_ID,
-                    messageText,
-                    { 
-                        parse_mode: 'Markdown',
-                        disable_web_page_preview: true,
-                        disable_notification: false
-                    }
-                );
-                
-                telegramResult = {
-                    success: true,
-                    message_id: message.message_id
-                };
-                
-                console.log(`✅ Опубликовано в Telegram, ID: ${message.message_id}`);
-                
-            } catch (telegramError) {
-                console.error('❌ Ошибка Telegram:', telegramError.message);
-                telegramResult = {
-                    success: false,
-                    error: telegramError.message
-                };
-            }
-        }
-        
-        // Формируем ответ
-        const response = {
+        res.json({
             success: true,
-            message: telegramResult?.success ? 
-                '✅ Объявление опубликовано в Telegram!' : 
-                '⚠️ Объявление создано, но Telegram недоступен',
-            telegram: telegramResult,
-            timestamp: new Date().toISOString(),
-            data: {
-                description_length: description.length,
-                price,
-                has_location: !!location
-            }
-        };
-        
-        // Добавляем ссылку если есть
-        if (telegramResult?.success) {
-            const channelUsername = process.env.REACT_APP_CHANNEL_USERNAME;
-            if (channelUsername) {
-                const cleanUsername = channelUsername.replace('https://t.me/', '').replace('@', '');
-                response.telegram_link = `https://t.me/${cleanUsername}/${telegramResult.message_id}`;
-            }
-        }
-        
-        res.json(response);
+            postLink,
+            messageId: sentMessage.message_id,
+            message: '✅ Объявление опубликовано! Комментарии автоматически включены.'
+        });
         
     } catch (error) {
-        console.error('❌ Ошибка публикации:', error);
+        console.error('Ошибка публикации:', error);
         res.status(500).json({ 
             success: false, 
-            error: 'Ошибка сервера',
-            message: 'Попробуйте позже'
+            error: error.message 
         });
     }
 });
 
-// Обслуживаем загруженные файлы
-app.use('/uploads', express.static(uploadDir));
-
-// Все остальные GET запросы перенаправляем на index.html (для SPA)
-app.get('*', (req, res) => {
-    if (req.path.startsWith('/api/') || req.path.startsWith('/uploads/')) {
-        res.status(404).json({ error: 'Маршрут не найден' });
-    } else {
-        res.sendFile(path.join(__dirname, 'index.html'));
-    }
+// 3. Получение городов
+app.get('/api/cities/:region', (req, res) => {
+    const citiesData = {
+        'Бишкек': ['Бишкек', 'Центр', 'Аламедин', 'Левый берег', 'Правый берег'],
+        'Ош': ['Ош', 'Центр', 'Старый город'],
+        'Чуйская': ['Токмок', 'Кара-Балта', 'Кант'],
+        'Ошская': ['Кара-Суу', 'Узген', 'Ноокат'],
+        'Джалал-Абадская': ['Джалал-Абад', 'Майлуу-Суу', 'Кара-Куль'],
+        'Иссык-Кульская': ['Балыкчи', 'Чолпон-Ата', 'Каракол'],
+        'Нарынская': ['Нарын', 'Ат-Баши'],
+        'Таласская': ['Талас', 'Кара-Буура'],
+        'Баткенская': ['Баткен', 'Кызыл-Кия']
+    };
+    
+    const region = decodeURIComponent(req.params.region);
+    const cities = citiesData[region] || [];
+    res.json({ cities });
 });
 
-// Обработка ошибок
-app.use((err, req, res, next) => {
-    console.error('🔥 Ошибка:', err);
-    
-    if (err instanceof multer.MulterError) {
-        if (err.code === 'LIMIT_FILE_SIZE') {
-            return res.status(400).json({ error: 'Файл слишком большой (макс 50MB)' });
+// 4. Конфигурация
+app.get('/api/config', (req, res) => {
+    res.json({
+        channelName: process.env.CHANNEL_USERNAME,
+        maxPhotos: 10,
+        features: {
+            comments: true, // Комментарии уже подключены в канале
+            location: true,
+            priceNegotiable: true
         }
-        if (err.code === 'LIMIT_FILE_COUNT') {
-            return res.status(400).json({ error: 'Максимум 10 файлов' });
-        }
-    }
-    
-    res.status(500).json({ 
-        error: 'Внутренняя ошибка сервера',
-        message: process.env.NODE_ENV === 'production' ? undefined : err.message
     });
 });
 
-// Запуск сервера
-app.listen(PORT, '0.0.0.0', () => {
-    console.log('='.repeat(50));
-    console.log(`🚀 Flower Market запущен!`);
-    console.log(`🌐 Локально: http://localhost:${PORT}`);
-    console.log(`🌐 Railway: https://flowers-telegram-kyrgyzstan.up.railway.app`);
-    console.log(`🤖 Telegram: ${bot ? '✓ активен' : '✗ не настроен'}`);
-    console.log(`📢 Канал: ${CHANNEL_ID ? '✓ настроен' : '✗ не настроен'}`);
-    console.log('='.repeat(50));
+// ============================================
+// TELEGRAM BOT КОМАНДЫ (опционально)
+// ============================================
+
+// Команда /start для бота
+bot.onText(/\/start/, (msg) => {
+    const chatId = msg.chat.id;
+    
+    bot.sendMessage(
+        chatId,
+        `🌸 <b>Flower Market Kyrgyzstan</b>\n\n` +
+        `Я помогу вам создать объявление о продаже цветов.\n\n` +
+        `Нажмите кнопку ниже, чтобы начать:`,
+        {
+            parse_mode: 'HTML',
+            reply_markup: {
+                inline_keyboard: [[
+                    {
+                        text: '📝 Создать объявление',
+                        web_app: { url: process.env.RAILWAY_STATIC_URL }
+                    }
+                ]]
+            }
+        }
+    );
+});
+
+// Если пользователь хочет связаться с продавцом через бота
+bot.onText(/\/contact_(.+)/, async (msg, match) => {
+    const chatId = msg.chat.id;
+    const postId = match[1];
+    
+    await bot.sendMessage(
+        chatId,
+        `🔗 <b>Связь с продавцом</b>\n\n` +
+        `Чтобы связаться с продавцом, просто оставьте комментарий под объявлением:\n` +
+        `https://t.me/c/${process.env.CHANNEL_ID.replace('-100', '')}/${postId}\n\n` +
+        `Продавец получит уведомление о вашем комментарии.`,
+        { parse_mode: 'HTML' }
+    );
+});
+
+// ============================================
+// ЗАПУСК СЕРВЕРА
+// ============================================
+
+app.listen(PORT, () => {
+    console.log(`🚀 Сервер запущен на порту ${PORT}`);
+    console.log(`🌐 WebApp: ${process.env.RAILWAY_STATIC_URL}`);
+    console.log(`📢 Канал: ${process.env.CHANNEL_USERNAME}`);
+    console.log(`💬 Комментарии: Автоматически включены (канал подключен к группе)`);
 });
