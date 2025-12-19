@@ -881,15 +881,15 @@ function checkBackend() {
         })
         .then(data => {
             console.log('Информация сервера:', data);
-            showNotification('Сервер готов', 'Соединение с сервером установлено', 'success');
+            // Только тихое логирование, без уведомления
         })
         .catch(error => {
             console.warn('⚠️ Не удалось подключиться к серверу:', error.message);
-            showNotification('Внимание', 'Сервер временно недоступен. Работаем в оффлайн-режиме.', 'info');
+            // Не показываем уведомление пользователю
         });
 }
 
-// ==================== ЭКСПОРТ ФУНКЦИЙ ====================
+// ==================== ГЛОБАЛЬНЫЕ ФУНКЦИИ ====================
 
 window.nextStep = nextStep;
 window.prevStep = prevStep;
@@ -932,9 +932,11 @@ function createNewAd() {
     location.reload();
 }
 
-// ==================== ОБНОВЛЕННАЯ ФУНКЦИЯ SUBMIT FORM ====================
+// ==================== ОСНОВНАЯ ФУНКЦИЯ ПУБЛИКАЦИИ ====================
 
 async function submitForm() {
+    console.log('Начало публикации...');
+    
     saveCurrentStepData();
     
     // Валидация
@@ -957,7 +959,7 @@ async function submitForm() {
             submitBtn.innerHTML = '<div class="loader"></div> Публикация...';
         }
         
-        showNotification('Информация', 'Отправка объявления...', 'info');
+        showNotification('Информация', 'Отправка объявления на сервер...', 'info');
         
         // Подготовка данных для отправки
         const postData = {
@@ -970,10 +972,11 @@ async function submitForm() {
             location: formData.location
         };
         
-        console.log('Отправка данных:', {
+        console.log('Отправка данных на сервер:', {
             description: formData.description.substring(0, 50) + '...',
             price: formData.price,
-            contact_type: formData.contact_type
+            contact_type: formData.contact_type,
+            contacts: formData.contacts ? 'указаны' : 'не указаны'
         });
         
         // Отправка на сервер
@@ -986,6 +989,7 @@ async function submitForm() {
         });
         
         const result = await response.json();
+        console.log('Ответ сервера:', result);
         
         if (result.success) {
             // Успех!
@@ -1028,5 +1032,79 @@ async function submitForm() {
     }
 }
 
-// Экспортируем submitForm для использования в HTML
+// Делаем функцию submitForm глобально доступной
 window.submitForm = submitForm;
+
+// ==================== ДЕМО-РЕЖИМ (если сервер не отвечает) ====================
+
+function submitFormDemo() {
+    saveCurrentStepData();
+    
+    // Валидация
+    if (formData.photos.length + formData.videos.length === 0) {
+        showNotification('Ошибка', 'Загрузите хотя бы одно фото или видео', 'error');
+        showStep(1);
+        return;
+    }
+    
+    if (!formData.description || formData.description.length < 3) {
+        showNotification('Ошибка', 'Описание должно содержать минимум 3 символа', 'error');
+        showStep(2);
+        return;
+    }
+    
+    try {
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<div class="loader"></div> Публикация...';
+        }
+        
+        // В демо-режиме просто показываем экран успеха
+        setTimeout(() => {
+            showNotification('Демо-режим', 'Объявление создано (демо-режим)', 'info');
+            
+            // Показываем экран успеха
+            document.getElementById('formContainer').style.display = 'none';
+            document.getElementById('successScreen').style.display = 'block';
+            
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Опубликовать <i class="fas fa-paper-plane"></i>';
+            }
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Ошибка:', error);
+        showNotification('Ошибка', 'Произошла ошибка', 'error');
+        
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Опубликовать <i class="fas fa-paper-plane"></i>';
+        }
+    }
+}
+
+// Альтернативная функция для отладки
+window.submitFormDemo = submitFormDemo;
+
+// Проверяем, доступен ли сервер, и выбираем функцию
+document.addEventListener('DOMContentLoaded', function() {
+    // Проверяем доступность сервера
+    fetch('/health')
+        .then(response => {
+            if (response.ok) {
+                console.log('✅ Используем реальный сервер');
+                // Используем реальную функцию
+                window.submitForm = submitForm;
+            } else {
+                throw new Error('Сервер не отвечает');
+            }
+        })
+        .catch(error => {
+            console.log('⚠️ Используем демо-режим');
+            // Используем демо-функцию
+            window.submitForm = submitFormDemo;
+        });
+});
