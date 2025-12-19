@@ -36,8 +36,8 @@ const kyrgyzstanRegions = {
     'Баткенская': ['Баткен', 'Кызыл-Кия', 'Сульфа', 'Исфана', 'Кадамжай', 'Лейлек', 'Айдаркен']
 };
 
-// ВАЖНО: Фиксированный URL бэкенда
-const SERVER_URL = 'https://backend-flower-2-production.up.railway.app';
+// ВАЖНО: Используем относительный путь для текущего домена
+const SERVER_URL = '';
 
 // ==================== ИНИЦИАЛИЗАЦИЯ ====================
 
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Инициализация лепестков
     initPetals();
     
-    // Проверка доступности бэкенда
+    // Проверка доступности сервера
     checkBackend();
 });
 
@@ -869,16 +869,23 @@ function initPetals() {
 }
 
 function checkBackend() {
-    fetch(`${SERVER_URL}/health`)
+    // Используем относительный путь для текущего домена
+    fetch('/health')
         .then(response => {
             if (response.ok) {
-                console.log('✅ Бэкенд доступен');
+                console.log('✅ Сервер работает');
+                return response.json();
             } else {
-                console.warn('⚠️ Бэкенд ответил с ошибкой:', response.status);
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
         })
+        .then(data => {
+            console.log('Информация сервера:', data);
+            showNotification('Сервер готов', 'Соединение с сервером установлено', 'success');
+        })
         .catch(error => {
-            console.error('❌ Не удалось подключиться к бэкенду:', error.message);
+            console.warn('⚠️ Не удалось подключиться к серверу:', error.message);
+            showNotification('Внимание', 'Сервер временно недоступен. Работаем в оффлайн-режиме.', 'info');
         });
 }
 
@@ -893,7 +900,6 @@ window.getTelegramLocation = getTelegramLocation;
 window.getCurrentLocation = getCurrentLocation;
 window.closeTelegramApp = closeTelegramApp;
 window.createNewAd = createNewAd;
-window.submitForm = submitForm;
 
 // ==================== ЗАГЛУШКИ ДЛЯ НЕРЕАЛИЗОВАННЫХ ФУНКЦИЙ ====================
 
@@ -926,6 +932,8 @@ function createNewAd() {
     location.reload();
 }
 
+// ==================== ОБНОВЛЕННАЯ ФУНКЦИЯ SUBMIT FORM ====================
+
 async function submitForm() {
     saveCurrentStepData();
     
@@ -949,22 +957,68 @@ async function submitForm() {
             submitBtn.innerHTML = '<div class="loader"></div> Публикация...';
         }
         
-        showNotification('Информация', 'Функция публикации временно недоступна. Режим демонстрации.', 'info');
+        showNotification('Информация', 'Отправка объявления...', 'info');
         
-        // В демо-режиме просто показываем экран успеха
-        setTimeout(() => {
+        // Подготовка данных для отправки
+        const postData = {
+            photos: formData.photos.map(photo => ({ url: photo, type: 'photo' })),
+            videos: formData.videos.map(video => ({ url: video, type: 'video' })),
+            description: formData.description,
+            price: formData.price,
+            contact_type: formData.contact_type,
+            contacts: formData.contacts,
+            location: formData.location
+        };
+        
+        console.log('Отправка данных:', {
+            description: formData.description.substring(0, 50) + '...',
+            price: formData.price,
+            contact_type: formData.contact_type
+        });
+        
+        // Отправка на сервер
+        const response = await fetch('/api/publish', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(postData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Успех!
+            showNotification('Успех!', result.message, 'success');
+            
+            // Показываем ссылку на Telegram если есть
+            if (result.telegram_link) {
+                const postLink = document.getElementById('postLink');
+                if (postLink) {
+                    postLink.href = result.telegram_link;
+                    postLink.textContent = 'Перейти к объявлению в Telegram';
+                    document.getElementById('postLinkContainer').style.display = 'block';
+                }
+            }
+            
+            // Показываем экран успеха
             document.getElementById('formContainer').style.display = 'none';
             document.getElementById('successScreen').style.display = 'block';
             
+        } else {
+            // Ошибка от сервера
+            showNotification('Ошибка', result.error || 'Не удалось опубликовать объявление', 'error');
+            
+            // Возвращаем кнопку в исходное состояние
             if (submitBtn) {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = 'Опубликовать <i class="fas fa-paper-plane"></i>';
             }
-        }, 2000);
+        }
         
     } catch (error) {
         console.error('Ошибка при публикации:', error);
-        showNotification('Ошибка', 'Не удалось опубликовать объявление', 'error');
+        showNotification('Ошибка', 'Не удалось подключиться к серверу. Попробуйте позже.', 'error');
         
         const submitBtn = document.getElementById('submitBtn');
         if (submitBtn) {
@@ -973,3 +1027,6 @@ async function submitForm() {
         }
     }
 }
+
+// Экспортируем submitForm для использования в HTML
+window.submitForm = submitForm;
