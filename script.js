@@ -3,7 +3,7 @@
 // Подключен к бэкенду: https://backend-flower-2-production.up.railway.app
 // ============================================
 
-// Конфигурация - ВАШ БЭКЕНД
+// Конфигурация - ВАШ РАБОЧИЙ БЭКЕНД
 const BACKEND_URL = 'https://backend-flower-2-production.up.railway.app';
 
 // Глобальные переменные
@@ -24,17 +24,21 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (tg) {
         tg.ready();
         tg.expand();
-        tg.enableClosingConfirmation();
         
         console.log('✅ Telegram WebApp инициализирован');
         console.log('User:', tg.initDataUnsafe?.user);
         
         // Показываем кнопку закрытия для Telegram
         document.getElementById('telegramCloseSection').style.display = 'block';
+    } else {
+        console.log('⚠️ Запуск в браузере (не Telegram)');
+        // Для тестирования в браузере
+        window.tgMock = {
+            initData: 'mock_data_for_testing',
+            initDataUnsafe: { user: { id: 123456, first_name: 'Тест', username: 'test_user' } }
+        };
+        tg = window.tgMock;
     }
-    
-    // Загружаем конфигурацию
-    await loadConfig();
     
     // Настраиваем обработчики
     setupEventListeners();
@@ -49,36 +53,19 @@ document.addEventListener('DOMContentLoaded', async function() {
 // Проверка связи с бэкендом
 async function checkBackendConnection() {
     try {
+        console.log('🔗 Проверяю связь с бэкендом...');
         const response = await fetch(`${BACKEND_URL}/api/health`);
+        const data = await response.json();
+        
         if (response.ok) {
-            console.log('✅ Связь с бэкендом установлена');
+            console.log('✅ Связь с бэкендом установлена:', data);
+            showNotification('Готов к работе', 'Бэкенд подключен', 'success');
         } else {
-            console.warn('⚠️ Бэкенд недоступен');
+            console.warn('⚠️ Бэкенд ответил с ошибкой:', data);
         }
     } catch (error) {
         console.error('❌ Ошибка связи с бэкендом:', error);
         showNotification('Внимание', 'Бэкенд временно недоступен', 'info');
-    }
-}
-
-// Загрузка конфигурации
-async function loadConfig() {
-    try {
-        const response = await fetch(`${BACKEND_URL}/api/config`);
-        const config = await response.json();
-        
-        if (config.success) {
-            console.log('✅ Конфигурация загружена:', config);
-            window.appConfig = config;
-        }
-    } catch (error) {
-        console.error('❌ Ошибка загрузки конфигурации:', error);
-        // Используем конфигурацию по умолчанию
-        window.appConfig = {
-            backendUrl: BACKEND_URL,
-            channelName: '@flownnnnsm',
-            maxPhotos: 10
-        };
     }
 }
 
@@ -99,18 +86,20 @@ function showStep(step) {
         currentStep = step;
         updateProgressBar();
         validateCurrentStep();
-        
-        // Прокрутка наверх
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 }
 
 function updateProgressBar() {
     const steps = document.querySelectorAll('.progress-step');
     steps.forEach((step, index) => {
-        const isActive = index + 1 <= currentStep;
-        step.querySelector('.step-number').classList.toggle('active', isActive);
-        step.querySelector('.step-label').classList.toggle('active', isActive);
+        const stepNumber = step.querySelector('.step-number');
+        const stepLabel = step.querySelector('.step-label');
+        
+        if (stepNumber && stepLabel) {
+            const isActive = index + 1 <= currentStep;
+            stepNumber.classList.toggle('active', isActive);
+            stepLabel.classList.toggle('active', isActive);
+        }
     });
 }
 
@@ -125,33 +114,34 @@ function validateCurrentStep() {
             break;
             
         case 2:
-            const desc = document.getElementById('description').value.trim();
+            const desc = document.getElementById('description')?.value.trim() || '';
             isValid = desc.length >= 3;
             errorMessage = 'Описание должно содержать минимум 3 символа';
             break;
             
         case 3:
-            const price = document.getElementById('price').value;
-            const isNegotiable = document.getElementById('priceBtnNegotiable').classList.contains('active');
+            const priceInput = document.getElementById('price');
+            const price = priceInput?.value || '';
+            const isNegotiable = document.getElementById('priceBtnNegotiable')?.classList.contains('active');
             isValid = isNegotiable || (price && !isNaN(parseFloat(price)) && parseFloat(price) > 0);
             errorMessage = 'Укажите цену или выберите "Договорная"';
             break;
             
         case 4:
             if (selectedContactType === 'telegram') {
-                const telegram = document.getElementById('telegram').value.trim();
+                const telegram = document.getElementById('telegram')?.value.trim() || '';
                 isValid = telegram.length >= 3;
                 errorMessage = 'Введите Telegram username';
             } else if (selectedContactType === 'phone') {
-                const phone = document.getElementById('phone').value.trim();
+                const phone = document.getElementById('phone')?.value.trim() || '';
                 isValid = phone.length >= 10;
                 errorMessage = 'Введите номер телефона';
             }
             break;
             
         case 5:
-            const region = document.getElementById('regionSelect').value;
-            const city = document.getElementById('citySelect').value;
+            const region = document.getElementById('regionSelect')?.value || '';
+            const city = document.getElementById('citySelect')?.value || '';
             isValid = region && city;
             errorMessage = 'Выберите регион и город';
             break;
@@ -195,7 +185,7 @@ function getHintIdForStep(step) {
 
 function handleMediaUpload(event) {
     const files = Array.from(event.target.files);
-    const maxFiles = window.appConfig?.maxPhotos || 10;
+    const maxFiles = 10; // Максимум 10 фото
     
     // Проверка лимита
     if (mediaFiles.length + files.length > maxFiles) {
@@ -203,18 +193,22 @@ function handleMediaUpload(event) {
         return;
     }
     
+    // Проверка типа файлов
+    const validFiles = files.filter(file => {
+        const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        return validTypes.includes(file.type);
+    });
+    
     // Добавляем файлы
-    files.forEach(file => {
-        if (file.type.startsWith('image/')) {
-            const url = URL.createObjectURL(file);
-            mediaFiles.push({
-                file: file,
-                url: url,
-                name: file.name,
-                type: file.type,
-                size: file.size
-            });
-        }
+    validFiles.forEach(file => {
+        const url = URL.createObjectURL(file);
+        mediaFiles.push({
+            file: file,
+            url: url,
+            name: file.name,
+            type: file.type,
+            size: file.size
+        });
     });
     
     updateMediaPreview();
@@ -234,7 +228,7 @@ function updateMediaPreview() {
         
         item.innerHTML = `
             <img src="${file.url}" alt="Фото ${index + 1}" loading="lazy">
-            <div class="media-type">ФОТО</div>
+            <div class="media-type">${file.type.includes('image') ? 'ФОТО' : 'ФАЙЛ'}</div>
             <div class="remove-media" onclick="removeMedia(${index})">
                 <i class="fas fa-times"></i>
             </div>
@@ -263,27 +257,32 @@ function removeMedia(index) {
 }
 
 // ============================================
-// API ВЗАИМОДЕЙСТВИЕ
+// API ВЗАИМОДЕЙСТВИЕ С БЭКЕНДОМ
 // ============================================
 
 async function getCities(region) {
     try {
+        console.log(`Запрос городов для региона: ${region}`);
         const response = await fetch(`${BACKEND_URL}/api/cities/${encodeURIComponent(region)}`);
-        const data = await response.json();
         
-        if (data.success) {
-            return data.cities || [];
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-        return [];
+        
+        const data = await response.json();
+        console.log('Получены города:', data);
+        
+        return data.cities || [];
     } catch (error) {
         console.error('Ошибка получения городов:', error);
+        showNotification('Ошибка', 'Не удалось загрузить города', 'error');
         return [];
     }
 }
 
 async function publishAd(formData) {
     try {
-        console.log('Отправка данных на бэкенд:', formData);
+        console.log('📤 Отправка данных на бэкенд:', formData);
         
         const response = await fetch(`${BACKEND_URL}/api/publish`, {
             method: 'POST',
@@ -294,13 +293,13 @@ async function publishAd(formData) {
         });
         
         const result = await response.json();
-        console.log('Ответ от бэкенда:', result);
+        console.log('📥 Ответ от бэкенда:', result);
         
         return result;
         
     } catch (error) {
-        console.error('Ошибка публикации:', error);
-        throw error;
+        console.error('❌ Ошибка публикации:', error);
+        throw new Error(`Не удалось отправить данные: ${error.message}`);
     }
 }
 
@@ -309,9 +308,10 @@ async function publishAd(formData) {
 // ============================================
 
 async function submitForm() {
+    console.log('🚀 Начинаю публикацию...');
+    
     // Проверяем все шаги
     for (let i = 1; i <= 5; i++) {
-        showStep(i);
         if (!validateCurrentStep()) {
             showNotification('Ошибка', 'Заполните все обязательные поля', 'error');
             return;
@@ -324,17 +324,17 @@ async function submitForm() {
     
     // Собираем данные
     const formData = {
-        initData: tg?.initData || '',
+        initData: tg?.initData || 'test_data', // Для тестирования
         description: document.getElementById('description').value,
         price: document.getElementById('price').value || 'Договорная',
         contacts: getContactInfo(),
         region: document.getElementById('regionSelect').value,
         city: document.getElementById('citySelect').value,
-        address: document.getElementById('addressInput').value,
-        photos: mediaFiles.map(f => f.url) // В реальном приложении нужно загружать на сервер
+        address: document.getElementById('addressInput').value || '',
+        photos: mediaFiles.map(f => f.url)
     };
     
-    console.log('Данные для публикации:', formData);
+    console.log('📝 Данные для публикации:', formData);
     
     // Показываем загрузку
     const submitBtn = document.getElementById('submitBtn');
@@ -348,13 +348,14 @@ async function submitForm() {
         
         if (result.success) {
             // Успех!
+            console.log('✅ Публикация успешна!', result);
             showSuccessScreen(result.postLink);
         } else {
-            throw new Error(result.error || 'Ошибка публикации');
+            throw new Error(result.error || 'Неизвестная ошибка публикации');
         }
         
     } catch (error) {
-        console.error('Ошибка:', error);
+        console.error('❌ Ошибка публикации:', error);
         showNotification('Ошибка публикации', error.message, 'error');
         
         // Восстанавливаем кнопку
@@ -398,21 +399,24 @@ function updatePreview() {
     
     // Остальные поля
     document.getElementById('previewDescription').textContent = 
-        document.getElementById('description').value;
+        document.getElementById('description').value || 'Не указано';
     
     document.getElementById('previewPrice').textContent = 
         document.getElementById('price').value || 'Договорная';
     
     document.getElementById('previewContacts').textContent = getContactInfo();
     
-    const region = document.getElementById('regionSelect').value;
-    const city = document.getElementById('citySelect').value;
-    const address = document.getElementById('addressInput').value;
+    const region = document.getElementById('regionSelect').value || '';
+    const city = document.getElementById('citySelect').value || '';
+    const address = document.getElementById('addressInput').value || '';
+    
     let locationText = '';
     if (region) locationText += region;
     if (city) locationText += `, ${city}`;
     if (address) locationText += ` (${address})`;
-    document.getElementById('previewLocation').textContent = locationText;
+    
+    document.getElementById('previewLocation').textContent = 
+        locationText || 'Не указано';
 }
 
 // ============================================
@@ -448,9 +452,11 @@ function showSuccessScreen(postLink) {
     
     // Обновляем ссылку
     const linkElement = document.getElementById('postLink');
-    if (linkElement && postLink) {
-        linkElement.href = postLink;
-        linkElement.textContent = 'Перейти к объявлению с комментариями';
+    if (linkElement) {
+        linkElement.href = postLink || '#';
+        linkElement.textContent = postLink 
+            ? 'Перейти к объявлению с комментариями' 
+            : 'Объявление опубликовано';
     }
     
     // Обновляем текст о комментариях
@@ -486,20 +492,30 @@ window.prevStep = function() {
 
 // Цена
 window.setNegotiablePrice = function() {
-    document.getElementById('price').value = 'Договорная';
-    document.getElementById('priceBtnNegotiable').classList.add('active');
-    document.getElementById('priceBtnEnter').classList.remove('active');
+    const priceInput = document.getElementById('price');
+    const negotiableBtn = document.getElementById('priceBtnNegotiable');
+    const enterBtn = document.getElementById('priceBtnEnter');
+    
+    if (priceInput) priceInput.value = 'Договорная';
+    if (negotiableBtn) negotiableBtn.classList.add('active');
+    if (enterBtn) enterBtn.classList.remove('active');
+    
     validateCurrentStep();
 };
 
 window.focusPriceInput = function() {
     const priceInput = document.getElementById('price');
-    priceInput.value = '';
-    priceInput.readOnly = false;
-    priceInput.focus();
-    priceInput.placeholder = 'Например: 500';
-    document.getElementById('priceBtnNegotiable').classList.remove('active');
-    document.getElementById('priceBtnEnter').classList.add('active');
+    const negotiableBtn = document.getElementById('priceBtnNegotiable');
+    const enterBtn = document.getElementById('priceBtnEnter');
+    
+    if (priceInput) {
+        priceInput.value = '';
+        priceInput.readOnly = false;
+        priceInput.focus();
+        priceInput.placeholder = 'Например: 500';
+    }
+    if (negotiableBtn) negotiableBtn.classList.remove('active');
+    if (enterBtn) enterBtn.classList.add('active');
 };
 
 // Контакты
@@ -510,17 +526,15 @@ window.selectContactType = function(type) {
     document.querySelectorAll('.contact-option').forEach(opt => {
         opt.classList.remove('active');
     });
-    document.getElementById(`${type}Option`).classList.add('active');
+    const optionElement = document.getElementById(`${type}Option`);
+    if (optionElement) optionElement.classList.add('active');
     
     // Поля ввода
-    document.getElementById('telegramInputGroup').style.display = 
-        type === 'telegram' ? 'block' : 'none';
-    document.getElementById('phoneInputGroup').style.display = 
-        type === 'phone' ? 'block' : 'none';
+    const telegramGroup = document.getElementById('telegramInputGroup');
+    const phoneGroup = document.getElementById('phoneInputGroup');
     
-    // Сбрасываем значения
-    if (type !== 'telegram') document.getElementById('telegram').value = '';
-    if (type !== 'phone') document.getElementById('phone').value = '';
+    if (telegramGroup) telegramGroup.style.display = type === 'telegram' ? 'block' : 'none';
+    if (phoneGroup) phoneGroup.style.display = type === 'phone' ? 'block' : 'none';
     
     validateCurrentStep();
 };
@@ -530,6 +544,8 @@ window.loadCities = async function(region) {
     if (!region) return;
     
     const citySelect = document.getElementById('citySelect');
+    if (!citySelect) return;
+    
     const originalValue = citySelect.value;
     
     citySelect.innerHTML = '<option value="">Загрузка...</option>';
@@ -554,55 +570,13 @@ window.loadCities = async function(region) {
     validateCurrentStep();
 };
 
-// Карта
-window.getTelegramLocation = function() {
-    if (tg) {
-        tg.showPopup({
-            title: 'Геолокация',
-            message: 'Разрешить доступ к вашему местоположению?',
-            buttons: [
-                { type: 'ok', text: 'Разрешить' },
-                { type: 'cancel', text: 'Отмена' }
-            ]
-        }, async (buttonId) => {
-            if (buttonId === 'ok') {
-                tg.requestLocation((location) => {
-                    if (location) {
-                        showNotification('Успех', 'Местоположение получено', 'success');
-                        // Здесь можно обновить карту
-                    }
-                });
-            }
-        });
-    } else {
-        showNotification('Информация', 'Функция доступна только в Telegram', 'info');
-    }
-};
-
-window.getCurrentLocation = function() {
-    if (navigator.geolocation) {
-        showNotification('Информация', 'Определяем местоположение...', 'info');
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                showNotification('Успех', 'Местоположение определено', 'success');
-                // Здесь можно обновить карту
-            },
-            (error) => {
-                showNotification('Ошибка', 'Не удалось определить местоположение', 'error');
-            }
-        );
-    } else {
-        showNotification('Ошибка', 'Геолокация не поддерживается', 'error');
-    }
-};
-
 // Другие функции
 window.createNewAd = function() {
     location.reload();
 };
 
 window.closeTelegramApp = function() {
-    if (tg) {
+    if (tg && tg.close) {
         tg.close();
     }
 };
@@ -625,23 +599,13 @@ function setupEventListeners() {
     }
     
     // Автовалидация полей
-    const fields = ['description', 'telegram', 'phone', 'addressInput'];
+    const fields = ['description', 'telegram', 'phone', 'addressInput', 'price'];
     fields.forEach(fieldId => {
         const field = document.getElementById(fieldId);
         if (field) {
             field.addEventListener('input', () => validateCurrentStep());
         }
     });
-    
-    // Цена
-    const priceInput = document.getElementById('price');
-    if (priceInput) {
-        priceInput.addEventListener('input', function() {
-            // Оставляем только цифры
-            this.value = this.value.replace(/\D/g, '');
-            validateCurrentStep();
-        });
-    }
     
     // Регион
     const regionSelect = document.getElementById('regionSelect');
