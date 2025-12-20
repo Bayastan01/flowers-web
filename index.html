@@ -127,6 +127,7 @@
                   <i class="fas fa-cloud-upload-alt photo-upload-icon"></i>
                   <p><strong>Нажмите для загрузки фото/видео</strong></p>
                   <p class="input-hint">Выберите до 10 файлов (фото или видео)</p>
+                  <p class="input-hint" style="color: #667eea; font-weight: bold;">Все фото будут в одном объявлении!</p>
                   <div id="mediaHint" class="field-hint">Загрузите хотя бы одно фото для продолжения</div>
               </div>
               <input type="file" id="mediaInput" accept="image/*,video/*" multiple style="display: none;" onchange="handleMediaUpload(event)">
@@ -310,6 +311,14 @@
               <div class="preview-value" id="previewContacts"></div>
           </div>
 
+          <div class="preview-item" style="background: #f0f8ff; border-left-color: #4CAF50;">
+              <div class="preview-label" style="color: #4CAF50;">Формат публикации</div>
+              <div class="preview-value" style="color: #666; font-size: 13px;">
+                  <i class="fas fa-images" style="color: #4CAF50;"></i> Все фото будут в одном посте<br>
+                  <i class="fas fa-layer-group" style="color: #4CAF50;"></i> Галерея из {mediaFiles.length} фото
+              </div>
+          </div>
+
           <div class="navigation">
               <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
               <button class="btn" onclick="submitForm()" id="submitBtn">Опубликовать <i class="fas fa-paper-plane"></i></button>
@@ -323,14 +332,14 @@
             <i class="fas fa-check-circle success-icon"></i>
             <h2 class="success-title">Объявление успешно опубликовано!</h2>
             <p class="success-message" id="successMessageText">
-                Ваше объявление опубликовано в канале с комментариями.<br>
+                Ваше объявление с {mediaFiles.length} фото опубликовано в канале с комментариями.<br>
                 Теперь покупатели могут задавать вопросы под вашим объявлением.
             </p>
 
             <div class="success-steps">
                 <div class="success-step">
                     <div class="step-badge">1</div>
-                    <div class="step-text">Объявление опубликовано в канале</div>
+                    <div class="step-text">Объявление с {mediaFiles.length} фото опубликовано</div>
                 </div>
                 <div class="success-step">
                     <div class="step-badge">2</div>
@@ -398,12 +407,6 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
     showStep(1);
     updateContactStepUI();
-    
-    // Загружаем районы при загрузке страницы, если уже выбран город
-    const citySelect = document.getElementById('citySelect');
-    if (citySelect.value) {
-        loadDistricts(citySelect.value);
-    }
 });
 
 // Основные функции
@@ -558,7 +561,7 @@ function handleMediaUpload(event) {
                 name: file.name,
                 type: file.type,
                 size: file.size,
-                uploaded: true, // Для тестирования сразу помечаем как загруженное
+                uploaded: true,
                 fileId: 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
             };
             
@@ -618,7 +621,7 @@ function updateMediaPreview() {
     const hint = document.getElementById('mediaHint');
     if (hint) {
         if (mediaFiles.length > 0) {
-            hint.textContent = `✅ Загружено файлов: ${mediaFiles.length}`;
+            hint.textContent = `✅ Загружено файлов: ${mediaFiles.length} (все в одном посте)`;
             hint.style.color = '#34c759';
             hint.classList.remove('show');
         } else {
@@ -634,32 +637,13 @@ async function publishAd(formData) {
     try {
         console.log('📤 Отправка данных на публикацию:', formData);
         
-        // Преобразуем медиафайлы в base64 для отправки
-        const photosBase64 = [];
-        for (const file of mediaFiles) {
-            if (file.type.startsWith('image/')) {
-                // Убираем префикс data:image/...;base64,
-                const base64Data = file.url.split(',')[1];
-                photosBase64.push({
-                    name: file.name,
-                    type: file.type,
-                    data: base64Data
-                });
-            }
-        }
-        
-        const dataToSend = {
-            ...formData,
-            photos: photosBase64
-        };
-        
         const response = await fetch(`${BACKEND_URL}/api/publish`, {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify(dataToSend)
+            body: JSON.stringify(formData)
         });
         
         if (!response.ok) {
@@ -704,10 +688,27 @@ async function submitForm() {
         district: document.getElementById('districtSelect').value || '',
         address: document.getElementById('addressInput').value || '',
         hashtags: generateHashtags(),
-        format: 'new'
+        format: 'new',
+        photos: [], // Отправляем все фото как массив
+        mediaCount: mediaFiles.length
     };
     
-    console.log('📋 Данные для отправки:', formData);
+    // Добавляем все фото в base64
+    for (const file of mediaFiles) {
+        if (file.type.startsWith('image/')) {
+            const base64Data = file.url.split(',')[1]; // Убираем префикс data:image/...;base64,
+            formData.photos.push({
+                name: file.name,
+                type: file.type,
+                data: base64Data
+            });
+        }
+    }
+    
+    console.log('📋 Данные для отправки:', {
+        ...formData,
+        photos: `[${formData.photos.length} фото]` // Не логируем сами base64 данные
+    });
     
     // Показываем загрузку
     const submitBtn = document.getElementById('submitBtn');
@@ -720,6 +721,25 @@ async function submitForm() {
         
         if (result.success) {
             console.log('✅ Публикация успешна!', result);
+            
+            // Обновляем сообщение о количестве фото
+            const successMessage = document.getElementById('successMessageText');
+            const successSteps = document.querySelectorAll('.success-step .step-text');
+            
+            if (successMessage) {
+                successMessage.innerHTML = successMessage.innerHTML.replace(
+                    '{mediaFiles.length}',
+                    mediaFiles.length
+                );
+            }
+            
+            if (successSteps.length > 0) {
+                successSteps[0].textContent = successSteps[0].textContent.replace(
+                    '{mediaFiles.length}',
+                    mediaFiles.length
+                );
+            }
+            
             showSuccessScreen(result.postLink);
         } else {
             throw new Error(result.error || 'Неизвестная ошибка публикации');
@@ -867,6 +887,15 @@ function updatePreview() {
     if (address) locationText += `\nАдрес: ${address}`;
     
     document.getElementById('previewLocation').textContent = locationText;
+    
+    // Обновляем информацию о формате публикации
+    const formatElement = document.querySelector('.preview-item:last-child .preview-value');
+    if (formatElement) {
+        formatElement.innerHTML = formatElement.innerHTML.replace(
+            '{mediaFiles.length}',
+            mediaFiles.length
+        );
+    }
 }
 
 function showNotification(title, message, type = 'info') {
