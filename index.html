@@ -10,36 +10,10 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://telegram.org/js/telegram-web-app.js?1"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
-    <style>
-        /* Дополнительные стили для отладки */
-        .debug-info {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            z-index: 9999;
-            display: none;
-        }
-        .debug-info.show {
-            display: block;
-        }
-    </style>
 </head>
 <body>
   <!-- слой лепестков -->
   <div id="petalLayer" aria-hidden="true"></div>
-
-  <!-- Отладочная информация -->
-  <div class="debug-info" id="debugInfo">
-    <div>Backend: <span id="backendStatus">❌</span></div>
-    <div>Telegram: <span id="telegramStatus">❌</span></div>
-  </div>
 
   <div class="container">
     <div class="progress-bar" id="progressBar">
@@ -48,15 +22,13 @@
         <div class="progress-step"><div class="step-number">3</div><div class="step-label">Цена</div></div>
         <div class="progress-step"><div class="step-number">4</div><div class="step-label">Контакты</div></div>
         <div class="progress-step"><div class="step-number">5</div><div class="step-label">Локация</div></div>
-        <div class="progress-step"><div class="step-number">6</div><div class="step-label">Превью</div></div>
+        <div class="progress-step"><div class="step-number">6</div><div class="step-label">Свежесть</div></div>
+        <div class="progress-step"><div class="step-number">7</div><div class="step-label">Превью</div></div>
     </div>
 
     <div class="header">
         <h1><i class="fas fa-flower-tulip"></i> Flower Market Kyrgyzstan</h1>
         <p>Создайте красивое объявление о продаже цветов</p>
-        <p style="margin-top: 10px; font-size: 12px; opacity: 0.7;">
-            Бэкенд: <span id="currentBackendUrl">https://backend-flower-2-production.up.railway.app</span>
-        </p>
     </div>
   </div>
 
@@ -70,21 +42,15 @@
 
   <div class="container">
     <div class="form-container" id="formContainer">
-      <!-- Шаг 1 -->
+      <!-- Шаг 1 - Фото -->
       <div class="form-step active" id="step1">
-          <h2 class="step-title"><i class="fas fa-camera"></i> Загрузите фото и видео</h2>
+          <h2 class="step-title"><i class="fas fa-camera"></i> Загрузите фото</h2>
           <div class="form-group">
-              <label for="mediaInput" class="photo-upload" id="mediaUpload" aria-label="Загрузить медиа">
+              <label for="mediaInput" class="photo-upload" id="mediaUpload" aria-label="Загрузить фото">
                   <i class="fas fa-cloud-upload-alt photo-upload-icon"></i>
                   <p>Нажмите для загрузки фото</p>
                   <p class="input-hint">Выберите фото из галереи. Можно загрузить до 10 файлов</p>
                   <div id="mediaHint" class="field-hint">Загрузите хотя бы одно фото для продолжения</div>
-                  <div class="file-progress" id="fileProgress" style="display: none; margin-top: 10px;">
-                      <div class="progress-bar-container">
-                          <div class="progress-bar-fill" id="progressBarFill"></div>
-                      </div>
-                      <span id="progressText">0%</span>
-                  </div>
               </label>
               <input type="file" id="mediaInput" accept="image/*" multiple style="display: none;">
               <div id="mediaPreview"></div>
@@ -94,7 +60,7 @@
           </div>
       </div>
 
-      <!-- Шаг 2 -->
+      <!-- Шаг 2 - Описание -->
       <div class="form-step" id="step2">
           <h2 class="step-title"><i class="fas fa-edit"></i> Описание товара</h2>
           <div class="form-group">
@@ -109,7 +75,7 @@
           </div>
       </div>
 
-      <!-- Шаг 3 -->
+      <!-- Шаг 3 - Цена -->
       <div class="form-step" id="step3">
           <h2 class="step-title"><i class="fas fa-tag"></i> Укажите цену</h2>
           <div class="form-group">
@@ -134,7 +100,7 @@
           </div>
       </div>
 
-      <!-- Шаг 4 -->
+      <!-- Шаг 4 - Контакты -->
       <div class="form-step" id="step4">
           <h2 class="step-title"><i class="fas fa-phone"></i> Контакты для связи</h2>
           <div class="contact-options">
@@ -172,68 +138,45 @@
           </div>
       </div>
 
-      <!-- Шаг 5 -->
+      <!-- Шаг 5 - Локация -->
       <div class="form-step" id="step5">
           <h2 class="step-title"><i class="fas fa-map-marker-alt"></i> Локация</h2>
           <div class="form-group">
-              <button class="btn auto-location-btn" onclick="getTelegramLocation()" id="telegramLocationBtn" style="margin-bottom: 20px;">
-                  <i class="fas fa-location-crosshairs"></i> Определить мое местоположение через Telegram
-              </button>
+              <div class="form-group">
+                  <label for="citySelect" class="field-required">Город:</label>
+                  <select id="citySelect">
+                      <option value="">Выберите город</option>
+                      <option value="Бишкек">Бишкек</option>
+                      <option value="Ош">Ош</option>
+                      <option value="Токмок">Токмок</option>
+                      <option value="Кара-Балта">Кара-Балта</option>
+                      <option value="Кант">Кант</option>
+                      <option value="Каракол">Каракол</option>
+                      <option value="Балыкчи">Балыкчи</option>
+                      <option value="Чолпон-Ата">Чолпон-Ата</option>
+                      <option value="Джалал-Абад">Джалал-Абад</option>
+                      <option value="Майлуу-Суу">Майлуу-Суу</option>
+                      <option value="Нарын">Нарын</option>
+                      <option value="Талас">Талас</option>
+                      <option value="Баткен">Баткен</option>
+                  </select>
+                  <div id="cityHint" class="field-hint">Выберите город для продолжения</div>
+              </div>
               
-              <div class="location-select-group">
-                  <div class="form-group">
-                      <label for="regionSelect" class="field-required">Регион:</label>
-                      <select id="regionSelect">
-                          <option value="">Выберите регион</option>
-                          <option value="Бишкек">г. Бишкек</option>
-                          <option value="Ош">г. Ош</option>
-                          <option value="Чуйская">Чуйская область</option>
-                          <option value="Ошская">Ошская область</option>
-                          <option value="Джалал-Абадская">Джалал-Абадская область</option>
-                          <option value="Иссык-Кульская">Иссык-Кульская область</option>
-                          <option value="Нарынская">Нарынская область</option>
-                          <option value="Таласская">Таласская область</option>
-                          <option value="Баткенская">Баткенская область</option>
-                      </select>
-                      <div id="regionHint" class="field-hint">Выберите регион для продолжения</div>
-                  </div>
-                  
-                  <div class="form-group">
-                      <label for="citySelect" class="field-required">Город/Район:</label>
-                      <select id="citySelect">
-                          <option value="">Сначала выберите регион</option>
-                      </select>
-                      <div id="cityHint" class="field-hint">Выберите город/район для продолжения</div>
-                  </div>
+              <div class="form-group">
+                  <label for="districtSelect" class="field-required">Район города:</label>
+                  <select id="districtSelect">
+                      <option value="">Выберите район</option>
+                      <!-- Районы будут загружаться динамически -->
+                  </select>
+                  <div id="districtHint" class="field-hint">Выберите район для продолжения</div>
               </div>
               
               <div class="form-group">
                   <label for="addressInput">Точный адрес (необязательно):</label>
-                  <input type="text" id="addressInput" placeholder="Улица, дом, квартира">
-                  <p class="input-hint">Укажите улицу, дом или название района для точности</p>
+                  <input type="text" id="addressInput" placeholder="Улица, дом, ориентир">
+                  <p class="input-hint">Можно указать улицу, дом или ориентир</p>
               </div>
-              
-              <div class="map-container" id="mapContainer">
-                  <div class="map-controls">
-                      <button class="map-btn" id="locateBtn" title="Мое местоположение"><i class="fas fa-location-crosshairs"></i></button>
-                      <button class="map-btn" id="zoomInBtn" title="Приблизить"><i class="fas fa-plus"></i></button>
-                      <button class="map-btn" id="zoomOutBtn" title="Отдалить"><i class="fas fa-minus"></i></button>
-                  </div>
-                  <div class="location-pin">
-                      <i class="fas fa-map-pin"></i>
-                  </div>
-                  <div class="map-address-display" id="addressDisplay">
-                      <i class="fas fa-info-circle"></i> Укажите место на карте или используйте поиск
-                  </div>
-                  <div class="map-layer-controls">
-                      <button class="layer-btn active" id="mapLayerBtn"><i class="fas fa-map"></i> Карта</button>
-                      <button class="layer-btn" id="satelliteLayerBtn"><i class="fas fa-satellite"></i> Спутник</button>
-                  </div>
-              </div>
-              
-              <button class="btn btn-secondary" onclick="getCurrentLocation()" id="locationBtn" style="margin-top: 15px;">
-                  <i class="fas fa-location-crosshairs"></i> Использовать текущую геолокацию
-              </button>
           </div>
           <div class="navigation">
               <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
@@ -241,8 +184,30 @@
           </div>
       </div>
 
-      <!-- Шаг 6 -->
+      <!-- Шаг 6 - Свежесть -->
       <div class="form-step" id="step6">
+          <h2 class="step-title"><i class="fas fa-clock"></i> Свежесть цветов</h2>
+          <div class="form-group">
+              <label for="freshnessSelect" class="field-required">Когда собраны/привезены цветы?</label>
+              <select id="freshnessSelect">
+                  <option value="">Выберите свежесть</option>
+                  <option value="Сегодня">Сегодня</option>
+                  <option value="Вчера">Вчера</option>
+                  <option value="Позавчера">Позавчера</option>
+                  <option value="3-5 дней назад">3-5 дней назад</option>
+                  <option value="Неделя">Неделя</option>
+              </select>
+              <p class="input-hint">Укажите, когда были собраны или привезены цветы</p>
+              <div id="freshnessHint" class="field-hint">Выберите свежесть для продолжения</div>
+          </div>
+          <div class="navigation">
+              <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
+              <button class="btn" onclick="nextStep()" id="nextBtn6" disabled>Далее <i class="fas fa-arrow-right"></i></button>
+          </div>
+      </div>
+
+      <!-- Шаг 7 - Превью -->
+      <div class="form-step" id="step7">
           <h2 class="step-title"><i class="fas fa-eye"></i> Превью объявления</h2>
 
           <div class="preview-item">
@@ -250,8 +215,16 @@
               <div id="previewMedia" class="photos-grid"></div>
           </div>
           <div class="preview-item">
-              <div class="preview-label">Описание</div>
+              <div class="preview-label">Комментарий</div>
               <div class="preview-value" id="previewDescription"></div>
+          </div>
+          <div class="preview-item">
+              <div class="preview-label">Свежесть</div>
+              <div class="preview-value" id="previewFreshness"></div>
+          </div>
+          <div class="preview-item">
+              <div class="preview-label">Локация</div>
+              <div class="preview-value" id="previewLocation"></div>
           </div>
           <div class="preview-item">
               <div class="preview-label">Цена</div>
@@ -261,9 +234,10 @@
               <div class="preview-label">Контакты</div>
               <div class="preview-value" id="previewContacts"></div>
           </div>
-          <div class="preview-item">
-              <div class="preview-label">Локация</div>
-              <div class="preview-value" id="previewLocation"></div>
+
+          <div class="preview-item" style="background: #f8f9fa; border-left-color: #667eea;">
+              <div class="preview-label" style="color: #667eea;">Формат публикации</div>
+              <div class="preview-value" id="previewFormat" style="font-size: 14px; line-height: 1.6;"></div>
           </div>
 
           <div class="navigation">
@@ -279,29 +253,22 @@
             <i class="fas fa-check-circle success-icon"></i>
             <h2 class="success-title">Объявление успешно опубликовано!</h2>
             <p class="success-message" id="successMessageText">
-                Ваше объявление было опубликовано в канале.<br>
-                Теперь его могут видеть все покупатели.
+                Ваше объявление опубликовано в канале с комментариями.<br>
+                Теперь покупатели могут задавать вопросы под вашим объявлением.
             </p>
 
             <div class="success-steps">
                 <div class="success-step">
                     <div class="step-badge">1</div>
-                    <div class="step-text">Объявление опубликовано в канале с включенными комментариями</div>
+                    <div class="step-text">Объявление опубликовано в формате, удобном для покупателей</div>
                 </div>
                 <div class="success-step">
                     <div class="step-badge">2</div>
-                    <div class="step-text">Покупатели могут связаться с вами через комментарии или указанные контакты</div>
+                    <div class="step-text">Комментарии включены - покупатели могут задавать вопросы</div>
                 </div>
                 <div class="success-step">
                     <div class="step-badge">3</div>
                     <div class="step-text">Объявление будет активно 7 дней</div>
-                </div>
-                <div class="success-step">
-                    <div class="step-badge">💬</div>
-                    <div class="step-text">
-                        <b>Комментарии автоматически включены!</b><br>
-                        Покупатели могут задавать вопросы прямо под объявлением
-                    </div>
                 </div>
             </div>
 
@@ -320,33 +287,10 @@
             <button class="btn" onclick="createNewAd()" style="margin-top: 30px;">
                 <i class="fas fa-plus"></i> Создать новое объявление
             </button>
-            
-            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px; font-size: 14px;">
-                <p style="margin: 0; color: #666;">
-                    <i class="fas fa-info-circle"></i> 
-                    Если объявление не появилось в канале, проверьте настройки бота или свяжитесь с администратором.
-                </p>
-            </div>
         </div>
     </div>
   </div>
 
-  <!-- Тестовые кнопки (только для разработки) -->
-  <div style="position: fixed; bottom: 60px; right: 10px; z-index: 9999;">
-      <button onclick="testBackendConnection()" style="background: #333; color: white; border: none; padding: 8px 12px; border-radius: 5px; font-size: 12px; margin: 2px;">
-          Тест бэкенда
-      </button>
-      <button onclick="showDebugInfo()" style="background: #666; color: white; border: none; padding: 8px 12px; border-radius: 5px; font-size: 12px; margin: 2px;">
-          Отладка
-      </button>
-      <button onclick="fillTestData()" style="background: #4CAF50; color: white; border: none; padding: 8px 12px; border-radius: 5px; font-size: 12px; margin: 2px;">
-          Тест данные
-      </button>
-  </div>
-
-  <!-- Leaflet для карт -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  
   <!-- Основной JavaScript файл -->
   <script>
 // ============================================
@@ -354,14 +298,31 @@
 // Подключен к бэкенду: https://backend-flower-2-production.up.railway.app
 // ============================================
 
-// Конфигурация - ВАШ РАБОЧИЙ БЭКЕНД
 const BACKEND_URL = 'https://backend-flower-2-production.up.railway.app';
 
 // Глобальные переменные
 let currentStep = 1;
+let totalSteps = 7;
 let mediaFiles = [];
 let selectedContactType = 'telegram';
 let tg = window.Telegram?.WebApp;
+
+// Данные для районов городов
+const districtsData = {
+    'Бишкек': ['Центр', 'Аламедин', 'Левый берег', 'Правый берег', 'Юг', 'Север', 'Ортосай', 'Восток', 'Запад'],
+    'Ош': ['Центр', 'Старый город', 'Новый город', 'Курманжан', 'Араван'],
+    'Токмок': ['Центр', 'Северный', 'Южный', 'Восточный'],
+    'Кара-Балта': ['Центр', 'Микрорайон', 'Старый город'],
+    'Кант': ['Центр', 'Заводской', 'Сельский'],
+    'Каракол': ['Центр', 'Пристань', 'Микрорайон'],
+    'Балыкчи': ['Центр', 'Порт', 'Рыбацкий'],
+    'Чолпон-Ата': ['Центр', 'Пляжная', 'Курортная'],
+    'Джалал-Абад': ['Центр', 'Старый город', 'Новый район'],
+    'Майлуу-Суу': ['Центр', 'Горный', 'Речной'],
+    'Нарын': ['Центр', 'Горный', 'Долинный'],
+    'Талас': ['Центр', 'Исторический', 'Современный'],
+    'Баткен': ['Центр', 'Пограничный', 'Сельский']
+};
 
 // ============================================
 // ИНИЦИАЛИЗАЦИЯ
@@ -369,97 +330,37 @@ let tg = window.Telegram?.WebApp;
 
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('🌺 Flower Market Frontend запущен');
-    console.log('Frontend URL:', window.location.href);
-    console.log('Backend URL:', BACKEND_URL);
     
-    // Обновляем отображение URL бэкенда
-    document.getElementById('currentBackendUrl').textContent = BACKEND_URL;
-    
-    // Инициализация Telegram WebApp
     if (tg) {
         tg.ready();
         tg.expand();
-        
-        console.log('✅ Telegram WebApp инициализирован');
-        console.log('User:', tg.initDataUnsafe?.user);
-        
-        // Обновляем статус Telegram
-        document.getElementById('telegramStatus').textContent = '✅';
-        document.getElementById('telegramStatus').style.color = 'green';
-        
-        // Показываем кнопку закрытия для Telegram
         document.getElementById('telegramCloseSection').style.display = 'block';
-    } else {
-        console.log('⚠️ Запуск в браузере (не Telegram)');
-        document.getElementById('telegramStatus').textContent = '⚠️ (браузер)';
-        document.getElementById('telegramStatus').style.color = 'orange';
-        
-        // Для тестирования в браузере создаем mock объект
-        window.tgMock = {
-            initData: 'mock_data_for_testing',
-            initDataUnsafe: { 
-                user: { 
-                    id: 123456789, 
-                    first_name: 'Тестовый', 
-                    username: 'test_user' 
-                } 
-            }
-        };
-        tg = window.tgMock;
     }
     
-    // Настраиваем обработчики
     setupEventListeners();
-    
-    // Показываем первый шаг
     showStep(1);
-    
-    // Проверяем связь с бэкендом
-    await checkBackendConnection();
 });
-
-// Проверка связи с бэкендом
-async function checkBackendConnection() {
-    try {
-        console.log('🔗 Проверяю связь с бэкендом...');
-        const response = await fetch(`${BACKEND_URL}/api/health`);
-        const data = await response.json();
-        
-        if (response.ok) {
-            console.log('✅ Связь с бэкендом установлена:', data);
-            document.getElementById('backendStatus').textContent = '✅';
-            document.getElementById('backendStatus').style.color = 'green';
-            showNotification('Готов к работе', 'Бэкенд подключен', 'success');
-        } else {
-            console.warn('⚠️ Бэкенд ответил с ошибкой:', data);
-            document.getElementById('backendStatus').textContent = '⚠️';
-            document.getElementById('backendStatus').style.color = 'orange';
-        }
-    } catch (error) {
-        console.error('❌ Ошибка связи с бэкендом:', error);
-        document.getElementById('backendStatus').textContent = '❌';
-        document.getElementById('backendStatus').style.color = 'red';
-        showNotification('Внимание', 'Бэкенд временно недоступен', 'info');
-    }
-}
 
 // ============================================
 // ОСНОВНЫЕ ФУНКЦИИ ФОРМЫ
 // ============================================
 
 function showStep(step) {
-    // Скрываем все шаги
     document.querySelectorAll('.form-step').forEach(el => {
         el.classList.remove('active');
     });
     
-    // Показываем нужный шаг
     const stepEl = document.getElementById(`step${step}`);
     if (stepEl) {
         stepEl.classList.add('active');
         currentStep = step;
         updateProgressBar();
         validateCurrentStep();
+        
+        // На последнем шаге обновляем превью
+        if (currentStep === totalSteps) {
+            updatePreview();
+        }
     }
 }
 
@@ -490,12 +391,11 @@ function validateCurrentStep() {
         case 2:
             const desc = document.getElementById('description')?.value.trim() || '';
             isValid = desc.length >= 3;
-            errorMessage = 'Описание должно содержать минимум 3 символа';
+            errorMessage = 'Комментарий должен содержать минимум 3 символа';
             break;
             
         case 3:
-            const priceInput = document.getElementById('price');
-            const price = priceInput?.value || '';
+            const price = document.getElementById('price')?.value || '';
             const isNegotiable = document.getElementById('priceBtnNegotiable')?.classList.contains('active');
             isValid = isNegotiable || (price && !isNaN(parseFloat(price)) && parseFloat(price) > 0);
             errorMessage = 'Укажите цену или выберите "Договорная"';
@@ -514,20 +414,24 @@ function validateCurrentStep() {
             break;
             
         case 5:
-            const region = document.getElementById('regionSelect')?.value || '';
             const city = document.getElementById('citySelect')?.value || '';
-            isValid = region && city;
-            errorMessage = 'Выберите регион и город';
+            const district = document.getElementById('districtSelect')?.value || '';
+            isValid = city && district;
+            errorMessage = 'Выберите город и район';
+            break;
+            
+        case 6:
+            const freshness = document.getElementById('freshnessSelect')?.value || '';
+            isValid = !!freshness;
+            errorMessage = 'Выберите свежесть цветов';
             break;
     }
     
-    // Обновляем кнопку "Далее"
     const nextBtn = document.getElementById(`nextBtn${currentStep}`);
     if (nextBtn) {
         nextBtn.disabled = !isValid;
     }
     
-    // Показываем/скрываем ошибку
     const hintId = getHintIdForStep(currentStep);
     const hintElement = document.getElementById(hintId);
     if (hintElement) {
@@ -548,51 +452,53 @@ function getHintIdForStep(step) {
         2: 'descriptionHint',
         3: 'priceHint',
         4: selectedContactType === 'telegram' ? 'telegramHint' : 'phoneHint',
-        5: 'regionHint'
+        5: 'cityHint',
+        6: 'freshnessHint'
     };
     return hints[step];
 }
 
 // ============================================
-// ОБРАБОТКА МЕДИА
+// ОБРАБОТКА ФОТО
 // ============================================
 
 function handleMediaUpload(event) {
     const files = Array.from(event.target.files);
-    const maxFiles = 10; // Максимум 10 фото
+    const maxFiles = 10;
     
-    // Проверка лимита
     if (mediaFiles.length + files.length > maxFiles) {
         showNotification('Ошибка', `Можно загрузить не более ${maxFiles} фото`, 'error');
         return;
     }
     
-    // Проверка типа файлов
-    const validFiles = files.filter(file => {
-        const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        return validTypes.includes(file.type);
+    files.forEach(file => {
+        if (!file.type.startsWith('image/')) {
+            showNotification('Внимание', `Файл "${file.name}" не является изображением`, 'info');
+            return;
+        }
+        
+        if (file.size > 5 * 1024 * 1024) {
+            showNotification('Внимание', `Файл "${file.name}" слишком большой (макс. 5MB)`, 'info');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const url = e.target.result;
+            mediaFiles.push({
+                file: file,
+                url: url,
+                name: file.name,
+                type: file.type,
+                size: file.size
+            });
+            
+            updateMediaPreview();
+            validateCurrentStep();
+        };
+        reader.readAsDataURL(file);
     });
     
-    // Добавляем файлы
-    validFiles.forEach(file => {
-        const url = URL.createObjectURL(file);
-        mediaFiles.push({
-            file: file,
-            url: url,
-            name: file.name,
-            type: file.type,
-            size: file.size,
-            uploaded: false
-        });
-    });
-    
-    // Если есть невалидные файлы
-    if (validFiles.length < files.length) {
-        showNotification('Внимание', 'Некоторые файлы не были загружены (поддерживаются только JPG, PNG, GIF, WebP)', 'info');
-    }
-    
-    updateMediaPreview();
-    validateCurrentStep();
     event.target.value = '';
 }
 
@@ -608,7 +514,7 @@ function updateMediaPreview() {
         
         item.innerHTML = `
             <img src="${file.url}" alt="Фото ${index + 1}" loading="lazy">
-            <div class="media-type">${file.type.includes('image') ? 'ФОТО' : 'ФАЙЛ'}</div>
+            <div class="media-type">ФОТО</div>
             <div class="remove-media" onclick="removeMedia(${index})">
                 <i class="fas fa-times"></i>
             </div>
@@ -617,7 +523,6 @@ function updateMediaPreview() {
         previewContainer.appendChild(item);
     });
     
-    // Обновляем подсказку
     const hint = document.getElementById('mediaHint');
     if (hint) {
         hint.textContent = mediaFiles.length > 0 
@@ -629,7 +534,6 @@ function updateMediaPreview() {
 
 function removeMedia(index) {
     if (index >= 0 && index < mediaFiles.length) {
-        URL.revokeObjectURL(mediaFiles[index].url);
         mediaFiles.splice(index, 1);
         updateMediaPreview();
         validateCurrentStep();
@@ -637,32 +541,12 @@ function removeMedia(index) {
 }
 
 // ============================================
-// API ВЗАИМОДЕЙСТВИЕ С БЭКЕНДОМ
+// API ВЗАИМОДЕЙСТВИЕ
 // ============================================
-
-async function getCities(region) {
-    try {
-        console.log(`🌍 Запрос городов для региона: ${region}`);
-        const response = await fetch(`${BACKEND_URL}/api/cities/${encodeURIComponent(region)}`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('🏙️ Получены города:', data);
-        
-        return data.cities || [];
-    } catch (error) {
-        console.error('❌ Ошибка получения городов:', error);
-        showNotification('Ошибка', 'Не удалось загрузить города', 'error');
-        return [];
-    }
-}
 
 async function publishAd(formData) {
     try {
-        console.log('📤 Отправка данных на бэкенд:', formData);
+        console.log('Отправка данных на бэкенд:', formData);
         
         const response = await fetch(`${BACKEND_URL}/api/publish`, {
             method: 'POST',
@@ -673,12 +557,12 @@ async function publishAd(formData) {
         });
         
         const result = await response.json();
-        console.log('📥 Ответ от бэкенда:', result);
+        console.log('Ответ от бэкенда:', result);
         
         return result;
         
     } catch (error) {
-        console.error('❌ Ошибка публикации:', error);
+        console.error('Ошибка публикации:', error);
         throw new Error(`Не удалось отправить данные: ${error.message}`);
     }
 }
@@ -688,57 +572,65 @@ async function publishAd(formData) {
 // ============================================
 
 async function submitForm() {
-    console.log('🚀 Начинаю публикацию...');
+    console.log('Начинаю публикацию...');
     
-    // Проверяем все шаги
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 1; i <= totalSteps - 1; i++) {
         if (!validateCurrentStep()) {
             showNotification('Ошибка', 'Заполните все обязательные поля', 'error');
             return;
         }
     }
     
-    // Показываем шаг превью
-    showStep(6);
+    showStep(totalSteps);
     updatePreview();
     
-    // Собираем данные
+    // Формируем данные в нужном формате
     const formData = {
-        initData: tg?.initData || 'test_data_for_backend', // Для тестирования
+        initData: tg?.initData || '',
+        
+        // Основные данные
         description: document.getElementById('description').value,
         price: document.getElementById('price').value || 'Договорная',
         contacts: getContactInfo(),
-        region: document.getElementById('regionSelect').value,
+        freshness: document.getElementById('freshnessSelect').value,
+        
+        // Локация
         city: document.getElementById('citySelect').value,
+        district: document.getElementById('districtSelect').value,
         address: document.getElementById('addressInput').value || '',
-        photos: mediaFiles.map(f => f.url)
+        
+        // Фото
+        photos: mediaFiles.map(f => ({
+            name: f.name,
+            type: f.type,
+            size: f.size
+        })),
+        
+        // Дополнительные данные для форматирования
+        format: 'new', // Маркер нового формата
+        hashtags: generateHashtags()
     };
     
-    console.log('📝 Данные для публикации:', formData);
+    console.log('Данные для публикации:', formData);
     
-    // Показываем загрузку
     const submitBtn = document.getElementById('submitBtn');
     const originalText = submitBtn.innerHTML;
     submitBtn.innerHTML = '<div class="loader"></div> Публикация...';
     submitBtn.disabled = true;
     
     try {
-        // Отправляем на бэкенд
         const result = await publishAd(formData);
         
         if (result.success) {
-            // Успех!
-            console.log('✅ Публикация успешна!', result);
             showSuccessScreen(result.postLink);
         } else {
             throw new Error(result.error || 'Неизвестная ошибка публикации');
         }
         
     } catch (error) {
-        console.error('❌ Ошибка публикации:', error);
+        console.error('Ошибка публикации:', error);
         showNotification('Ошибка публикации', error.message, 'error');
         
-        // Восстанавливаем кнопку
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
     }
@@ -754,6 +646,25 @@ function getContactInfo() {
     } else {
         return 'Контакты в комментариях';
     }
+}
+
+function generateHashtags() {
+    const city = document.getElementById('citySelect').value;
+    const district = document.getElementById('districtSelect').value;
+    
+    let hashtags = ['#цветы', '#продажа'];
+    
+    if (city) {
+        const cityHashtag = city.toLowerCase().replace(/[^а-яё]/g, '');
+        if (cityHashtag) hashtags.push(`#${cityHashtag}`);
+    }
+    
+    if (district) {
+        const districtHashtag = district.toLowerCase().replace(/[^а-яё]/g, '');
+        if (districtHashtag) hashtags.push(`#${districtHashtag}`);
+    }
+    
+    return hashtags.join(' ');
 }
 
 function updatePreview() {
@@ -772,35 +683,59 @@ function updatePreview() {
         if (mediaFiles.length > 3) {
             const more = document.createElement('div');
             more.className = 'photo-preview photo-more';
-          more.textContent = `+${mediaFiles.length - 3}`;
+            more.textContent = `+${mediaFiles.length - 3}`;
             previewMedia.appendChild(more);
         }
     }
     
-    // Остальные поля
+    // Данные
     document.getElementById('previewDescription').textContent = 
         document.getElementById('description').value || 'Не указано';
+    
+    document.getElementById('previewFreshness').textContent = 
+        document.getElementById('freshnessSelect').value || 'Не указано';
     
     document.getElementById('previewPrice').textContent = 
         document.getElementById('price').value || 'Договорная';
     
     document.getElementById('previewContacts').textContent = getContactInfo();
     
-    const region = document.getElementById('regionSelect').value || '';
+    // Локация
     const city = document.getElementById('citySelect').value || '';
+    const district = document.getElementById('districtSelect').value || '';
     const address = document.getElementById('addressInput').value || '';
     
-    let locationText = '';
-    if (region) locationText += region;
-    if (city) locationText += `, ${city}`;
-    if (address) locationText += ` (${address})`;
+    let locationText = `Город: ${city}\nРайон: ${district}`;
+    if (address) {
+        locationText += `\nАдрес: ${address}`;
+    }
+    document.getElementById('previewLocation').textContent = locationText;
     
-    document.getElementById('previewLocation').textContent = 
-        locationText || 'Не указано';
+    // Предпросмотр формата публикации
+    const previewFormat = document.getElementById('previewFormat');
+    if (previewFormat) {
+        const formatText = `
+<b>Формат объявления в канале:</b>
+
+${document.getElementById('description').value || ''}
+
+<b>Город:</b> ${city}
+<b>Район:</b> ${district}
+${address ? `<b>Адрес:</b> ${address}\n` : ''}
+<b>Свежесть:</b> ${document.getElementById('freshnessSelect').value || ''}
+
+<b>Цена:</b> ${document.getElementById('price').value || 'Договорная'}
+<b>Контакты:</b> ${getContactInfo()}
+
+${generateHashtags()}
+        `.trim();
+        
+        previewFormat.innerHTML = formatText.replace(/\n/g, '<br>');
+    }
 }
 
 // ============================================
-// УТИЛИТЫ И УВЕДОМЛЕНИЯ
+// УВЕДОМЛЕНИЯ
 // ============================================
 
 function showNotification(title, message, type = 'info') {
@@ -823,14 +758,9 @@ function showNotification(title, message, type = 'info') {
 }
 
 function showSuccessScreen(postLink) {
-    // Скрываем форму
     document.getElementById('formContainer').style.display = 'none';
+    document.getElementById('successScreen').style.display = 'block';
     
-    // Показываем экран успеха
-    const successScreen = document.getElementById('successScreen');
-    successScreen.style.display = 'block';
-    
-    // Обновляем ссылку
     const linkElement = document.getElementById('postLink');
     if (linkElement) {
         linkElement.href = postLink || '#';
@@ -839,27 +769,16 @@ function showSuccessScreen(postLink) {
             : 'Объявление опубликовано';
     }
     
-    // Обновляем текст о комментариях
-    const successMessage = document.getElementById('successMessageText');
-    if (successMessage) {
-        successMessage.innerHTML = `
-            ✅ <b>Объявление успешно опубликовано!</b><br><br>
-            💬 <b>Комментарии автоматически включены</b><br>
-            Покупатели могут задавать вопросы прямо под вашим объявлением в разделе комментариев.
-        `;
-    }
-    
-    // Прокрутка наверх
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ============================================
-// ГЛОБАЛЬНЫЕ ФУНКЦИИ (для onclick в HTML)
+// ГЛОБАЛЬНЫЕ ФУНКЦИИ
 // ============================================
 
 // Навигация
 window.nextStep = function() {
-    if (currentStep < 6 && validateCurrentStep()) {
+    if (currentStep < totalSteps && validateCurrentStep()) {
         showStep(currentStep + 1);
     }
 };
@@ -872,128 +791,55 @@ window.prevStep = function() {
 
 // Цена
 window.setNegotiablePrice = function() {
-    const priceInput = document.getElementById('price');
-    const negotiableBtn = document.getElementById('priceBtnNegotiable');
-    const enterBtn = document.getElementById('priceBtnEnter');
-    
-    if (priceInput) priceInput.value = 'Договорная';
-    if (negotiableBtn) negotiableBtn.classList.add('active');
-    if (enterBtn) enterBtn.classList.remove('active');
-    
+    document.getElementById('price').value = 'Договорная';
+    document.getElementById('priceBtnNegotiable').classList.add('active');
+    document.getElementById('priceBtnEnter').classList.remove('active');
     validateCurrentStep();
 };
 
 window.focusPriceInput = function() {
     const priceInput = document.getElementById('price');
-    const negotiableBtn = document.getElementById('priceBtnNegotiable');
-    const enterBtn = document.getElementById('priceBtnEnter');
-    
-    if (priceInput) {
-        priceInput.value = '';
-        priceInput.readOnly = false;
-        priceInput.focus();
-        priceInput.placeholder = 'Например: 500';
-    }
-    if (negotiableBtn) negotiableBtn.classList.remove('active');
-    if (enterBtn) enterBtn.classList.add('active');
+    priceInput.value = '';
+    priceInput.readOnly = false;
+    priceInput.focus();
+    priceInput.placeholder = 'Например: 500';
+    document.getElementById('priceBtnNegotiable').classList.remove('active');
+    document.getElementById('priceBtnEnter').classList.add('active');
 };
 
 // Контакты
 window.selectContactType = function(type) {
     selectedContactType = type;
     
-    // UI кнопок
     document.querySelectorAll('.contact-option').forEach(opt => {
         opt.classList.remove('active');
     });
-    const optionElement = document.getElementById(`${type}Option`);
-    if (optionElement) optionElement.classList.add('active');
+    document.getElementById(`${type}Option`).classList.add('active');
     
-    // Поля ввода
-    const telegramGroup = document.getElementById('telegramInputGroup');
-    const phoneGroup = document.getElementById('phoneInputGroup');
-    
-    if (telegramGroup) telegramGroup.style.display = type === 'telegram' ? 'block' : 'none';
-    if (phoneGroup) phoneGroup.style.display = type === 'phone' ? 'block' : 'none';
+    document.getElementById('telegramInputGroup').style.display = 
+        type === 'telegram' ? 'block' : 'none';
+    document.getElementById('phoneInputGroup').style.display = 
+        type === 'phone' ? 'block' : 'none';
     
     validateCurrentStep();
 };
 
 // Локация
-window.loadCities = async function(region) {
-    if (!region) return;
+window.loadDistricts = function(city) {
+    if (!city) return;
     
-    const citySelect = document.getElementById('citySelect');
-    if (!citySelect) return;
+    const districtSelect = document.getElementById('districtSelect');
+    const districts = districtsData[city] || ['Центр', 'Восточный', 'Западный', 'Северный', 'Южный'];
     
-    const originalValue = citySelect.value;
-    
-    citySelect.innerHTML = '<option value="">Загрузка...</option>';
-    citySelect.disabled = true;
-    
-    const cities = await getCities(region);
-    
-    citySelect.innerHTML = '<option value="">Выберите город/район</option>';
-    cities.forEach(city => {
+    districtSelect.innerHTML = '<option value="">Выберите район</option>';
+    districts.forEach(district => {
         const option = document.createElement('option');
-        option.value = city;
-        option.textContent = city;
-        citySelect.appendChild(option);
+        option.value = district;
+        option.textContent = district;
+        districtSelect.appendChild(option);
     });
     
-    // Восстанавливаем значение если оно есть в новом списке
-    if (originalValue && cities.includes(originalValue)) {
-        citySelect.value = originalValue;
-    }
-    
-    citySelect.disabled = false;
     validateCurrentStep();
-};
-
-// Карта и геолокация
-window.getTelegramLocation = function() {
-    if (tg && tg.requestLocation) {
-        tg.showPopup({
-            title: 'Геолокация',
-            message: 'Разрешить доступ к вашему местоположению?',
-            buttons: [
-                { type: 'ok', text: 'Разрешить' },
-                { type: 'cancel', text: 'Отмена' }
-            ]
-        }, async (buttonId) => {
-            if (buttonId === 'ok') {
-                tg.requestLocation((location) => {
-                    if (location) {
-                        showNotification('Успех', 'Местоположение получено через Telegram', 'success');
-                        // Здесь можно обновить карту
-                    }
-                });
-            }
-        });
-    } else {
-        showNotification('Информация', 'Функция доступна только в Telegram', 'info');
-    }
-};
-
-window.getCurrentLocation = function() {
-    if (navigator.geolocation) {
-        showNotification('Информация', 'Определяем местоположение...', 'info');
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                showNotification('Успех', 'Местоположение определено', 'success');
-                // Здесь можно обновить карту
-            },
-            (error) => {
-                let errorMessage = 'Не удалось определить местоположение';
-                if (error.code === 1) errorMessage = 'Доступ к геолокации запрещен';
-                if (error.code === 2) errorMessage = 'Информация о местоположении недоступна';
-                if (error.code === 3) errorMessage = 'Время ожидания истекло';
-                showNotification('Ошибка', errorMessage, 'error');
-            }
-        );
-    } else {
-        showNotification('Ошибка', 'Геолокация не поддерживается вашим браузером', 'error');
-    }
 };
 
 // Другие функции
@@ -1011,87 +857,6 @@ window.removeMedia = removeMedia;
 window.submitForm = submitForm;
 
 // ============================================
-// ФУНКЦИИ ДЛЯ ОТЛАДКИ И ТЕСТИРОВАНИЯ
-// ============================================
-
-// Тест связи с бэкендом
-window.testBackendConnection = async function() {
-    showNotification('Тест', 'Проверяю связь с бэкендом...', 'info');
-    
-    try {
-        const response = await fetch(`${BACKEND_URL}/api/health`);
-        const data = await response.json();
-        
-        if (response.ok) {
-            showNotification('Успех', `Бэкенд работает! Статус: ${data.status}`, 'success');
-        } else {
-            showNotification('Ошибка', `Бэкенд ответил с ошибкой: ${data.error || response.status}`, 'error');
-        }
-    } catch (error) {
-        showNotification('Ошибка', `Не удалось подключиться к бэкенду: ${error.message}`, 'error');
-    }
-};
-
-// Показать отладочную информацию
-window.showDebugInfo = function() {
-    const debugInfo = document.getElementById('debugInfo');
-    debugInfo.classList.toggle('show');
-};
-
-// Заполнить тестовые данные
-window.fillTestData = function() {
-    // Заполняем форму тестовыми данными
-    document.getElementById('description').value = 'Красивые свежие розы, идеально подходят для подарка. Доставка по городу.';
-    
-    // Добавляем тестовое фото (если нет реальных)
-    if (mediaFiles.length === 0) {
-        // Создаем тестовое изображение
-        const canvas = document.createElement('canvas');
-        canvas.width = 300;
-        canvas.height = 200;
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#667eea';
-        ctx.fillRect(0, 0, 300, 200);
-        ctx.fillStyle = 'white';
-        ctx.font = '20px Arial';
-        ctx.fillText('Тестовое фото', 50, 100);
-        
-        canvas.toBlob(function(blob) {
-            const testFile = new File([blob], 'test.jpg', { type: 'image/jpeg' });
-            const url = URL.createObjectURL(testFile);
-            mediaFiles.push({
-                file: testFile,
-                url: url,
-                name: 'test.jpg',
-                type: 'image/jpeg',
-                size: blob.size
-            });
-            updateMediaPreview();
-            validateCurrentStep();
-        }, 'image/jpeg');
-    }
-    
-    // Устанавливаем цену
-    focusPriceInput();
-    document.getElementById('price').value = '1500';
-    
-    // Устанавливаем контакты
-    selectContactType('telegram');
-    document.getElementById('telegram').value = 'test_user';
-    
-    // Устанавливаем локацию
-    document.getElementById('regionSelect').value = 'Бишкек';
-    setTimeout(() => {
-        loadCities('Бишкек').then(() => {
-            document.getElementById('citySelect').value = 'Бишкек';
-            validateCurrentStep();
-        });
-    }, 100);
-    
-    showNotification('Тест', 'Тестовые данные заполнены', 'success');
-};
-
-// ============================================
 // НАСТРОЙКА ОБРАБОТЧИКОВ
 // ============================================
 
@@ -1101,25 +866,29 @@ function setupEventListeners() {
     const mediaUpload = document.getElementById('mediaUpload');
     
     if (mediaInput && mediaUpload) {
-        mediaUpload.addEventListener('click', () => mediaInput.click());
+        mediaUpload.addEventListener('click', function(e) {
+            if (!e.target.closest('.media-item')) {
+                mediaInput.click();
+            }
+        });
+        
         mediaInput.addEventListener('change', handleMediaUpload);
     }
     
-    // Автовалидация полей
-    const fields = ['description', 'telegram', 'phone', 'addressInput', 'price'];
-    fields.forEach(fieldId => {
+    // Автовалидация
+    ['description', 'telegram', 'phone', 'addressInput', 'price'].forEach(fieldId => {
         const field = document.getElementById(fieldId);
         if (field) {
             field.addEventListener('input', () => validateCurrentStep());
         }
     });
     
-    // Регион
-    const regionSelect = document.getElementById('regionSelect');
-    if (regionSelect) {
-        regionSelect.addEventListener('change', function() {
+    // Город
+    const citySelect = document.getElementById('citySelect');
+    if (citySelect) {
+        citySelect.addEventListener('change', function() {
             if (this.value) {
-                window.loadCities(this.value);
+                window.loadDistricts(this.value);
             }
         });
     }
@@ -1128,23 +897,19 @@ function setupEventListeners() {
     const priceInput = document.getElementById('price');
     if (priceInput) {
         priceInput.addEventListener('input', function() {
-            // Оставляем только цифры
             this.value = this.value.replace(/\D/g, '');
             validateCurrentStep();
         });
     }
     
-    // Telegram - убираем @ если пользователь ввел
-    const telegramInput = document.getElementById('telegram');
-    if (telegramInput) {
-        telegramInput.addEventListener('input', function() {
-            this.value = this.value.replace(/^@+/, '');
-        });
+    // Свежесть
+    const freshnessSelect = document.getElementById('freshnessSelect');
+    if (freshnessSelect) {
+        freshnessSelect.addEventListener('change', () => validateCurrentStep());
     }
 }
 
 console.log('✅ Flower Market Frontend готов к работе!');
-console.log('Для тестирования используйте кнопки в правом нижнем углу');
   </script>
 </body>
 </html>
