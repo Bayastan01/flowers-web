@@ -52,7 +52,7 @@
                   <p class="input-hint">Выберите фото из галереи. Можно загрузить до 10 файлов</p>
                   <div id="mediaHint" class="field-hint">Загрузите хотя бы одно фото для продолжения</div>
               </label>
-              <input type="file" id="mediaInput" accept="image/*" multiple style="display: none;">
+              <input type="file" id="mediaInput" accept="image/*,video/*" multiple style="display: none;">
               <div id="mediaPreview"></div>
           </div>
           <div class="navigation">
@@ -167,7 +167,6 @@
                   <label for="districtSelect" class="field-required">Район города:</label>
                   <select id="districtSelect">
                       <option value="">Выберите район</option>
-                      <!-- Районы будут загружаться динамически -->
                   </select>
                   <div id="districtHint" class="field-hint">Выберите район для продолжения</div>
               </div>
@@ -291,27 +290,19 @@
     </div>
   </div>
 
-  <!-- Основной JavaScript файл -->
   <script>
 // ============================================
-// Flower Market Kyrgyzstan - Frontend
-// Подключен к бэкенду: https://backend-flower-2-production.up.railway.app
-// ============================================
-// ============================================
-// Flower Market Kyrgyzstan - Frontend
-// Подключен к бэкенду: https://backend-flower-2-production.up.railway.app
+// Flower Market Kyrgyzstan - Frontend (ИСПРАВЛЕННЫЙ)
 // ============================================
 
 const BACKEND_URL = 'https://backend-flower-2-production.up.railway.app';
 
-// Глобальные переменные
 let currentStep = 1;
 let totalSteps = 7;
 let mediaFiles = [];
 let selectedContactType = 'telegram';
 let tg = window.Telegram?.WebApp;
 
-// Данные для районов городов
 const districtsData = {
     'Бишкек': ['Центр', 'Аламедин', 'Левый берег', 'Правый берег', 'Юг', 'Север', 'Ортосай', 'Восток', 'Запад'],
     'Ош': ['Центр', 'Старый город', 'Новый город', 'Курманжан', 'Араван'],
@@ -328,13 +319,8 @@ const districtsData = {
     'Баткен': ['Центр', 'Пограничный', 'Сельский']
 };
 
-// ============================================
-// ИНИЦИАЛИЗАЦИЯ
-// ============================================
-
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('🌺 Flower Market Frontend запущен');
-    console.log('Backend URL:', BACKEND_URL);
     
     if (tg) {
         tg.ready();
@@ -345,32 +331,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     setupEventListeners();
     showStep(1);
-    
-    // Проверяем связь с бэкендом
-    await checkBackendConnection();
 });
 
-async function checkBackendConnection() {
-    try {
-        const response = await fetch(`${BACKEND_URL}/api/health`);
-        if (response.ok) {
-            console.log('✅ Связь с бэкендом установлена');
-        }
-    } catch (error) {
-        console.error('❌ Ошибка связи с бэкендом:', error);
-        showNotification('Внимание', 'Бэкенд временно недоступен', 'info');
-    }
-}
-
-// ============================================
-// ОСНОВНЫЕ ФУНКЦИИ ФОРМЫ
-// ============================================
-
 function showStep(step) {
-    document.querySelectorAll('.form-step').forEach(el => {
-        el.classList.remove('active');
-    });
-    
+    document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
     const stepEl = document.getElementById(`step${step}`);
     if (stepEl) {
         stepEl.classList.add('active');
@@ -389,7 +353,6 @@ function updateProgressBar() {
     steps.forEach((step, index) => {
         const stepNumber = step.querySelector('.step-number');
         const stepLabel = step.querySelector('.step-label');
-        
         if (stepNumber && stepLabel) {
             const isActive = index + 1 <= currentStep;
             stepNumber.classList.toggle('active', isActive);
@@ -430,13 +393,16 @@ function validateCurrentStep() {
                 const phone = document.getElementById('phone')?.value.trim() || '';
                 isValid = phone.length >= 10;
                 errorMessage = 'Введите номер телефона';
+            } else if (selectedContactType === 'none') {
+                isValid = true; // ВАЖНО: Кнопка "Не указывать" разрешает переход
+                errorMessage = '';
             }
             break;
             
         case 5:
             const city = document.getElementById('citySelect')?.value || '';
             const district = document.getElementById('districtSelect')?.value || '';
-            isValid = city && district;
+            isValid = city && district; // Адрес НЕ проверяется - он необязательный
             errorMessage = 'Выберите город и район';
             break;
             
@@ -471,17 +437,15 @@ function getHintIdForStep(step) {
         1: 'mediaHint',
         2: 'descriptionHint',
         3: 'priceHint',
-        4: selectedContactType === 'telegram' ? 'telegramHint' : 'phoneHint',
+        4: selectedContactType === 'telegram' ? 'telegramHint' : 
+           (selectedContactType === 'phone' ? 'phoneHint' : null), // null для "none"
         5: 'cityHint',
         6: 'freshnessHint'
     };
     return hints[step];
 }
 
-// ============================================
-// ОБРАБОТКА МЕДИА - ИСПРАВЛЕННАЯ ВЕРСИЯ
-// ============================================
-
+// ФУНКЦИЯ ЗАГРУЗКИ МЕДИА (ИСПРАВЛЕННАЯ)
 async function handleMediaUpload(event) {
     const files = Array.from(event.target.files);
     const maxFiles = 10;
@@ -491,31 +455,22 @@ async function handleMediaUpload(event) {
         return;
     }
     
-    // Показываем уведомление о начале загрузки
-    if (files.length > 0) {
-        showNotification('Информация', `Начинаю загрузку ${files.length} файл(ов)...`, 'info');
-    }
-    
     for (const file of files) {
-        // Проверяем тип файла
         if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-            showNotification('Внимание', `Файл "${file.name}" не поддерживается (только фото/видео)`, 'info');
+            showNotification('Внимание', `Файл "${file.name}" не поддерживается`, 'info');
             continue;
         }
         
-        // Проверяем размер файла (макс 10MB)
         if (file.size > 10 * 1024 * 1024) {
             showNotification('Внимание', `Файл "${file.name}" слишком большой (макс. 10MB)`, 'info');
             continue;
         }
         
-        // Создаем превью
         const reader = new FileReader();
         
         reader.onload = async function(e) {
             const url = e.target.result;
             
-            // Создаем временный объект для отображения превью
             const tempMedia = {
                 file: file,
                 url: url,
@@ -530,12 +485,10 @@ async function handleMediaUpload(event) {
             updateMediaPreview();
             validateCurrentStep();
             
-            // Пытаемся загрузить на серсер в фоновом режиме
             try {
-                const uploadResult = await uploadMediaToServer(file, url);
+                const uploadResult = await uploadMediaToServer(file);
                 
                 if (uploadResult.success && uploadResult.fileId) {
-                    // Обновляем объект с file_id
                     const index = mediaFiles.findIndex(m => m.url === url);
                     if (index !== -1) {
                         mediaFiles[index].uploaded = true;
@@ -544,7 +497,7 @@ async function handleMediaUpload(event) {
                         console.log(`✅ Файл "${file.name}" загружен на сервер`);
                     }
                 } else {
-                    console.warn(`⚠️ Файл "${file.name}" не загружен на сервер:`, uploadResult.error);
+                    console.warn(`⚠️ Файл "${file.name}" не загружен:`, uploadResult.error);
                 }
             } catch (uploadError) {
                 console.error(`❌ Ошибка загрузки файла "${file.name}":`, uploadError);
@@ -562,35 +515,33 @@ async function handleMediaUpload(event) {
     event.target.value = '';
 }
 
-async function uploadMediaToServer(file, dataUrl) {
+// ОТПРАВКА МЕДИА НА СЕРВЕР (ИСПРАВЛЕННАЯ)
+async function uploadMediaToServer(file) {
     try {
         console.log(`📤 Загружаем файл "${file.name}" на сервер...`);
         
+        const formData = new FormData();
+        formData.append('media', file);
+        formData.append('fileName', file.name);
+        formData.append('fileType', file.type);
+        
         const response = await fetch(`${BACKEND_URL}/api/upload-media`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                mediaData: dataUrl,
-                fileName: file.name,
-                fileType: file.type
-            })
+            body: formData // Важно: отправляем FormData, а не JSON
         });
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorText = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
         }
         
         const result = await response.json();
+        console.log('📥 Ответ от сервера:', result);
         return result;
         
     } catch (error) {
         console.error('Ошибка загрузки на сервер:', error);
-        return {
-            success: false,
-            error: error.message
-        };
+        return { success: false, error: error.message };
     }
 }
 
@@ -605,16 +556,10 @@ function updateMediaPreview() {
         item.className = 'media-item';
         
         let mediaContent = '';
-        
         if (file.type.startsWith('image/')) {
             mediaContent = `<img src="${file.url}" alt="Фото ${index + 1}" loading="lazy">`;
         } else if (file.type.startsWith('video/')) {
-            mediaContent = `
-                <video controls>
-                    <source src="${file.url}" type="${file.type}">
-                    Ваш браузер не поддерживает видео.
-                </video>
-            `;
+            mediaContent = `<video controls><source src="${file.url}" type="${file.type}"></video>`;
         }
         
         const statusIcon = file.uploaded ? '✅' : '⏳';
@@ -642,33 +587,17 @@ function updateMediaPreview() {
             if (uploadedCount === totalCount) {
                 hint.textContent = `✅ Все файлы загружены (${totalCount})`;
                 hint.style.color = '#34c759';
-            } else if (uploadedCount > 0) {
-                hint.textContent = `Загружено: ${uploadedCount} из ${totalCount} файлов`;
-                hint.style.color = '#ff9500';
             } else {
-                hint.textContent = `⏳ Загружаем файлы... (${totalCount})`;
+                hint.textContent = `Загружено: ${uploadedCount} из ${totalCount} файлов`;
                 hint.style.color = '#ff9500';
             }
         } else {
             hint.textContent = 'Загрузите хотя бы один файл';
             hint.style.color = '#ff3b30';
         }
-        
         hint.classList.toggle('show', totalCount === 0);
     }
 }
-
-function removeMedia(index) {
-    if (index >= 0 && index < mediaFiles.length) {
-        mediaFiles.splice(index, 1);
-        updateMediaPreview();
-        validateCurrentStep();
-    }
-}
-
-// ============================================
-// API ВЗАИМОДЕЙСТВИЕ
-// ============================================
 
 async function publishAd(formData) {
     try {
@@ -676,9 +605,7 @@ async function publishAd(formData) {
         
         const response = await fetch(`${BACKEND_URL}/api/publish`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         });
         
@@ -689,7 +616,6 @@ async function publishAd(formData) {
         
         const result = await response.json();
         console.log('📥 Ответ от бэкенда:', result);
-        
         return result;
         
     } catch (error) {
@@ -697,10 +623,6 @@ async function publishAd(formData) {
         throw new Error(`Не удалось опубликовать объявление: ${error.message}`);
     }
 }
-
-// ============================================
-// ПУБЛИКАЦИЯ ОБЪЯВЛЕНИЯ
-// ============================================
 
 async function submitForm() {
     console.log('🚀 Начинаю публикацию...');
@@ -712,33 +634,22 @@ async function submitForm() {
         }
     }
     
-    // Проверяем, есть ли загруженные файлы
     const uploadedFiles = mediaFiles.filter(f => f.uploaded && f.fileId);
     
     if (uploadedFiles.length === 0 && mediaFiles.length > 0) {
-        const shouldContinue = confirm(
-            'Файлы еще загружаются на сервер. ' +
-            'Продолжить без медиафайлов? (Объявление будет опубликовано только с текстом)'
-        );
-        
-        if (!shouldContinue) {
-            return;
-        }
+        const shouldContinue = confirm('Файлы еще загружаются на сервер. Продолжить без медиафайлов?');
+        if (!shouldContinue) return;
     }
     
     showStep(totalSteps);
     updatePreview();
     
-    // Подготавливаем медиафайлы для отправки
     const mediaForUpload = uploadedFiles.map(f => ({
         fileId: f.fileId,
         type: f.type,
         name: f.name
     }));
     
-    console.log('Медиафайлы для отправки:', mediaForUpload);
-    
-    // Формируем данные для отправки
     const formData = {
         initData: tg?.initData || '',
         description: document.getElementById('description').value,
@@ -747,16 +658,11 @@ async function submitForm() {
         freshness: document.getElementById('freshnessSelect').value,
         city: document.getElementById('citySelect').value,
         district: document.getElementById('districtSelect').value,
-        address: document.getElementById('addressInput').value || '',
+        address: document.getElementById('addressInput').value || '', // Адрес необязательный
         hashtags: generateHashtags(),
         format: 'new',
         mediaFiles: mediaForUpload
     };
-    
-    console.log('Данные для публикации:', {
-        ...formData,
-        mediaFiles: formData.mediaFiles.length
-    });
     
     const submitBtn = document.getElementById('submitBtn');
     const originalText = submitBtn.innerHTML;
@@ -777,10 +683,8 @@ async function submitForm() {
         console.error('❌ Ошибка публикации:', error);
         
         let errorMessage = error.message;
-        
-        // Упрощенные сообщения об ошибках для пользователя
         if (errorMessage.includes('403')) {
-            errorMessage = 'Ошибка прав доступа. Проверьте, что бот является администратором канала.';
+            errorMessage = 'Ошибка прав доступа. Проверьте права бота.';
         } else if (errorMessage.includes('400')) {
             errorMessage = 'Ошибка в данных. Проверьте заполнение всех полей.';
         } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
@@ -788,7 +692,6 @@ async function submitForm() {
         }
         
         showNotification('Ошибка публикации', errorMessage, 'error');
-        
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
     }
@@ -802,7 +705,7 @@ function getContactInfo() {
         const phone = document.getElementById('phone').value.trim();
         return `Телефон: ${phone}`;
     } else {
-        return 'Контакты в комментариях';
+        return 'Контакты в комментариях'; // Для варианта "Не указывать"
     }
 }
 
@@ -813,18 +716,14 @@ function generateHashtags() {
     let hashtags = ['#цветы', '#продажа'];
     
     if (city) {
-        const cityHashtag = city.toLowerCase()
-            .replace(/[^а-яё]/g, '')
-            .replace(/\s+/g, '');
+        const cityHashtag = city.toLowerCase().replace(/[^а-яё]/g, '').replace(/\s+/g, '');
         if (cityHashtag && cityHashtag.length > 1) {
             hashtags.push(`#${cityHashtag}`);
         }
     }
     
     if (district) {
-        const districtHashtag = district.toLowerCase()
-            .replace(/[^а-яё]/g, '')
-            .replace(/\s+/g, '');
+        const districtHashtag = district.toLowerCase().replace(/[^а-яё]/g, '').replace(/\s+/g, '');
         if (districtHashtag && districtHashtag.length > 1) {
             hashtags.push(`#${districtHashtag}`);
         }
@@ -834,7 +733,6 @@ function generateHashtags() {
 }
 
 function updatePreview() {
-    // Фото
     const previewMedia = document.getElementById('previewMedia');
     if (previewMedia) {
         previewMedia.innerHTML = '';
@@ -864,19 +762,14 @@ function updatePreview() {
         }
     }
     
-    // Остальные поля
     document.getElementById('previewDescription').textContent = 
         document.getElementById('description').value || 'Не указано';
-    
     document.getElementById('previewFreshness').textContent = 
         document.getElementById('freshnessSelect').value || 'Не указано';
-    
     document.getElementById('previewPrice').textContent = 
         document.getElementById('price').value || 'Договорная';
-    
     document.getElementById('previewContacts').textContent = getContactInfo();
     
-    // Локация
     const city = document.getElementById('citySelect').value || '';
     const district = document.getElementById('districtSelect').value || '';
     const address = document.getElementById('addressInput').value || '';
@@ -886,35 +779,7 @@ function updatePreview() {
         locationText += `\nАдрес: ${address}`;
     }
     document.getElementById('previewLocation').textContent = locationText;
-    
-    // Предпросмотр формата публикации
-    const previewFormat = document.getElementById('previewFormat');
-    if (previewFormat) {
-        const mediaCount = mediaFiles.filter(f => f.uploaded).length;
-        const mediaText = mediaCount > 0 ? `📷 Прикреплено ${mediaCount} файл(ов)` : '📷 Без медиафайлов';
-        
-        const formatText = `
-${document.getElementById('description').value || ''}
-
-<b>Город:</b> ${city}
-<b>Район:</b> ${district}
-${address ? `<b>Адрес:</b> ${address}\n` : ''}
-<b>Свежесть:</b> ${document.getElementById('freshnessSelect').value || ''}
-
-<b>Цена:</b> ${document.getElementById('price').value || 'Договорная'}
-<b>Контакты:</b> ${getContactInfo()}
-
-${mediaText}
-${generateHashtags()}
-        `.trim();
-        
-        previewFormat.innerHTML = formatText.replace(/\n/g, '<br>');
-    }
 }
-
-// ============================================
-// УВЕДОМЛЕНИЯ
-// ============================================
 
 function showNotification(title, message, type = 'info') {
     const notification = document.getElementById('notification');
@@ -950,11 +815,7 @@ function showSuccessScreen(postLink) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ============================================
 // ГЛОБАЛЬНЫЕ ФУНКЦИИ
-// ============================================
-
-// Навигация
 window.nextStep = function() {
     if (currentStep < totalSteps && validateCurrentStep()) {
         showStep(currentStep + 1);
@@ -967,7 +828,6 @@ window.prevStep = function() {
     }
 };
 
-// Цена
 window.setNegotiablePrice = function() {
     document.getElementById('price').value = 'Договорная';
     document.getElementById('priceBtnNegotiable').classList.add('active');
@@ -985,7 +845,6 @@ window.focusPriceInput = function() {
     document.getElementById('priceBtnEnter').classList.add('active');
 };
 
-// Контакты
 window.selectContactType = function(type) {
     selectedContactType = type;
     
@@ -1002,7 +861,6 @@ window.selectContactType = function(type) {
     validateCurrentStep();
 };
 
-// Локация
 window.loadDistricts = function(city) {
     if (!city) return;
     
@@ -1020,7 +878,6 @@ window.loadDistricts = function(city) {
     validateCurrentStep();
 };
 
-// Другие функции
 window.createNewAd = function() {
     location.reload();
 };
@@ -1031,15 +888,17 @@ window.closeTelegramApp = function() {
     }
 };
 
-window.removeMedia = removeMedia;
+window.removeMedia = function(index) {
+    if (index >= 0 && index < mediaFiles.length) {
+        mediaFiles.splice(index, 1);
+        updateMediaPreview();
+        validateCurrentStep();
+    }
+};
+
 window.submitForm = submitForm;
 
-// ============================================
-// НАСТРОЙКА ОБРАБОТЧИКОВ
-// ============================================
-
 function setupEventListeners() {
-    // Загрузка медиа
     const mediaInput = document.getElementById('mediaInput');
     const mediaUpload = document.getElementById('mediaUpload');
     
@@ -1053,7 +912,6 @@ function setupEventListeners() {
         mediaInput.addEventListener('change', handleMediaUpload);
     }
     
-    // Автовалидация
     ['description', 'telegram', 'phone', 'addressInput', 'price'].forEach(fieldId => {
         const field = document.getElementById(fieldId);
         if (field) {
@@ -1061,7 +919,6 @@ function setupEventListeners() {
         }
     });
     
-    // Город
     const citySelect = document.getElementById('citySelect');
     if (citySelect) {
         citySelect.addEventListener('change', function() {
@@ -1071,7 +928,6 @@ function setupEventListeners() {
         });
     }
     
-    // Цена - только цифры
     const priceInput = document.getElementById('price');
     if (priceInput) {
         priceInput.addEventListener('input', function() {
@@ -1080,13 +936,11 @@ function setupEventListeners() {
         });
     }
     
-    // Свежесть
     const freshnessSelect = document.getElementById('freshnessSelect');
     if (freshnessSelect) {
         freshnessSelect.addEventListener('change', () => validateCurrentStep());
     }
     
-    // Telegram - убираем @ если пользователь ввел
     const telegramInput = document.getElementById('telegram');
     if (telegramInput) {
         telegramInput.addEventListener('input', function() {
@@ -1096,43 +950,6 @@ function setupEventListeners() {
 }
 
 console.log('✅ Flower Market Frontend готов к работе!');
-
-// ============================================
-// ДОБАВЬТЕ ЭТИ СТИЛИ В ВАШ CSS (style.css)
-// ============================================
-
-/*
-.media-status {
-    position: absolute;
-    top: 6px;
-    left: 6px;
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: bold;
-    z-index: 3;
-}
-
-.media-item video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-#mediaHint.show {
-    display: block;
-}
-
-#mediaHint {
-    transition: color 0.3s ease;
-}
-*/
   </script>
 </body>
 </html>
