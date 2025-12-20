@@ -128,7 +128,28 @@
       <!-- Шаг 1 - Фото -->
       <div class="form-step active" id="step1">
           <h2 class="step-title"><i class="fas fa-camera"></i> Загрузите фото/видео</h2>
-          <div class="form-group">
+         <!-- Добавьте этот блок в шаг 1 (Медиа) -->
+<div class="form-group">
+    <div class="photo-upload" id="mediaUpload" onclick="document.getElementById('mediaInput').click()">
+        <i class="fas fa-cloud-upload-alt photo-upload-icon"></i>
+        <p><strong>Нажмите для загрузки фото/видео</strong></p>
+        <p class="input-hint">Можно выбрать несколько файлов</p>
+        
+        <!-- ВАЖНОЕ ПРЕДУПРЕЖДЕНИЕ -->
+        <div id="telegramWarning" style="display: none; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 10px; margin-top: 10px;">
+            <i class="fas fa-exclamation-triangle" style="color: #ffc107;"></i>
+            <strong>Ограничение Telegram:</strong>
+            <p style="margin: 5px 0 0 0; font-size: 12px;">
+                Фото и видео не могут быть вместе в одном альбоме.<br>
+                Рекомендуем загружать только фото или только видео.
+            </p>
+        </div>
+        
+        <div id="mediaHint" class="field-hint">Загрузите хотя бы один файл</div>
+    </div>
+    <input type="file" id="mediaInput" accept="image/*,video/*" multiple style="display: none;" onchange="handleMediaUpload(event)">
+    <div id="mediaPreview"></div>
+</div>
               <div class="photo-upload" id="mediaUpload" onclick="document.getElementById('mediaInput').click()">
                   <i class="fas fa-cloud-upload-alt photo-upload-icon"></i>
                   <p><strong>Нажмите для загрузки фото или видео</strong></p>
@@ -603,24 +624,46 @@ function handleMediaUpload(event) {
     
     if (files.length === 0) return;
     
-    // Проверка лимита файлов
     if (mediaFiles.length + files.length > maxFiles) {
         showNotification('Ошибка', `Можно загрузить не более ${maxFiles} файлов`, 'error');
         return;
     }
     
-    // Обработка каждого файла
+    // Проверяем типы файлов
+    const newFiles = [];
+    let hasNewPhotos = false;
+    let hasNewVideos = false;
+    
     for (const file of files) {
         if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
             showNotification('Внимание', `Файл "${file.name}" не поддерживается`, 'warning');
             continue;
         }
         
-        if (file.size > 20 * 1024 * 1024) {
-            showNotification('Внимание', `Файл "${file.name}" слишком большой (макс. 20MB)`, 'warning');
+        if (file.size > 50 * 1024 * 1024) {
+            showNotification('Внимание', `Файл "${file.name}" слишком большой (макс. 50MB)`, 'warning');
             continue;
         }
         
+        newFiles.push(file);
+        if (file.type.startsWith('image/')) hasNewPhotos = true;
+        if (file.type.startsWith('video/')) hasNewVideos = true;
+    }
+    
+    // Проверяем общий состав файлов
+    const currentHasPhotos = mediaFiles.some(f => f.type.startsWith('image/'));
+    const currentHasVideos = mediaFiles.some(f => f.type.startsWith('video/'));
+    
+    const willHaveBoth = (currentHasPhotos || hasNewPhotos) && (currentHasVideos || hasNewVideos);
+    
+    // Показываем/скрываем предупреждение
+    const warningElement = document.getElementById('telegramWarning');
+    if (warningElement) {
+        warningElement.style.display = willHaveBoth ? 'block' : 'none';
+    }
+    
+    // Обрабатываем файлы
+    for (const file of newFiles) {
         const reader = new FileReader();
         
         reader.onload = function(e) {
@@ -633,34 +676,28 @@ function handleMediaUpload(event) {
                 type: file.type,
                 size: file.size,
                 uploaded: true,
-                fileId: 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+                fileId: 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
             };
             
             mediaFiles.push(tempMedia);
             updateMediaPreview();
             validateCurrentStep();
-            
-            console.log(`✅ Файл "${file.name}" добавлен:`, tempMedia.fileId);
-        };
-        
-        reader.onerror = function(error) {
-            console.error('Ошибка чтения файла:', error);
-            showNotification('Ошибка', `Не удалось прочитать файл "${file.name}"`, 'error');
         };
         
         reader.readAsDataURL(file);
     }
     
-    // Сбрасываем значение input
     event.target.value = '';
 }
-
 function updateMediaPreview() {
     const previewContainer = document.getElementById('mediaPreview');
     if (!previewContainer) return;
     
     previewContainer.innerHTML = '';
-    
+    const uploadInfo = document.getElementById('uploadInfo');
+    if (uploadInfo) {
+        uploadInfo.style.display = mediaFiles.length > 0 ? 'block' : 'none';
+    }
     mediaFiles.forEach((file, index) => {
         const item = document.createElement('div');
         item.className = 'media-item';
@@ -745,7 +782,7 @@ async function submitForm() {
         return;
     }
     
-    console.log('🚀 Начинаю публикацию ВСЕГО в одном посте...');
+    console.log('🚀 Начинаю публикацию в одном визуальном блоке...');
     
     // Проверяем все обязательные поля
     if (!validateAllSteps()) {
@@ -768,8 +805,8 @@ async function submitForm() {
         mediaFiles: []
     };
     
-    // Добавляем ВСЕ файлы в base64
-    console.log(`📁 Обработка ${mediaFiles.length} файлов...`);
+    // Добавляем файлы
+    console.log(`📁 Подготовка ${mediaFiles.length} файлов...`);
     for (const file of mediaFiles) {
         try {
             const base64Data = file.url.split(',')[1];
@@ -783,25 +820,20 @@ async function submitForm() {
         }
     }
     
-    console.log('📋 Подготовлено для отправки:', {
-        descriptionLength: formData.description.length,
-        mediaCount: formData.mediaFiles.length,
-        hasPhotos: formData.mediaFiles.some(f => f.type.startsWith('image/')),
-        hasVideos: formData.mediaFiles.some(f => f.type.startsWith('video/'))
-    });
-    
     // Показываем загрузку
     const submitBtn = document.getElementById('submitBtn');
     const originalText = submitBtn.innerHTML;
     submitBtn.innerHTML = '<div class="loader"></div> Публикация...';
     submitBtn.disabled = true;
     
-    // Показываем уведомление о процессе
-    showNotification('Публикация', 'Объявление публикуется... Пожалуйста, подождите.', 'info');
+    // Информационное сообщение
+    showNotification('Публикация', 
+        `Отправка ${1 + mediaFiles.length} сообщений... Telegram сгруппирует их в один блок.`, 
+        'info');
     
     try {
-        // Используем основной endpoint
-        const endpoint = '/api/publish';
+        // Используем оптимизированный endpoint
+        const endpoint = '/api/publish-optimized';
         
         console.log(`📤 Отправка на ${endpoint}...`);
         
@@ -820,49 +852,37 @@ async function submitForm() {
         }
         
         const result = await response.json();
-        console.log('📥 Ответ от сервера:', result);
+        console.log('📥 Результат:', result);
         
         if (result.success) {
             console.log('✅ Публикация успешна!');
             
             // Показываем успешное уведомление
-            showNotification('Успешно!', 
-                `Объявление с ${mediaFiles.length} файлами опубликовано в одном посте!`, 
-                'success');
-            
-            // Показываем успешный экран через небольшую задержку
             setTimeout(() => {
-                showSuccessScreen(result.postLink);
-            }, 1500);
+                showNotification('✅ Успешно!', 
+                    `Объявление опубликовано! ${result.stats.totalSent} сообщений сгруппированы в один блок.`, 
+                    'success');
+                
+                // Показываем успешный экран
+                setTimeout(() => {
+                    showSuccessScreen(result.postLink);
+                }, 1500);
+            }, 1000);
             
         } else {
-            throw new Error(result.error || 'Неизвестная ошибка публикации');
+            throw new Error(result.error || 'Ошибка публикации');
         }
         
     } catch (error) {
         console.error('❌ Ошибка публикации:', error);
         
         let errorMessage = 'Ошибка при публикации объявления';
-        
-        if (error.message.includes('403')) {
-            errorMessage = 'Бот не имеет прав для публикации в канале. Проверьте права администратора.';
-        } else if (error.message.includes('400')) {
-            if (error.message.includes('too big')) {
-                errorMessage = 'Файлы слишком большие. Максимальный размер: 50MB для видео, 10MB для фото.';
-            } else if (error.message.includes('video')) {
-                errorMessage = 'Проблема с видео файлом. Попробуйте другой формат (MP4, AVI).';
-            } else {
-                errorMessage = 'Ошибка в данных объявления. Проверьте текст и файлы.';
-            }
-        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+        if (error.message.includes('network') || error.message.includes('fetch')) {
             errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
-        } else {
-            errorMessage = error.message;
         }
         
         showNotification('Ошибка публикации', errorMessage, 'error');
         
-        // Восстанавливаем кнопку
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
         isSubmitting = false;
