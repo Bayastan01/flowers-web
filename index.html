@@ -7,14 +7,82 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Flower Market - Создать объявление</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Стили остаются такими же как в оригинале */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; color: white; margin-bottom: 30px; }
+        .header h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        .header p { font-size: 1.1rem; opacity: 0.9; }
+        .form-container { background: white; border-radius: 20px; padding: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .form-step { display: none; }
+        .form-step.active { display: block; }
+        .step-title { color: #667eea; margin-bottom: 25px; font-size: 1.8rem; display: flex; align-items: center; gap: 10px; }
+        .form-group { margin-bottom: 25px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
+        .field-required::after { content: " *"; color: #e74c3c; }
+        input, textarea, select { width: 100%; padding: 14px; border: 2px solid #e1e1e1; border-radius: 10px; font-size: 16px; transition: border-color 0.3s; font-family: inherit; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: #667eea; }
+        textarea { min-height: 120px; resize: vertical; }
+        .input-hint { font-size: 13px; color: #666; margin-top: 5px; }
+        .field-hint { color: #e74c3c; font-size: 14px; margin-top: 5px; display: none; }
+        .field-hint.show { display: block; }
+        .btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 14px 30px; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; transition: transform 0.2s, box-shadow 0.2s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+        .btn-secondary { background: linear-gradient(135deg, #6c757d 0%, #495057 100%); }
+        .navigation { display: flex; justify-content: space-between; margin-top: 40px; }
+        .progress-bar { display: flex; justify-content: space-between; margin-bottom: 40px; position: relative; }
+        .progress-bar::before { content: ''; position: absolute; top: 15px; left: 10%; right: 10%; height: 3px; background: #e1e1e1; z-index: 1; }
+        .progress-step { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2; }
+        .step-number { width: 30px; height: 30px; border-radius: 50%; background: #e1e1e1; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-bottom: 8px; transition: all 0.3s; }
+        .step-number.active { background: #667eea; }
+        .step-label { font-size: 12px; color: #999; transition: all 0.3s; }
+        .step-label.active { color: #667eea; font-weight: 600; }
+        .photo-upload { border: 3px dashed #667eea; border-radius: 15px; padding: 40px 20px; text-align: center; cursor: pointer; transition: all 0.3s; }
+        .photo-upload:hover { background: rgba(102, 126, 234, 0.05); }
+        .photo-upload-icon { font-size: 48px; color: #667eea; margin-bottom: 15px; }
+        .price-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .price-btn { border: 2px solid #e1e1e1; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+        .price-btn.active { border-color: #667eea; background: rgba(102, 126, 234, 0.1); }
+        .contact-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
+        .contact-option { border: 2px solid #e1e1e1; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s; }
+        .contact-option.active { border-color: #667eea; background: rgba(102, 126, 234, 0.1); }
+        .preview-item { background: #f8f9fa; border-left: 4px solid #667eea; padding: 15px; margin-bottom: 15px; border-radius: 8px; }
+        .preview-label { font-weight: 600; color: #667eea; margin-bottom: 5px; font-size: 14px; }
+        .preview-value { color: #333; line-height: 1.5; white-space: pre-line; }
+        .photos-grid { display: flex; gap: 10px; flex-wrap: wrap; }
+        .photo-preview { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; background: #e1e1e1; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #667eea; }
+        .notification { position: fixed; top: 20px; right: 20px; background: white; padding: 15px 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); display: none; align-items: center; gap: 15px; z-index: 1000; max-width: 400px; }
+        .notification.show { display: flex; animation: slideIn 0.3s ease-out; }
+        .notification.info { border-left: 4px solid #3498db; }
+        .notification.success { border-left: 4px solid #2ecc71; }
+        .notification.error { border-left: 4px solid #e74c3c; }
+        .notification-warning { border-left: 4px solid #f39c12; }
+        .notification-icon { font-size: 24px; }
+        .notification-icon.info { color: #3498db; }
+        .notification-icon.success { color: #2ecc71; }
+        .notification-icon.error { color: #e74c3c; }
+        .notification-icon.warning { color: #f39c12; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .loader { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #mediaPreview { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 20px; }
+        .media-item { position: relative; width: 120px; height: 120px; border-radius: 10px; overflow: hidden; }
+        .media-item img, .media-item video { width: 100%; height: 100%; object-fit: cover; }
+        .remove-media { position: absolute; top: 5px; right: 5px; background: rgba(231, 76, 60, 0.9); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; }
+        .success-screen { text-align: center; padding: 40px 20px; }
+        .success-icon { font-size: 80px; color: #2ecc71; margin-bottom: 20px; }
+        .success-title { color: #2ecc71; margin-bottom: 20px; }
+        .success-message { color: #666; margin-bottom: 30px; line-height: 1.6; }
+        .success-steps { display: grid; gap: 20px; margin: 30px 0; }
+        .success-step { display: flex; align-items: center; gap: 15px; text-align: left; background: #f8f9fa; padding: 15px; border-radius: 10px; }
+        .step-badge { background: #667eea; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+    </style>
     <script src="https://telegram.org/js/telegram-web-app.js?1"></script>
 </head>
 <body>
-  <!-- слой лепестков -->
-  <div id="petalLayer" aria-hidden="true"></div>
-
   <div class="container">
     <div class="progress-bar" id="progressBar">
         <div class="progress-step"><div class="step-number active">1</div><div class="step-label active">Медиа</div></div>
@@ -27,7 +95,7 @@
     </div>
 
     <div class="header">
-        <h1><i class="fas fa-flower-tulip"></i> Flower Market Kyrgyzstan</h1>
+        <h1>🌸 Flower Market Kyrgyzstan</h1>
         <p>Создайте красивое объявление о продаже цветов</p>
     </div>
   </div>
@@ -44,25 +112,26 @@
     <div class="form-container" id="formContainer">
       <!-- Шаг 1 - Фото -->
       <div class="form-step active" id="step1">
-          <h2 class="step-title"><i class="fas fa-camera"></i> Загрузите фото</h2>
+          <h2 class="step-title">📷 Загрузите фото</h2>
           <div class="form-group">
-              <label for="mediaInput" class="photo-upload" id="mediaUpload" aria-label="Загрузить фото">
-                  <i class="fas fa-cloud-upload-alt photo-upload-icon"></i>
-                  <p>Нажмите для загрузки фото</p>
-                  <p class="input-hint">Выберите фото из галереи. Можно загрузить до 10 файлов</p>
+              <label for="mediaInput" class="photo-upload" id="mediaUpload">
+                  <div class="photo-upload-icon">📁</div>
+                  <p><strong>Нажмите для загрузки фото</strong></p>
+                  <p class="input-hint">Выберите фото или видео из галереи. Можно выбрать несколько файлов сразу (до 10)</p>
+                  <p class="input-hint"><small>На компьютере: удерживайте Ctrl для выбора нескольких файлов</small></p>
                   <div id="mediaHint" class="field-hint">Загрузите хотя бы одно фото для продолжения</div>
               </label>
               <input type="file" id="mediaInput" accept="image/*,video/*" multiple style="display: none;">
               <div id="mediaPreview"></div>
           </div>
           <div class="navigation">
-              <button class="btn" onclick="nextStep()" id="nextBtn1" disabled>Далее <i class="fas fa-arrow-right"></i></button>
+              <button class="btn" onclick="nextStep()" id="nextBtn1" disabled>Далее →</button>
           </div>
       </div>
 
       <!-- Шаг 2 - Описание -->
       <div class="form-step" id="step2">
-          <h2 class="step-title"><i class="fas fa-edit"></i> Описание товара</h2>
+          <h2 class="step-title">📝 Описание товара</h2>
           <div class="form-group">
               <label for="description" class="field-required">Опишите ваш товар:</label>
               <textarea id="description" placeholder="Например: Свежие розы из Эквадора, идеально подходят для свадебных букетов. Доставка по городу."></textarea>
@@ -70,23 +139,25 @@
               <div id="descriptionHint" class="field-hint">Описание должно содержать минимум 3 символа</div>
           </div>
           <div class="navigation">
-              <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
-              <button class="btn" onclick="nextStep()" id="nextBtn2" disabled>Далее <i class="fas fa-arrow-right"></i></button>
+              <button class="btn btn-secondary" onclick="prevStep()">← Назад</button>
+              <button class="btn" onclick="nextStep()" id="nextBtn2" disabled>Далее →</button>
           </div>
       </div>
 
       <!-- Шаг 3 - Цена -->
       <div class="form-step" id="step3">
-          <h2 class="step-title"><i class="fas fa-tag"></i> Укажите цену</h2>
+          <h2 class="step-title">💰 Укажите цену</h2>
           <div class="form-group">
               <label for="price" class="field-required">Цена в сомах:</label>
               
               <div class="price-buttons">
                   <div class="price-btn active" id="priceBtnNegotiable" onclick="setNegotiablePrice()">
-                      <i class="fas fa-handshake"></i> Договорная
+                      <span style="font-size: 20px;">🤝</span>
+                      Договорная
                   </div>
                   <div class="price-btn" id="priceBtnEnter" onclick="focusPriceInput()">
-                      <i class="fas fa-edit"></i> Ввести цену
+                      <span style="font-size: 20px;">✏️</span>
+                      Ввести цену
                   </div>
               </div>
               
@@ -95,28 +166,28 @@
               <div id="priceHint" class="field-hint">Укажите цену для продолжения</div>
           </div>
           <div class="navigation">
-              <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
-              <button class="btn" onclick="nextStep()" id="nextBtn3">Далее <i class="fas fa-arrow-right"></i></button>
+              <button class="btn btn-secondary" onclick="prevStep()">← Назад</button>
+              <button class="btn" onclick="nextStep()" id="nextBtn3">Далее →</button>
           </div>
       </div>
 
       <!-- Шаг 4 - Контакты -->
       <div class="form-step" id="step4">
-          <h2 class="step-title"><i class="fas fa-phone"></i> Контакты для связи</h2>
+          <h2 class="step-title">📞 Контакты для связи</h2>
           <div class="contact-options">
-              <div class="contact-option active" id="telegramOption" onclick="selectContactType('telegram')" role="button">
-                  <i class="fab fa-telegram"></i>
-                  <p>Telegram</p>
+              <div class="contact-option active" id="telegramOption" onclick="selectContactType('telegram')">
+                  <span style="font-size: 24px;">✈️</span>
+                  <p><strong>Telegram</strong></p>
                   <small>Ввести username</small>
               </div>
-              <div class="contact-option" id="phoneOption" onclick="selectContactType('phone')" role="button">
-                  <i class="fas fa-mobile-alt"></i>
-                  <p>Телефон</p>
+              <div class="contact-option" id="phoneOption" onclick="selectContactType('phone')">
+                  <span style="font-size: 24px;">📱</span>
+                  <p><strong>Телефон</strong></p>
                   <small>Ввести номер</small>
               </div>
-              <div class="contact-option" id="noContactOption" onclick="selectContactType('none')" role="button">
-                  <i class="fas fa-eye-slash"></i>
-                  <p>Не указывать</p>
+              <div class="contact-option" id="noContactOption" onclick="selectContactType('none')">
+                  <span style="font-size: 24px;">🙈</span>
+                  <p><strong>Не указывать</strong></p>
                   <small>Без контактов</small>
               </div>
           </div>
@@ -133,14 +204,14 @@
               <div id="phoneHint" class="field-hint">Введите номер телефона для продолжения</div>
           </div>
           <div class="navigation">
-              <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
-              <button class="btn" onclick="nextStep()" id="nextBtn4" disabled>Далее <i class="fas fa-arrow-right"></i></button>
+              <button class="btn btn-secondary" onclick="prevStep()">← Назад</button>
+              <button class="btn" onclick="nextStep()" id="nextBtn4">Далее →</button>
           </div>
       </div>
 
       <!-- Шаг 5 - Локация -->
       <div class="form-step" id="step5">
-          <h2 class="step-title"><i class="fas fa-map-marker-alt"></i> Локация</h2>
+          <h2 class="step-title">📍 Локация</h2>
           <div class="form-group">
               <div class="form-group">
                   <label for="citySelect" class="field-required">Город:</label>
@@ -164,7 +235,7 @@
               </div>
               
               <div class="form-group">
-                  <label for="districtSelect" class="field-required">Район города:</label>
+                  <label for="districtSelect">Район города (необязательно):</label>
                   <select id="districtSelect">
                       <option value="">Выберите район</option>
                   </select>
@@ -178,14 +249,14 @@
               </div>
           </div>
           <div class="navigation">
-              <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
-              <button class="btn" onclick="nextStep()" id="nextBtn5" disabled>Далее <i class="fas fa-arrow-right"></i></button>
+              <button class="btn btn-secondary" onclick="prevStep()">← Назад</button>
+              <button class="btn" onclick="nextStep()" id="nextBtn5" disabled>Далее →</button>
           </div>
       </div>
 
       <!-- Шаг 6 - Свежесть -->
       <div class="form-step" id="step6">
-          <h2 class="step-title"><i class="fas fa-clock"></i> Свежесть цветов</h2>
+          <h2 class="step-title">🌿 Свежесть цветов</h2>
           <div class="form-group">
               <label for="freshnessSelect" class="field-required">Когда собраны/привезены цветы?</label>
               <select id="freshnessSelect">
@@ -200,14 +271,14 @@
               <div id="freshnessHint" class="field-hint">Выберите свежесть для продолжения</div>
           </div>
           <div class="navigation">
-              <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
-              <button class="btn" onclick="nextStep()" id="nextBtn6" disabled>Далее <i class="fas fa-arrow-right"></i></button>
+              <button class="btn btn-secondary" onclick="prevStep()">← Назад</button>
+              <button class="btn" onclick="nextStep()" id="nextBtn6" disabled>Далее →</button>
           </div>
       </div>
 
       <!-- Шаг 7 - Превью -->
       <div class="form-step" id="step7">
-          <h2 class="step-title"><i class="fas fa-eye"></i> Превью объявления</h2>
+          <h2 class="step-title">👁️ Превью объявления</h2>
 
           <div class="preview-item">
               <div class="preview-label">Фото</div>
@@ -236,12 +307,12 @@
 
           <div class="preview-item" style="background: #f8f9fa; border-left-color: #667eea;">
               <div class="preview-label" style="color: #667eea;">Формат публикации</div>
-              <div class="preview-value" id="previewFormat" style="font-size: 14px; line-height: 1.6;"></div>
+              <div class="preview-value" id="previewFormat" style="font-size: 14px; line-height: 1.6;">Объявление будет опубликовано в канале с включенными комментариями. Покупатели смогут задавать вопросы под вашим объявлением.</div>
           </div>
 
           <div class="navigation">
-              <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
-              <button class="btn" onclick="submitForm()" id="submitBtn">Опубликовать <i class="fas fa-paper-plane"></i></button>
+              <button class="btn btn-secondary" onclick="prevStep()">← Назад</button>
+              <button class="btn" onclick="submitForm()" id="submitBtn">Опубликовать 📤</button>
           </div>
       </div>
     </div>
@@ -249,7 +320,7 @@
     <!-- Экран успешной публикации -->
     <div class="form-container" id="successScreen" style="display: none;">
         <div class="success-screen">
-            <i class="fas fa-check-circle success-icon"></i>
+            <div class="success-icon">✅</div>
             <h2 class="success-title">Объявление успешно опубликовано!</h2>
             <p class="success-message" id="successMessageText">
                 Ваше объявление опубликовано в канале с комментариями.<br>
@@ -273,18 +344,12 @@
 
             <div id="postLinkContainer" style="margin: 20px 0;">
                 <a href="#" id="postLink" target="_blank" style="display: inline-block; background: #667eea; color: white; padding: 12px 24px; border-radius: 10px; text-decoration: none; font-weight: 600;">
-                    <i class="fas fa-external-link-alt"></i> Перейти к объявлению с комментариями
+                    🔗 Перейти к объявлению с комментариями
                 </a>
             </div>
 
-            <div id="telegramCloseSection" style="display: none; margin-top: 20px;">
-                <button class="btn btn-secondary" onclick="closeTelegramApp()" style="margin-top: 10px;">
-                    <i class="fas fa-times"></i> Закрыть приложение
-                </button>
-            </div>
-
             <button class="btn" onclick="createNewAd()" style="margin-top: 30px;">
-                <i class="fas fa-plus"></i> Создать новое объявление
+                ➕ Создать новое объявление
             </button>
         </div>
     </div>
@@ -301,6 +366,7 @@ let currentStep = 1;
 let totalSteps = 7;
 let mediaFiles = [];
 let selectedContactType = 'telegram';
+let isSubmitting = false;
 let tg = window.Telegram?.WebApp;
 
 const districtsData = {
@@ -325,12 +391,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (tg) {
         tg.ready();
         tg.expand();
-        document.getElementById('telegramCloseSection').style.display = 'block';
         console.log('✅ Telegram WebApp инициализирован');
     }
     
     setupEventListeners();
     showStep(1);
+    updateContactStepUI(); // Инициализация UI контактов
 });
 
 function showStep(step) {
@@ -341,6 +407,10 @@ function showStep(step) {
         currentStep = step;
         updateProgressBar();
         validateCurrentStep();
+        
+        if (currentStep === 4) {
+            updateContactStepUI();
+        }
         
         if (currentStep === totalSteps) {
             updatePreview();
@@ -394,16 +464,15 @@ function validateCurrentStep() {
                 isValid = phone.length >= 10;
                 errorMessage = 'Введите номер телефона';
             } else if (selectedContactType === 'none') {
-                isValid = true; // ВАЖНО: Кнопка "Не указывать" разрешает переход
+                isValid = true; // Кнопка "Не указывать" разрешает переход
                 errorMessage = '';
             }
             break;
             
         case 5:
             const city = document.getElementById('citySelect')?.value || '';
-            const district = document.getElementById('districtSelect')?.value || '';
-            isValid = city && district; // Адрес НЕ проверяется - он необязательный
-            errorMessage = 'Выберите город и район';
+            isValid = city; // Только город обязателен
+            errorMessage = 'Выберите город';
             break;
             
         case 6:
@@ -438,7 +507,7 @@ function getHintIdForStep(step) {
         2: 'descriptionHint',
         3: 'priceHint',
         4: selectedContactType === 'telegram' ? 'telegramHint' : 
-           (selectedContactType === 'phone' ? 'phoneHint' : null), // null для "none"
+           (selectedContactType === 'phone' ? 'phoneHint' : null),
         5: 'cityHint',
         6: 'freshnessHint'
     };
@@ -449,6 +518,8 @@ function getHintIdForStep(step) {
 async function handleMediaUpload(event) {
     const files = Array.from(event.target.files);
     const maxFiles = 10;
+    
+    if (files.length === 0) return;
     
     if (mediaFiles.length + files.length > maxFiles) {
         showNotification('Ошибка', `Можно загрузить не более ${maxFiles} файлов`, 'error');
@@ -512,6 +583,7 @@ async function handleMediaUpload(event) {
         reader.readAsDataURL(file);
     }
     
+    // Сбрасываем значение input, чтобы можно было выбрать те же файлы снова
     event.target.value = '';
 }
 
@@ -527,7 +599,7 @@ async function uploadMediaToServer(file) {
         
         const response = await fetch(`${BACKEND_URL}/api/upload-media`, {
             method: 'POST',
-            body: formData // Важно: отправляем FormData, а не JSON
+            body: formData
         });
         
         if (!response.ok) {
@@ -571,7 +643,7 @@ function updateMediaPreview() {
             <div class="media-type">${mediaType}</div>
             <div class="media-status" title="${statusTitle}">${statusIcon}</div>
             <div class="remove-media" onclick="removeMedia(${index})">
-                <i class="fas fa-times"></i>
+                ✕
             </div>
         `;
         
@@ -625,8 +697,14 @@ async function publishAd(formData) {
 }
 
 async function submitForm() {
+    if (isSubmitting) {
+        console.log('Публикация уже выполняется...');
+        return;
+    }
+    
     console.log('🚀 Начинаю публикацию...');
     
+    // Проверяем все шаги кроме превью
     for (let i = 1; i <= totalSteps - 1; i++) {
         if (!validateCurrentStep()) {
             showNotification('Ошибка', 'Заполните все обязательные поля', 'error');
@@ -641,8 +719,7 @@ async function submitForm() {
         if (!shouldContinue) return;
     }
     
-    showStep(totalSteps);
-    updatePreview();
+    isSubmitting = true;
     
     const mediaForUpload = uploadedFiles.map(f => ({
         fileId: f.fileId,
@@ -657,8 +734,8 @@ async function submitForm() {
         contacts: getContactInfo(),
         freshness: document.getElementById('freshnessSelect').value,
         city: document.getElementById('citySelect').value,
-        district: document.getElementById('districtSelect').value,
-        address: document.getElementById('addressInput').value || '', // Адрес необязательный
+        district: document.getElementById('districtSelect').value || '',
+        address: document.getElementById('addressInput').value || '',
         hashtags: generateHashtags(),
         format: 'new',
         mediaFiles: mediaForUpload
@@ -694,6 +771,7 @@ async function submitForm() {
         showNotification('Ошибка публикации', errorMessage, 'error');
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
+        isSubmitting = false;
     }
 }
 
@@ -746,7 +824,7 @@ function updatePreview() {
             } else {
                 const videoIcon = document.createElement('div');
                 videoIcon.className = 'photo-preview';
-                videoIcon.innerHTML = '<i class="fas fa-video" style="font-size: 24px; color: #667eea;"></i>';
+                videoIcon.innerHTML = '<span style="font-size: 24px; color: #667eea;">🎬</span>';
                 videoIcon.style.display = 'flex';
                 videoIcon.style.alignItems = 'center';
                 videoIcon.style.justifyContent = 'center';
@@ -774,7 +852,10 @@ function updatePreview() {
     const district = document.getElementById('districtSelect').value || '';
     const address = document.getElementById('addressInput').value || '';
     
-    let locationText = `Город: ${city}\nРайон: ${district}`;
+    let locationText = `Город: ${city}`;
+    if (district) {
+        locationText += `\nРайон: ${district}`;
+    }
     if (address) {
         locationText += `\nАдрес: ${address}`;
     }
@@ -805,11 +886,12 @@ function showSuccessScreen(postLink) {
     document.getElementById('successScreen').style.display = 'block';
     
     const linkElement = document.getElementById('postLink');
-    if (linkElement) {
-        linkElement.href = postLink || '#';
-        linkElement.textContent = postLink 
-            ? 'Перейти к объявлению с комментариями' 
-            : 'Объявление опубликовано';
+    if (linkElement && postLink) {
+        linkElement.href = postLink;
+        linkElement.textContent = '🔗 Перейти к объявлению с комментариями';
+    } else {
+        document.getElementById('postLinkContainer').innerHTML = 
+            '<p style="color: #666;">Ссылка на объявление будет доступна в канале</p>';
     }
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -830,6 +912,7 @@ window.prevStep = function() {
 
 window.setNegotiablePrice = function() {
     document.getElementById('price').value = 'Договорная';
+    document.getElementById('price').readOnly = true;
     document.getElementById('priceBtnNegotiable').classList.add('active');
     document.getElementById('priceBtnEnter').classList.remove('active');
     validateCurrentStep();
@@ -845,20 +928,30 @@ window.focusPriceInput = function() {
     document.getElementById('priceBtnEnter').classList.add('active');
 };
 
-window.selectContactType = function(type) {
-    selectedContactType = type;
-    
+function updateContactStepUI() {
+    // Убираем активный класс у всех опций
     document.querySelectorAll('.contact-option').forEach(opt => {
         opt.classList.remove('active');
     });
-    document.getElementById(`${type}Option`).classList.add('active');
     
+    // Добавляем активный класс выбранной опции
+    const activeOption = document.getElementById(`${selectedContactType}Option`);
+    if (activeOption) {
+        activeOption.classList.add('active');
+    }
+    
+    // Показываем/скрываем поля ввода
     document.getElementById('telegramInputGroup').style.display = 
-        type === 'telegram' ? 'block' : 'none';
+        selectedContactType === 'telegram' ? 'block' : 'none';
     document.getElementById('phoneInputGroup').style.display = 
-        type === 'phone' ? 'block' : 'none';
+        selectedContactType === 'phone' ? 'block' : 'none';
     
     validateCurrentStep();
+}
+
+window.selectContactType = function(type) {
+    selectedContactType = type;
+    updateContactStepUI();
 };
 
 window.loadDistricts = function(city) {
@@ -903,15 +996,18 @@ function setupEventListeners() {
     const mediaUpload = document.getElementById('mediaUpload');
     
     if (mediaInput && mediaUpload) {
+        // Исправлено: клик работает с первого раза
         mediaUpload.addEventListener('click', function(e) {
-            if (!e.target.closest('.media-item')) {
-                mediaInput.click();
+            if (e.target.classList.contains('remove-media')) {
+                return;
             }
+            mediaInput.click();
         });
         
         mediaInput.addEventListener('change', handleMediaUpload);
     }
     
+    // Слушатели для валидации полей
     ['description', 'telegram', 'phone', 'addressInput', 'price'].forEach(fieldId => {
         const field = document.getElementById(fieldId);
         if (field) {
@@ -922,15 +1018,22 @@ function setupEventListeners() {
     const citySelect = document.getElementById('citySelect');
     if (citySelect) {
         citySelect.addEventListener('change', function() {
+            validateCurrentStep();
             if (this.value) {
                 window.loadDistricts(this.value);
             }
         });
     }
     
+    const districtSelect = document.getElementById('districtSelect');
+    if (districtSelect) {
+        districtSelect.addEventListener('change', () => validateCurrentStep());
+    }
+    
     const priceInput = document.getElementById('price');
     if (priceInput) {
         priceInput.addEventListener('input', function() {
+            // Разрешаем только цифры
             this.value = this.value.replace(/\D/g, '');
             validateCurrentStep();
         });
@@ -944,6 +1047,7 @@ function setupEventListeners() {
     const telegramInput = document.getElementById('telegram');
     if (telegramInput) {
         telegramInput.addEventListener('input', function() {
+            // Убираем лишние @ в начале
             this.value = this.value.replace(/^@+/, '');
         });
     }
