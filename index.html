@@ -398,6 +398,12 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
     showStep(1);
     updateContactStepUI();
+    
+    // Загружаем районы при загрузке страницы, если уже выбран город
+    const citySelect = document.getElementById('citySelect');
+    if (citySelect.value) {
+        loadDistricts(citySelect.value);
+    }
 });
 
 // Основные функции
@@ -473,7 +479,7 @@ function validateCurrentStep() {
             
         case 5:
             const city = document.getElementById('citySelect')?.value || '';
-            isValid = !!city;
+            isValid = !!city; // Только город обязателен
             errorMessage = 'Выберите город';
             break;
             
@@ -628,13 +634,32 @@ async function publishAd(formData) {
     try {
         console.log('📤 Отправка данных на публикацию:', formData);
         
+        // Преобразуем медиафайлы в base64 для отправки
+        const photosBase64 = [];
+        for (const file of mediaFiles) {
+            if (file.type.startsWith('image/')) {
+                // Убираем префикс data:image/...;base64,
+                const base64Data = file.url.split(',')[1];
+                photosBase64.push({
+                    name: file.name,
+                    type: file.type,
+                    data: base64Data
+                });
+            }
+        }
+        
+        const dataToSend = {
+            ...formData,
+            photos: photosBase64
+        };
+        
         const response = await fetch(`${BACKEND_URL}/api/publish`, {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify(formData)
+            body: JSON.stringify(dataToSend)
         });
         
         if (!response.ok) {
@@ -679,12 +704,7 @@ async function submitForm() {
         district: document.getElementById('districtSelect').value || '',
         address: document.getElementById('addressInput').value || '',
         hashtags: generateHashtags(),
-        format: 'new',
-        mediaFiles: mediaFiles.map(f => ({
-            fileId: f.fileId,
-            type: f.type,
-            name: f.name
-        }))
+        format: 'new'
     };
     
     console.log('📋 Данные для отправки:', formData);
