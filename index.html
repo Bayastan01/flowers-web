@@ -739,6 +739,7 @@ async function publishAd(formData) {
     }
 }
 
+// Обновленная функция submitForm
 async function submitForm() {
     if (isSubmitting) {
         console.log('Публикация уже выполняется...');
@@ -782,7 +783,9 @@ async function submitForm() {
     
     console.log('📋 Данные для отправки:', {
         ...formData,
-        mediaFiles: `[${formData.mediaFiles.length} файлов]`
+        mediaFiles: `[${formData.mediaFiles.length} файлов]`,
+        photos: formData.mediaFiles.filter(f => !f.isVideo).length,
+        videos: formData.mediaFiles.filter(f => f.isVideo).length
     });
     
     // Показываем загрузку
@@ -792,10 +795,25 @@ async function submitForm() {
     submitBtn.disabled = true;
     
     try {
-        const result = await publishAd(formData);
+        // Если есть видео, используем альтернативный метод для лучшего отображения
+        const hasVideos = formData.mediaFiles.some(f => f.isVideo);
+        const endpoint = hasVideos ? '/api/publish-alternative' : '/api/publish';
+        
+        console.log(`📤 Используем endpoint: ${endpoint}`);
+        
+        const result = await publishAd(formData, endpoint);
         
         if (result.success) {
             console.log('✅ Публикация успешна!', result);
+            
+            // Показываем информацию о количестве видео
+            if (hasVideos) {
+                const videoCount = formData.mediaFiles.filter(f => f.isVideo).length;
+                showNotification('Успешно опубликовано', 
+                    `Объявление с ${videoCount} видео опубликовано! Все видео в одном посте.`, 
+                    'success');
+            }
+            
             showSuccessScreen(result.postLink);
         } else {
             throw new Error(result.error || 'Неизвестная ошибка публикации');
@@ -810,6 +828,8 @@ async function submitForm() {
             errorMessage = 'Ошибка доступа. Проверьте права бота в канале.';
         } else if (error.message.includes('400')) {
             errorMessage = 'Ошибка в данных объявления.';
+        } else if (error.message.includes('video')) {
+            errorMessage = 'Ошибка при публикации видео. Попробуйте загрузить видео меньшего размера.';
         } else if (error.message.includes('network') || error.message.includes('fetch')) {
             errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
         } else {
@@ -825,6 +845,34 @@ async function submitForm() {
     }
 }
 
+// Обновленная функция publishAd
+async function publishAd(formData, endpoint = '/api/publish') {
+    try {
+        console.log(`📤 Отправка данных на ${endpoint}:`, formData);
+        
+        const response = await fetch(`${BACKEND_URL}${endpoint}`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+        
+        const result = await response.json();
+        console.log('📥 Ответ от сервера:', result);
+        return result;
+        
+    } catch (error) {
+        console.error('❌ Ошибка публикации:', error);
+        throw error;
+    }
+}
 function validateAllSteps() {
     for (let i = 1; i <= 6; i++) {
         if (!validateStep(i)) {
