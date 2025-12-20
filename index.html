@@ -739,14 +739,13 @@ async function publishAd(formData) {
     }
 }
 
-// Обновленная функция submitForm
 async function submitForm() {
     if (isSubmitting) {
         console.log('Публикация уже выполняется...');
         return;
     }
     
-    console.log('🚀 Начинаю публикацию...');
+    console.log('🚀 Начинаю публикацию ВСЕГО в одном посте...');
     
     // Проверяем все обязательные поля
     if (!validateAllSteps()) {
@@ -766,26 +765,29 @@ async function submitForm() {
         district: document.getElementById('districtSelect').value || '',
         address: document.getElementById('addressInput').value || '',
         hashtags: generateHashtags(),
-        mediaFiles: [], // Отправляем все файлы как массив
-        mediaCount: mediaFiles.length
+        mediaFiles: []
     };
     
-    // Добавляем все файлы в base64
+    // Добавляем ВСЕ файлы в base64
+    console.log(`📁 Обработка ${mediaFiles.length} файлов...`);
     for (const file of mediaFiles) {
-        const base64Data = file.url.split(',')[1];
-        formData.mediaFiles.push({
-            name: file.name,
-            type: file.type,
-            data: base64Data,
-            isVideo: file.type.startsWith('video/')
-        });
+        try {
+            const base64Data = file.url.split(',')[1];
+            formData.mediaFiles.push({
+                name: file.name,
+                type: file.type,
+                data: base64Data
+            });
+        } catch (error) {
+            console.error('❌ Ошибка конвертации файла:', error);
+        }
     }
     
-    console.log('📋 Данные для отправки:', {
-        ...formData,
-        mediaFiles: `[${formData.mediaFiles.length} файлов]`,
-        photos: formData.mediaFiles.filter(f => !f.isVideo).length,
-        videos: formData.mediaFiles.filter(f => f.isVideo).length
+    console.log('📋 Подготовлено для отправки:', {
+        descriptionLength: formData.description.length,
+        mediaCount: formData.mediaFiles.length,
+        hasPhotos: formData.mediaFiles.some(f => f.type.startsWith('image/')),
+        hasVideos: formData.mediaFiles.some(f => f.type.startsWith('video/'))
     });
     
     // Показываем загрузку
@@ -794,61 +796,14 @@ async function submitForm() {
     submitBtn.innerHTML = '<div class="loader"></div> Публикация...';
     submitBtn.disabled = true;
     
+    // Показываем уведомление о процессе
+    showNotification('Публикация', 'Объявление публикуется... Пожалуйста, подождите.', 'info');
+    
     try {
-        // Если есть видео, используем альтернативный метод для лучшего отображения
-        const hasVideos = formData.mediaFiles.some(f => f.isVideo);
-        const endpoint = hasVideos ? '/api/publish-alternative' : '/api/publish';
+        // Используем основной endpoint
+        const endpoint = '/api/publish';
         
-        console.log(`📤 Используем endpoint: ${endpoint}`);
-        
-        const result = await publishAd(formData, endpoint);
-        
-        if (result.success) {
-            console.log('✅ Публикация успешна!', result);
-            
-            // Показываем информацию о количестве видео
-            if (hasVideos) {
-                const videoCount = formData.mediaFiles.filter(f => f.isVideo).length;
-                showNotification('Успешно опубликовано', 
-                    `Объявление с ${videoCount} видео опубликовано! Все видео в одном посте.`, 
-                    'success');
-            }
-            
-            showSuccessScreen(result.postLink);
-        } else {
-            throw new Error(result.error || 'Неизвестная ошибка публикации');
-        }
-        
-    } catch (error) {
-        console.error('❌ Ошибка публикации:', error);
-        
-        let errorMessage = 'Ошибка при публикации объявления';
-        
-        if (error.message.includes('403')) {
-            errorMessage = 'Ошибка доступа. Проверьте права бота в канале.';
-        } else if (error.message.includes('400')) {
-            errorMessage = 'Ошибка в данных объявления.';
-        } else if (error.message.includes('video')) {
-            errorMessage = 'Ошибка при публикации видео. Попробуйте загрузить видео меньшего размера.';
-        } else if (error.message.includes('network') || error.message.includes('fetch')) {
-            errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
-        } else {
-            errorMessage = error.message;
-        }
-        
-        showNotification('Ошибка публикации', errorMessage, 'error');
-        
-        // Восстанавливаем кнопку
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-        isSubmitting = false;
-    }
-}
-
-// Обновленная функция publishAd
-async function publishAd(formData, endpoint = '/api/publish') {
-    try {
-        console.log(`📤 Отправка данных на ${endpoint}:`, formData);
+        console.log(`📤 Отправка на ${endpoint}...`);
         
         const response = await fetch(`${BACKEND_URL}${endpoint}`, {
             method: 'POST',
@@ -866,11 +821,51 @@ async function publishAd(formData, endpoint = '/api/publish') {
         
         const result = await response.json();
         console.log('📥 Ответ от сервера:', result);
-        return result;
+        
+        if (result.success) {
+            console.log('✅ Публикация успешна!');
+            
+            // Показываем успешное уведомление
+            showNotification('Успешно!', 
+                `Объявление с ${mediaFiles.length} файлами опубликовано в одном посте!`, 
+                'success');
+            
+            // Показываем успешный экран через небольшую задержку
+            setTimeout(() => {
+                showSuccessScreen(result.postLink);
+            }, 1500);
+            
+        } else {
+            throw new Error(result.error || 'Неизвестная ошибка публикации');
+        }
         
     } catch (error) {
         console.error('❌ Ошибка публикации:', error);
-        throw error;
+        
+        let errorMessage = 'Ошибка при публикации объявления';
+        
+        if (error.message.includes('403')) {
+            errorMessage = 'Бот не имеет прав для публикации в канале. Проверьте права администратора.';
+        } else if (error.message.includes('400')) {
+            if (error.message.includes('too big')) {
+                errorMessage = 'Файлы слишком большие. Максимальный размер: 50MB для видео, 10MB для фото.';
+            } else if (error.message.includes('video')) {
+                errorMessage = 'Проблема с видео файлом. Попробуйте другой формат (MP4, AVI).';
+            } else {
+                errorMessage = 'Ошибка в данных объявления. Проверьте текст и файлы.';
+            }
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+            errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
+        } else {
+            errorMessage = error.message;
+        }
+        
+        showNotification('Ошибка публикации', errorMessage, 'error');
+        
+        // Восстанавливаем кнопку
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        isSubmitting = false;
     }
 }
 function validateAllSteps() {
