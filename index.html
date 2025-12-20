@@ -297,6 +297,10 @@
 // Flower Market Kyrgyzstan - Frontend
 // Подключен к бэкенду: https://backend-flower-2-production.up.railway.app
 // ============================================
+// ============================================
+// Flower Market Kyrgyzstan - Frontend
+// Подключен к бэкенду: https://backend-flower-2-production.up.railway.app
+// ============================================
 
 const BACKEND_URL = 'https://backend-flower-2-production.up.railway.app';
 
@@ -330,16 +334,33 @@ const districtsData = {
 
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('🌺 Flower Market Frontend запущен');
+    console.log('Backend URL:', BACKEND_URL);
     
     if (tg) {
         tg.ready();
         tg.expand();
         document.getElementById('telegramCloseSection').style.display = 'block';
+        console.log('✅ Telegram WebApp инициализирован');
     }
     
     setupEventListeners();
     showStep(1);
+    
+    // Проверяем связь с бэкендом
+    await checkBackendConnection();
 });
+
+async function checkBackendConnection() {
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/health`);
+        if (response.ok) {
+            console.log('✅ Связь с бэкендом установлена');
+        }
+    } catch (error) {
+        console.error('❌ Ошибка связи с бэкендом:', error);
+        showNotification('Внимание', 'Бэкенд временно недоступен', 'info');
+    }
+}
 
 // ============================================
 // ОСНОВНЫЕ ФУНКЦИИ ФОРМЫ
@@ -357,7 +378,6 @@ function showStep(step) {
         updateProgressBar();
         validateCurrentStep();
         
-        // На последнем шаге обновляем превью
         if (currentStep === totalSteps) {
             updatePreview();
         }
@@ -385,7 +405,7 @@ function validateCurrentStep() {
     switch (currentStep) {
         case 1:
             isValid = mediaFiles.length > 0;
-            errorMessage = 'Загрузите хотя бы одно фото';
+            errorMessage = 'Загрузите хотя бы одно фото или видео';
             break;
             
         case 2:
@@ -459,47 +479,119 @@ function getHintIdForStep(step) {
 }
 
 // ============================================
-// ОБРАБОТКА ФОТО
+// ОБРАБОТКА МЕДИА - ИСПРАВЛЕННАЯ ВЕРСИЯ
 // ============================================
 
-function handleMediaUpload(event) {
+async function handleMediaUpload(event) {
     const files = Array.from(event.target.files);
     const maxFiles = 10;
     
     if (mediaFiles.length + files.length > maxFiles) {
-        showNotification('Ошибка', `Можно загрузить не более ${maxFiles} фото`, 'error');
+        showNotification('Ошибка', `Можно загрузить не более ${maxFiles} файлов`, 'error');
         return;
     }
     
-    files.forEach(file => {
-        if (!file.type.startsWith('image/')) {
-            showNotification('Внимание', `Файл "${file.name}" не является изображением`, 'info');
-            return;
+    // Показываем уведомление о начале загрузки
+    if (files.length > 0) {
+        showNotification('Информация', `Начинаю загрузку ${files.length} файл(ов)...`, 'info');
+    }
+    
+    for (const file of files) {
+        // Проверяем тип файла
+        if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+            showNotification('Внимание', `Файл "${file.name}" не поддерживается (только фото/видео)`, 'info');
+            continue;
         }
         
-        if (file.size > 5 * 1024 * 1024) {
-            showNotification('Внимание', `Файл "${file.name}" слишком большой (макс. 5MB)`, 'info');
-            return;
+        // Проверяем размер файла (макс 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            showNotification('Внимание', `Файл "${file.name}" слишком большой (макс. 10MB)`, 'info');
+            continue;
         }
         
+        // Создаем превью
         const reader = new FileReader();
-        reader.onload = function(e) {
+        
+        reader.onload = async function(e) {
             const url = e.target.result;
-            mediaFiles.push({
+            
+            // Создаем временный объект для отображения превью
+            const tempMedia = {
                 file: file,
                 url: url,
                 name: file.name,
                 type: file.type,
-                size: file.size
-            });
+                size: file.size,
+                uploaded: false,
+                fileId: null
+            };
             
+            mediaFiles.push(tempMedia);
             updateMediaPreview();
             validateCurrentStep();
+            
+            // Пытаемся загрузить на серсер в фоновом режиме
+            try {
+                const uploadResult = await uploadMediaToServer(file, url);
+                
+                if (uploadResult.success && uploadResult.fileId) {
+                    // Обновляем объект с file_id
+                    const index = mediaFiles.findIndex(m => m.url === url);
+                    if (index !== -1) {
+                        mediaFiles[index].uploaded = true;
+                        mediaFiles[index].fileId = uploadResult.fileId;
+                        updateMediaPreview();
+                        console.log(`✅ Файл "${file.name}" загружен на сервер`);
+                    }
+                } else {
+                    console.warn(`⚠️ Файл "${file.name}" не загружен на сервер:`, uploadResult.error);
+                }
+            } catch (uploadError) {
+                console.error(`❌ Ошибка загрузки файла "${file.name}":`, uploadError);
+            }
         };
+        
+        reader.onerror = function(error) {
+            console.error('Ошибка чтения файла:', error);
+            showNotification('Ошибка', `Не удалось прочитать файл "${file.name}"`, 'error');
+        };
+        
         reader.readAsDataURL(file);
-    });
+    }
     
     event.target.value = '';
+}
+
+async function uploadMediaToServer(file, dataUrl) {
+    try {
+        console.log(`📤 Загружаем файл "${file.name}" на сервер...`);
+        
+        const response = await fetch(`${BACKEND_URL}/api/upload-media`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                mediaData: dataUrl,
+                fileName: file.name,
+                fileType: file.type
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        return result;
+        
+    } catch (error) {
+        console.error('Ошибка загрузки на сервер:', error);
+        return {
+            success: false,
+            error: error.message
+        };
+    }
 }
 
 function updateMediaPreview() {
@@ -512,9 +604,27 @@ function updateMediaPreview() {
         const item = document.createElement('div');
         item.className = 'media-item';
         
+        let mediaContent = '';
+        
+        if (file.type.startsWith('image/')) {
+            mediaContent = `<img src="${file.url}" alt="Фото ${index + 1}" loading="lazy">`;
+        } else if (file.type.startsWith('video/')) {
+            mediaContent = `
+                <video controls>
+                    <source src="${file.url}" type="${file.type}">
+                    Ваш браузер не поддерживает видео.
+                </video>
+            `;
+        }
+        
+        const statusIcon = file.uploaded ? '✅' : '⏳';
+        const statusTitle = file.uploaded ? 'Загружено на сервер' : 'Загрузка...';
+        const mediaType = file.type.startsWith('image/') ? 'ФОТО' : 'ВИДЕО';
+        
         item.innerHTML = `
-            <img src="${file.url}" alt="Фото ${index + 1}" loading="lazy">
-            <div class="media-type">ФОТО</div>
+            ${mediaContent}
+            <div class="media-type">${mediaType}</div>
+            <div class="media-status" title="${statusTitle}">${statusIcon}</div>
             <div class="remove-media" onclick="removeMedia(${index})">
                 <i class="fas fa-times"></i>
             </div>
@@ -525,10 +635,26 @@ function updateMediaPreview() {
     
     const hint = document.getElementById('mediaHint');
     if (hint) {
-        hint.textContent = mediaFiles.length > 0 
-            ? `Загружено: ${mediaFiles.length} фото` 
-            : 'Загрузите хотя бы одно фото';
-        hint.classList.toggle('show', mediaFiles.length === 0);
+        const uploadedCount = mediaFiles.filter(f => f.uploaded).length;
+        const totalCount = mediaFiles.length;
+        
+        if (totalCount > 0) {
+            if (uploadedCount === totalCount) {
+                hint.textContent = `✅ Все файлы загружены (${totalCount})`;
+                hint.style.color = '#34c759';
+            } else if (uploadedCount > 0) {
+                hint.textContent = `Загружено: ${uploadedCount} из ${totalCount} файлов`;
+                hint.style.color = '#ff9500';
+            } else {
+                hint.textContent = `⏳ Загружаем файлы... (${totalCount})`;
+                hint.style.color = '#ff9500';
+            }
+        } else {
+            hint.textContent = 'Загрузите хотя бы один файл';
+            hint.style.color = '#ff3b30';
+        }
+        
+        hint.classList.toggle('show', totalCount === 0);
     }
 }
 
@@ -546,7 +672,7 @@ function removeMedia(index) {
 
 async function publishAd(formData) {
     try {
-        console.log('Отправка данных на бэкенд:', formData);
+        console.log('📤 Отправка данных на бэкенд:', formData);
         
         const response = await fetch(`${BACKEND_URL}/api/publish`, {
             method: 'POST',
@@ -556,14 +682,19 @@ async function publishAd(formData) {
             body: JSON.stringify(formData)
         });
         
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        }
+        
         const result = await response.json();
-        console.log('Ответ от бэкенда:', result);
+        console.log('📥 Ответ от бэкенда:', result);
         
         return result;
         
     } catch (error) {
-        console.error('Ошибка публикации:', error);
-        throw new Error(`Не удалось отправить данные: ${error.message}`);
+        console.error('❌ Ошибка публикации:', error);
+        throw new Error(`Не удалось опубликовать объявление: ${error.message}`);
     }
 }
 
@@ -572,7 +703,7 @@ async function publishAd(formData) {
 // ============================================
 
 async function submitForm() {
-    console.log('Начинаю публикацию...');
+    console.log('🚀 Начинаю публикацию...');
     
     for (let i = 1; i <= totalSteps - 1; i++) {
         if (!validateCurrentStep()) {
@@ -581,37 +712,51 @@ async function submitForm() {
         }
     }
     
+    // Проверяем, есть ли загруженные файлы
+    const uploadedFiles = mediaFiles.filter(f => f.uploaded && f.fileId);
+    
+    if (uploadedFiles.length === 0 && mediaFiles.length > 0) {
+        const shouldContinue = confirm(
+            'Файлы еще загружаются на сервер. ' +
+            'Продолжить без медиафайлов? (Объявление будет опубликовано только с текстом)'
+        );
+        
+        if (!shouldContinue) {
+            return;
+        }
+    }
+    
     showStep(totalSteps);
     updatePreview();
     
-    // Формируем данные в нужном формате
+    // Подготавливаем медиафайлы для отправки
+    const mediaForUpload = uploadedFiles.map(f => ({
+        fileId: f.fileId,
+        type: f.type,
+        name: f.name
+    }));
+    
+    console.log('Медиафайлы для отправки:', mediaForUpload);
+    
+    // Формируем данные для отправки
     const formData = {
         initData: tg?.initData || '',
-        
-        // Основные данные
         description: document.getElementById('description').value,
         price: document.getElementById('price').value || 'Договорная',
         contacts: getContactInfo(),
         freshness: document.getElementById('freshnessSelect').value,
-        
-        // Локация
         city: document.getElementById('citySelect').value,
         district: document.getElementById('districtSelect').value,
         address: document.getElementById('addressInput').value || '',
-        
-        // Фото
-        photos: mediaFiles.map(f => ({
-            name: f.name,
-            type: f.type,
-            size: f.size
-        })),
-        
-        // Дополнительные данные для форматирования
-        format: 'new', // Маркер нового формата
-        hashtags: generateHashtags()
+        hashtags: generateHashtags(),
+        format: 'new',
+        mediaFiles: mediaForUpload
     };
     
-    console.log('Данные для публикации:', formData);
+    console.log('Данные для публикации:', {
+        ...formData,
+        mediaFiles: formData.mediaFiles.length
+    });
     
     const submitBtn = document.getElementById('submitBtn');
     const originalText = submitBtn.innerHTML;
@@ -622,14 +767,27 @@ async function submitForm() {
         const result = await publishAd(formData);
         
         if (result.success) {
+            console.log('✅ Публикация успешна!', result);
             showSuccessScreen(result.postLink);
         } else {
             throw new Error(result.error || 'Неизвестная ошибка публикации');
         }
         
     } catch (error) {
-        console.error('Ошибка публикации:', error);
-        showNotification('Ошибка публикации', error.message, 'error');
+        console.error('❌ Ошибка публикации:', error);
+        
+        let errorMessage = error.message;
+        
+        // Упрощенные сообщения об ошибках для пользователя
+        if (errorMessage.includes('403')) {
+            errorMessage = 'Ошибка прав доступа. Проверьте, что бот является администратором канала.';
+        } else if (errorMessage.includes('400')) {
+            errorMessage = 'Ошибка в данных. Проверьте заполнение всех полей.';
+        } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+            errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
+        }
+        
+        showNotification('Ошибка публикации', errorMessage, 'error');
         
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
@@ -655,13 +813,21 @@ function generateHashtags() {
     let hashtags = ['#цветы', '#продажа'];
     
     if (city) {
-        const cityHashtag = city.toLowerCase().replace(/[^а-яё]/g, '');
-        if (cityHashtag) hashtags.push(`#${cityHashtag}`);
+        const cityHashtag = city.toLowerCase()
+            .replace(/[^а-яё]/g, '')
+            .replace(/\s+/g, '');
+        if (cityHashtag && cityHashtag.length > 1) {
+            hashtags.push(`#${cityHashtag}`);
+        }
     }
     
     if (district) {
-        const districtHashtag = district.toLowerCase().replace(/[^а-яё]/g, '');
-        if (districtHashtag) hashtags.push(`#${districtHashtag}`);
+        const districtHashtag = district.toLowerCase()
+            .replace(/[^а-яё]/g, '')
+            .replace(/\s+/g, '');
+        if (districtHashtag && districtHashtag.length > 1) {
+            hashtags.push(`#${districtHashtag}`);
+        }
     }
     
     return hashtags.join(' ');
@@ -673,11 +839,21 @@ function updatePreview() {
     if (previewMedia) {
         previewMedia.innerHTML = '';
         mediaFiles.slice(0, 3).forEach(file => {
-            const img = document.createElement('img');
-            img.className = 'photo-preview';
-            img.src = file.url;
-            img.alt = 'Фото объявления';
-            previewMedia.appendChild(img);
+            if (file.type.startsWith('image/')) {
+                const img = document.createElement('img');
+                img.className = 'photo-preview';
+                img.src = file.url;
+                img.alt = 'Фото объявления';
+                previewMedia.appendChild(img);
+            } else {
+                const videoIcon = document.createElement('div');
+                videoIcon.className = 'photo-preview';
+                videoIcon.innerHTML = '<i class="fas fa-video" style="font-size: 24px; color: #667eea;"></i>';
+                videoIcon.style.display = 'flex';
+                videoIcon.style.alignItems = 'center';
+                videoIcon.style.justifyContent = 'center';
+                previewMedia.appendChild(videoIcon);
+            }
         });
         
         if (mediaFiles.length > 3) {
@@ -688,7 +864,7 @@ function updatePreview() {
         }
     }
     
-    // Данные
+    // Остальные поля
     document.getElementById('previewDescription').textContent = 
         document.getElementById('description').value || 'Не указано';
     
@@ -714,9 +890,10 @@ function updatePreview() {
     // Предпросмотр формата публикации
     const previewFormat = document.getElementById('previewFormat');
     if (previewFormat) {
+        const mediaCount = mediaFiles.filter(f => f.uploaded).length;
+        const mediaText = mediaCount > 0 ? `📷 Прикреплено ${mediaCount} файл(ов)` : '📷 Без медиафайлов';
+        
         const formatText = `
-<b>Формат объявления в канале:</b>
-
 ${document.getElementById('description').value || ''}
 
 <b>Город:</b> ${city}
@@ -727,6 +904,7 @@ ${address ? `<b>Адрес:</b> ${address}\n` : ''}
 <b>Цена:</b> ${document.getElementById('price').value || 'Договорная'}
 <b>Контакты:</b> ${getContactInfo()}
 
+${mediaText}
 ${generateHashtags()}
         `.trim();
         
@@ -907,9 +1085,54 @@ function setupEventListeners() {
     if (freshnessSelect) {
         freshnessSelect.addEventListener('change', () => validateCurrentStep());
     }
+    
+    // Telegram - убираем @ если пользователь ввел
+    const telegramInput = document.getElementById('telegram');
+    if (telegramInput) {
+        telegramInput.addEventListener('input', function() {
+            this.value = this.value.replace(/^@+/, '');
+        });
+    }
 }
 
 console.log('✅ Flower Market Frontend готов к работе!');
+
+// ============================================
+// ДОБАВЬТЕ ЭТИ СТИЛИ В ВАШ CSS (style.css)
+// ============================================
+
+/*
+.media-status {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    z-index: 3;
+}
+
+.media-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#mediaHint.show {
+    display: block;
+}
+
+#mediaHint {
+    transition: color 0.3s ease;
+}
+*/
   </script>
 </body>
 </html>
