@@ -91,6 +91,12 @@
             .price-buttons { grid-template-columns: 1fr; }
             .progress-bar::before { left: 5%; right: 5%; }
         }
+        /* Специфичные стили для инпутов */
+        .language-hint { font-size: 12px; color: #ff6b00; margin-top: 3px; display: none; }
+        .language-hint.show { display: block; }
+        .phone-prefix { display: flex; align-items: center; }
+        .phone-prefix span { background: #f8f9fa; padding: 12px 15px; border: 2px solid #e1e1e1; border-right: none; border-radius: 10px 0 0 10px; color: #666; font-weight: 600; }
+        .phone-prefix input { border-radius: 0 10px 10px 0; }
     </style>
 </head>
 <body>
@@ -121,14 +127,17 @@
     <div class="form-container" id="formContainer">
       <!-- Шаг 1 - Фото -->
       <div class="form-step active" id="step1">
-          <h2 class="step-title"><i class="fas fa-camera"></i> Загрузите фото</h2>
+          <h2 class="step-title"><i class="fas fa-camera"></i> Загрузите фото/видео</h2>
           <div class="form-group">
               <div class="photo-upload" id="mediaUpload" onclick="document.getElementById('mediaInput').click()">
                   <i class="fas fa-cloud-upload-alt photo-upload-icon"></i>
-                  <p><strong>Нажмите для загрузки фото/видео</strong></p>
-                  <p class="input-hint">Выберите до 10 файлов (фото или видео)</p>
-                  <p class="input-hint" style="color: #667eea; font-weight: bold;">Все фото будут в одном объявлении!</p>
-                  <div id="mediaHint" class="field-hint">Загрузите хотя бы одно фото для продолжения</div>
+                  <p><strong>Нажмите для загрузки фото или видео</strong></p>
+                  <p class="input-hint">Выберите до 10 файлов (фото JPG/PNG или видео MP4)</p>
+                  <p class="input-hint" style="color: #667eea; font-weight: bold;">
+                      <i class="fas fa-images"></i> Все фото будут в одном объявлении!<br>
+                      <i class="fas fa-video"></i> Видео также поддерживается
+                  </p>
+                  <div id="mediaHint" class="field-hint">Загрузите хотя бы одно фото или видео для продолжения</div>
               </div>
               <input type="file" id="mediaInput" accept="image/*,video/*" multiple style="display: none;" onchange="handleMediaUpload(event)">
               <div id="mediaPreview"></div>
@@ -198,18 +207,37 @@
                   <small>Без контактов</small>
               </div>
           </div>
+          
           <div class="form-group" id="telegramInputGroup">
               <label for="telegram" class="field-required">Введите Telegram username:</label>
-              <input type="text" id="telegram" placeholder="@username или просто username">
-              <p class="input-hint">Можно с @ или без</p>
+              <div style="position: relative;">
+                  <input type="text" id="telegram" placeholder="username" style="padding-left: 40px;">
+                  <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #667eea; font-weight: bold;">@</span>
+              </div>
+              <p class="input-hint">Введите только имя пользователя (без @)</p>
               <div id="telegramHint" class="field-hint">Введите Telegram username для продолжения</div>
+              <div id="telegramLanguageHint" class="language-hint">
+                  <i class="fas fa-language"></i> Пожалуйста, используйте английскую раскладку
+              </div>
           </div>
+          
           <div class="form-group" id="phoneInputGroup" style="display: none;">
               <label for="phone" class="field-required">Введите номер телефона:</label>
-              <input type="tel" id="phone" placeholder="+996 XXX XXX XXX">
-              <p class="input-hint">Формат: +996XXXYYYZZZ (без пробелов)</p>
+              <div class="phone-prefix">
+                  <span>+996</span>
+                  <input type="tel" id="phone" placeholder="XXX XXX XXX" maxlength="9">
+              </div>
+              <p class="input-hint">Введите 9 цифр номера после +996</p>
               <div id="phoneHint" class="field-hint">Введите номер телефона для продолжения</div>
           </div>
+          
+          <div class="form-group" id="noContactGroup" style="display: none; background: #f8f9fa; padding: 15px; border-radius: 10px; border-left: 4px solid #6c757d;">
+              <p style="color: #666; margin: 0;">
+                  <i class="fas fa-info-circle"></i> Контакты не будут указаны в объявлении.<br>
+                  <small>Покупатели смогут связаться через комментарии в Telegram.</small>
+              </p>
+          </div>
+          
           <div class="navigation">
               <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
               <button class="btn" onclick="nextStep()" id="nextBtn4">Далее <i class="fas fa-arrow-right"></i></button>
@@ -287,7 +315,7 @@
           <h2 class="step-title"><i class="fas fa-eye"></i> Превью объявления</h2>
 
           <div class="preview-item">
-              <div class="preview-label">Фото</div>
+              <div class="preview-label">Фото/Видео</div>
               <div id="previewMedia" class="photos-grid"></div>
           </div>
           <div class="preview-item">
@@ -311,14 +339,6 @@
               <div class="preview-value" id="previewContacts"></div>
           </div>
 
-          <div class="preview-item" style="background: #f0f8ff; border-left-color: #4CAF50;">
-              <div class="preview-label" style="color: #4CAF50;">Формат публикации</div>
-              <div class="preview-value" style="color: #666; font-size: 13px;">
-                  <i class="fas fa-images" style="color: #4CAF50;"></i> Все фото будут в одном посте<br>
-                  <i class="fas fa-layer-group" style="color: #4CAF50;"></i> Галерея из {mediaFiles.length} фото
-              </div>
-          </div>
-
           <div class="navigation">
               <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
               <button class="btn" onclick="submitForm()" id="submitBtn">Опубликовать <i class="fas fa-paper-plane"></i></button>
@@ -332,14 +352,14 @@
             <i class="fas fa-check-circle success-icon"></i>
             <h2 class="success-title">Объявление успешно опубликовано!</h2>
             <p class="success-message" id="successMessageText">
-                Ваше объявление с {mediaFiles.length} фото опубликовано в канале с комментариями.<br>
+                Ваше объявление опубликовано в канале с комментариями.<br>
                 Теперь покупатели могут задавать вопросы под вашим объявлением.
             </p>
 
             <div class="success-steps">
                 <div class="success-step">
                     <div class="step-badge">1</div>
-                    <div class="step-text">Объявление с {mediaFiles.length} фото опубликовано</div>
+                    <div class="step-text">Объявление опубликовано в канале</div>
                 </div>
                 <div class="success-step">
                     <div class="step-badge">2</div>
@@ -366,7 +386,7 @@
 
   <script>
 // ============================================
-// Flower Market Kyrgyzstan - Frontend (ИСПРАВЛЕННЫЙ)
+// Flower Market Kyrgyzstan - Frontend (ПОЛНОСТЬЮ ИСПРАВЛЕННЫЙ)
 // ============================================
 
 const BACKEND_URL = 'https://backend-flower-2-production.up.railway.app';
@@ -378,20 +398,65 @@ let selectedContactType = 'telegram';
 let isSubmitting = false;
 let tg = window.Telegram?.WebApp;
 
+// Полные данные по районам для всех городов
 const districtsData = {
-    'Бишкек': ['Центр', 'Аламедин', 'Левый берег', 'Правый берег', 'Юг', 'Север', 'Ортосай', 'Восток', 'Запад'],
-    'Ош': ['Центр', 'Старый город', 'Новый город', 'Курманжан', 'Араван'],
-    'Токмок': ['Центр', 'Северный', 'Южный', 'Восточный'],
-    'Кара-Балта': ['Центр', 'Микрорайон', 'Старый город'],
-    'Кант': ['Центр', 'Заводской', 'Сельский'],
-    'Каракол': ['Центр', 'Пристань', 'Микрорайон'],
-    'Балыкчи': ['Центр', 'Порт', 'Рыбацкий'],
-    'Чолпон-Ата': ['Центр', 'Пляжная', 'Курортная'],
-    'Джалал-Абад': ['Центр', 'Старый город', 'Новый район'],
-    'Майлуу-Суу': ['Центр', 'Горный', 'Речной'],
-    'Нарын': ['Центр', 'Горный', 'Долинный'],
-    'Талас': ['Центр', 'Исторический', 'Современный'],
-    'Баткен': ['Центр', 'Пограничный', 'Сельский']
+    'Бишкек': [
+        'Аламедин', 'Аламедин-1', 'Ала-Тоо', 'Асанбай', 'Бакай-Ата', 'Восток-5', 
+        'Джал', 'Жибек-Жолу', 'Искра', 'Кок-Жар', 'Лебединовка', 'Манас', 
+        'Манас-Ата', 'Октябрьский', 'Орто-Сай', 'Первомайский', 'Свердловский', 
+        'Таш-Добо', 'Токтогула', 'Тунгуч', 'Улан', 'Чон-Арык', 'Шопоков', 'Юг-2'
+    ],
+    'Ош': [
+        'Алай', 'Араван', 'Базар-Коргон', 'Гулистан', 'Джапалак', 'Кара-Суу', 
+        'Керемет', 'Курманжан-Датка', 'Кызыл-Кия', 'Ленинский', 'Максат', 
+        'Нариман', 'Ноокат', 'Октябрьский', 'Раззаков', 'Советский', 'Сулайман-Тоо', 
+        'Тейит', 'Толойкон', 'Турат', 'Узген', 'Черемушки', 'Шарк'
+    ],
+    'Токмок': [
+        'Центр', 'Северный', 'Южный', 'Восточный', 'Западный', 'Микрорайон', 
+        'Кызыл-Аскер', 'Молодёжный', 'Садовый', 'Строитель'
+    ],
+    'Кара-Балта': [
+        'Центр', 'Ак-Тюз', 'Бирлик', 'Жаштык', 'Келечек', 'Мир', 'Нариман', 
+        'Салтанат', 'Табылгы', 'Ынтымак'
+    ],
+    'Кант': [
+        'Центр', 'Ак-Орго', 'Ала-Тоо', 'Бакы', 'Жети-Казык', 'Кара-Жыгач', 
+        'Кереге-Таш', 'Кызыл-Туу', 'Сары-Булак', 'Чолпон'
+    ],
+    'Каракол': [
+        'Центр', 'Ак-Суу', 'Ала-Тоо', 'Баетов', 'Дружба', 'Жаш-Тилек', 
+        'Каракол', 'Кызыл-Суу', 'Пристань', 'Сан-Таш', 'Тепе-Коргон', 'Чолпон-Ата'
+    ],
+    'Балыкчи': [
+        'Центр', 'Ак-Булун', 'Балыкчи', 'Дружба', 'Жаны-Арык', 'Кара-Ой', 
+        'Кызыл-Туу', 'Пристань', 'Токой', 'Чон-Арык'
+    ],
+    'Чолпон-Ата': [
+        'Центр', 'Ак-Терек', 'Ала-Тоо', 'Бостери', 'Жети-Огюз', 'Каракол', 
+        'Кызыл-Суу', 'Орто-Токой', 'Пристань', 'Сары-Камыш', 'Чолпон'
+    ],
+    'Джалал-Абад': [
+        'Центр', 'Абдырахманов', 'Ак-Орго', 'Ала-Тоо', 'Базар-Коргон', 
+        'Жаны-Жер', 'Кара-Куль', 'Кызыл-Жар', 'Маймак', 'Ноокат', 'Октябрьский', 
+        'Раззаков', 'Советский', 'Сузак', 'Токтогул', 'Узген'
+    ],
+    'Майлуу-Суу': [
+        'Центр', 'Ак-Таш', 'Ала-Тоо', 'Бирлик', 'Жаш-Куч', 'Кара-Жыгач', 
+        'Кызыл-Туу', 'Мир', 'Советский', 'Таш-Кумыр'
+    ],
+    'Нарын': [
+        'Центр', 'Ак-Талаа', 'Ала-Тоо', 'Ат-Баши', 'Жаны-Арык', 'Кара-Кужур', 
+        'Кочкор', 'Мин-Куш', 'Орто-Токой', 'Сары-Булак'
+    ],
+    'Талас': [
+        'Центр', 'Ак-Суу', 'Ала-Тоо', 'Бакай-Ата', 'Жаны-Арык', 'Кара-Буура', 
+        'Кызыл-Адыр', 'Манас', 'Токтогул', 'Чолпон'
+    ],
+    'Баткен': [
+        'Центр', 'Айдаркен', 'Ала-Тоо', 'Бирлик', 'Жаны-Арык', 'Кадамжай', 
+        'Кызыл-Кия', 'Лейлек', 'Советский', 'Сулюкта'
+    ]
 };
 
 // Инициализация
@@ -469,12 +534,18 @@ function validateCurrentStep() {
         case 4:
             if (selectedContactType === 'telegram') {
                 const telegram = document.getElementById('telegram')?.value.trim() || '';
-                isValid = telegram.length >= 3;
-                errorMessage = 'Введите Telegram username';
+                // Проверяем на английские символы
+                const isValidEnglish = /^[a-zA-Z0-9_]+$/.test(telegram);
+                isValid = telegram.length >= 3 && isValidEnglish;
+                errorMessage = isValidEnglish ? 
+                    'Введите Telegram username (минимум 3 символа)' : 
+                    'Используйте только английские буквы, цифры и нижнее подчеркивание';
             } else if (selectedContactType === 'phone') {
                 const phone = document.getElementById('phone')?.value.trim() || '';
-                isValid = phone.length >= 10;
-                errorMessage = 'Введите номер телефона';
+                // Убираем все нецифровые символы и проверяем что осталось 9 цифр
+                const cleanPhone = phone.replace(/\D/g, '');
+                isValid = cleanPhone.length === 9;
+                errorMessage = 'Введите 9 цифр номера телефона';
             } else {
                 isValid = true; // "Не указывать" всегда валидно
             }
@@ -482,7 +553,7 @@ function validateCurrentStep() {
             
         case 5:
             const city = document.getElementById('citySelect')?.value || '';
-            isValid = !!city; // Только город обязателен
+            isValid = !!city;
             errorMessage = 'Выберите город';
             break;
             
@@ -525,7 +596,7 @@ function getHintIdForStep(step) {
     return hints[step];
 }
 
-// Обработка медиа файлов
+// Обработка медиа файлов (фото и видео)
 function handleMediaUpload(event) {
     const files = Array.from(event.target.files);
     const maxFiles = 10;
@@ -545,8 +616,8 @@ function handleMediaUpload(event) {
             continue;
         }
         
-        if (file.size > 10 * 1024 * 1024) {
-            showNotification('Внимание', `Файл "${file.name}" слишком большой (макс. 10MB)`, 'warning');
+        if (file.size > 20 * 1024 * 1024) {
+            showNotification('Внимание', `Файл "${file.name}" слишком большой (макс. 20MB)`, 'warning');
             continue;
         }
         
@@ -601,8 +672,8 @@ function updateMediaPreview() {
             mediaContent = `<video controls><source src="${file.url}" type="${file.type}"></video>`;
         }
         
-        const statusIcon = file.uploaded ? '✓' : '⏳';
-        const statusTitle = file.uploaded ? 'Готово' : 'Загрузка...';
+        const statusIcon = '✓';
+        const statusTitle = 'Готово';
         const mediaType = file.type.startsWith('image/') ? 'ФОТО' : 'ВИДЕО';
         
         item.innerHTML = `
@@ -621,7 +692,14 @@ function updateMediaPreview() {
     const hint = document.getElementById('mediaHint');
     if (hint) {
         if (mediaFiles.length > 0) {
-            hint.textContent = `✅ Загружено файлов: ${mediaFiles.length} (все в одном посте)`;
+            const photoCount = mediaFiles.filter(f => f.type.startsWith('image/')).length;
+            const videoCount = mediaFiles.filter(f => f.type.startsWith('video/')).length;
+            
+            let text = `✅ Загружено: ${mediaFiles.length} файлов`;
+            if (photoCount > 0) text += ` (${photoCount} фото)`;
+            if (videoCount > 0) text += ` (${videoCount} видео)`;
+            
+            hint.textContent = text;
             hint.style.color = '#34c759';
             hint.classList.remove('show');
         } else {
@@ -679,7 +757,6 @@ async function submitForm() {
     
     // Подготавливаем данные
     const formData = {
-        initData: tg?.initData || 'test_data',
         description: document.getElementById('description').value,
         price: document.getElementById('price').value || 'Договорная',
         contacts: getContactInfo(),
@@ -688,26 +765,24 @@ async function submitForm() {
         district: document.getElementById('districtSelect').value || '',
         address: document.getElementById('addressInput').value || '',
         hashtags: generateHashtags(),
-        format: 'new',
-        photos: [], // Отправляем все фото как массив
+        mediaFiles: [], // Отправляем все файлы как массив
         mediaCount: mediaFiles.length
     };
     
-    // Добавляем все фото в base64
+    // Добавляем все файлы в base64
     for (const file of mediaFiles) {
-        if (file.type.startsWith('image/')) {
-            const base64Data = file.url.split(',')[1]; // Убираем префикс data:image/...;base64,
-            formData.photos.push({
-                name: file.name,
-                type: file.type,
-                data: base64Data
-            });
-        }
+        const base64Data = file.url.split(',')[1];
+        formData.mediaFiles.push({
+            name: file.name,
+            type: file.type,
+            data: base64Data,
+            isVideo: file.type.startsWith('video/')
+        });
     }
     
     console.log('📋 Данные для отправки:', {
         ...formData,
-        photos: `[${formData.photos.length} фото]` // Не логируем сами base64 данные
+        mediaFiles: `[${formData.mediaFiles.length} файлов]`
     });
     
     // Показываем загрузку
@@ -721,25 +796,6 @@ async function submitForm() {
         
         if (result.success) {
             console.log('✅ Публикация успешна!', result);
-            
-            // Обновляем сообщение о количестве фото
-            const successMessage = document.getElementById('successMessageText');
-            const successSteps = document.querySelectorAll('.success-step .step-text');
-            
-            if (successMessage) {
-                successMessage.innerHTML = successMessage.innerHTML.replace(
-                    '{mediaFiles.length}',
-                    mediaFiles.length
-                );
-            }
-            
-            if (successSteps.length > 0) {
-                successSteps[0].textContent = successSteps[0].textContent.replace(
-                    '{mediaFiles.length}',
-                    mediaFiles.length
-                );
-            }
-            
             showSuccessScreen(result.postLink);
         } else {
             throw new Error(result.error || 'Неизвестная ошибка публикации');
@@ -789,9 +845,13 @@ function validateStep(step) {
             return isNegotiable || (price && !isNaN(parseFloat(price)) && parseFloat(price) > 0);
         case 4:
             if (selectedContactType === 'telegram') {
-                return document.getElementById('telegram')?.value.trim().length >= 3;
+                const telegram = document.getElementById('telegram')?.value.trim() || '';
+                const isValidEnglish = /^[a-zA-Z0-9_]+$/.test(telegram);
+                return telegram.length >= 3 && isValidEnglish;
             } else if (selectedContactType === 'phone') {
-                return document.getElementById('phone')?.value.trim().length >= 10;
+                const phone = document.getElementById('phone')?.value.trim() || '';
+                const cleanPhone = phone.replace(/\D/g, '');
+                return cleanPhone.length === 9;
             }
             return true;
         case 5: return !!document.getElementById('citySelect')?.value;
@@ -804,10 +864,11 @@ function validateStep(step) {
 function getContactInfo() {
     if (selectedContactType === 'telegram') {
         const telegram = document.getElementById('telegram').value.trim();
-        return `Telegram: ${telegram.startsWith('@') ? telegram : '@' + telegram}`;
+        return `Telegram: @${telegram}`;
     } else if (selectedContactType === 'phone') {
         const phone = document.getElementById('phone').value.trim();
-        return `Телефон: ${phone}`;
+        const cleanPhone = phone.replace(/\D/g, '');
+        return `Телефон: +996${cleanPhone}`;
     } else {
         return 'Контакты в комментариях';
     }
@@ -887,15 +948,6 @@ function updatePreview() {
     if (address) locationText += `\nАдрес: ${address}`;
     
     document.getElementById('previewLocation').textContent = locationText;
-    
-    // Обновляем информацию о формате публикации
-    const formatElement = document.querySelector('.preview-item:last-child .preview-value');
-    if (formatElement) {
-        formatElement.innerHTML = formatElement.innerHTML.replace(
-            '{mediaFiles.length}',
-            mediaFiles.length
-        );
-    }
 }
 
 function showNotification(title, message, type = 'info') {
@@ -988,6 +1040,16 @@ function updateContactStepUI() {
         selectedContactType === 'telegram' ? 'block' : 'none';
     document.getElementById('phoneInputGroup').style.display = 
         selectedContactType === 'phone' ? 'block' : 'none';
+    document.getElementById('noContactGroup').style.display = 
+        selectedContactType === 'none' ? 'block' : 'none';
+    
+    // Сбрасываем значения
+    if (selectedContactType !== 'telegram') {
+        document.getElementById('telegram').value = '';
+    }
+    if (selectedContactType !== 'phone') {
+        document.getElementById('phone').value = '';
+    }
     
     validateCurrentStep();
 }
@@ -1030,8 +1092,48 @@ window.submitForm = submitForm;
 
 // Настройка слушателей событий
 function setupEventListeners() {
+    // Telegram input - только английские символы
+    const telegramInput = document.getElementById('telegram');
+    if (telegramInput) {
+        telegramInput.addEventListener('input', function() {
+            // Убираем все неанглийские символы
+            this.value = this.value.replace(/[^a-zA-Z0-9_]/g, '');
+            
+            // Показываем/скрываем подсказку о языке
+            const languageHint = document.getElementById('telegramLanguageHint');
+            if (languageHint) {
+                const hasNonEnglish = /[^a-zA-Z0-9_]/.test(this.value);
+                languageHint.classList.toggle('show', hasNonEnglish);
+            }
+            
+            validateCurrentStep();
+        });
+    }
+    
+    // Phone input - только цифры и ограничение 9 символов
+    const phoneInput = document.getElementById('phone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            // Убираем все нецифровые символы
+            this.value = this.value.replace(/\D/g, '');
+            
+            // Ограничиваем до 9 цифр
+            if (this.value.length > 9) {
+                this.value = this.value.substring(0, 9);
+            }
+            
+            // Добавляем пробелы для читаемости
+            const cleanValue = this.value.replace(/\D/g, '');
+            if (cleanValue.length >= 3) {
+                this.value = cleanValue.replace(/(\d{3})(\d{0,3})(\d{0,3})/, '$1 $2 $3').trim();
+            }
+            
+            validateCurrentStep();
+        });
+    }
+    
     // Слушатели для валидации полей
-    const fieldsToValidate = ['description', 'telegram', 'phone', 'addressInput', 'price'];
+    const fieldsToValidate = ['description', 'addressInput', 'price'];
     fieldsToValidate.forEach(fieldId => {
         const field = document.getElementById(fieldId);
         if (field) {
@@ -1065,14 +1167,6 @@ function setupEventListeners() {
         priceInput.addEventListener('input', function() {
             this.value = this.value.replace(/\D/g, '');
             validateCurrentStep();
-        });
-    }
-    
-    // Telegram - убираем лишние @
-    const telegramInput = document.getElementById('telegram');
-    if (telegramInput) {
-        telegramInput.addEventListener('input', function() {
-            this.value = this.value.replace(/^@+/, '');
         });
     }
 }
