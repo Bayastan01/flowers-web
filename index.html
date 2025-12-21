@@ -144,7 +144,7 @@
                   <p><strong>Нажмите для загрузки фото и видео</strong></p>
                   <p class="input-hint">Добавьте до 10 файлов. Telegram сгруппирует их в одну галерею</p>
                   <p class="input-hint" style="color: #667eea; font-weight: bold;">
-                      <i class="fas fa-images"></i> Все медиафайлы будут в одной галерее!<br>
+                      <i class="fas fa-images"></i> Все медиафайлы будут в одном объявлении!<br>
                       <i class="fas fa-video"></i> Поддерживаются фото и видео
                   </p>
                   <div id="mediaHint" class="field-hint">Добавьте хотя бы одно фото или видео</div>
@@ -157,7 +157,6 @@
           </div>
       </div>
 
-      <!-- Остальные шаги остаются без изменений -->
       <!-- Шаг 2 - Описание -->
       <div class="form-step" id="step2">
           <h2 class="step-title"><i class="fas fa-edit"></i> Описание товара</h2>
@@ -633,11 +632,11 @@ function updateMediaPreview() {
     }
 }
 
-// Функция публикации с галереей
+// Функция публикации
 async function submitForm() {
     if (isSubmitting) return;
     
-    console.log('🚀 Публикация с галереей...');
+    console.log('🚀 Публикация...');
     
     if (!validateAllSteps()) {
         showNotification('Ошибка', 'Заполните все обязательные поля', 'error');
@@ -659,8 +658,8 @@ async function submitForm() {
         mediaFiles: []
     };
     
-    // Подготавливаем файлы для галереи
-    console.log(`📁 Подготовка ${mediaFiles.length} файлов для галереи...`);
+    // Подготавливаем файлы
+    console.log(`📁 Подготовка ${mediaFiles.length} файлов...`);
     for (const file of mediaFiles) {
         try {
             const base64Data = file.url.split(',')[1];
@@ -677,17 +676,16 @@ async function submitForm() {
     // Показываем загрузку
     const submitBtn = document.getElementById('submitBtn');
     const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<div class="loader"></div> Создание галереи...';
+    submitBtn.innerHTML = '<div class="loader"></div> Публикация...';
     submitBtn.disabled = true;
     
-    // Информационное сообщение
     showNotification('Публикация', 
-        `Создаем галерею из ${mediaFiles.length} файлов...`, 
+        `Отправка объявления с ${mediaFiles.length} файлами...`, 
         'info');
     
     try {
-        // Используем специальный endpoint для галереи
-        const endpoint = '/api/publish-gallery';
+        // Используем endpoint для публикации
+        const endpoint = '/api/publish';
         
         console.log(`📤 Отправка на ${endpoint}...`);
         
@@ -709,11 +707,11 @@ async function submitForm() {
         console.log('📥 Результат:', result);
         
         if (result.success) {
-            console.log('✅ Галерея создана успешно!');
+            console.log('✅ Успешно опубликовано!');
             
             setTimeout(() => {
                 showNotification('✅ Успешно!', 
-                    `Галерея из ${result.stats.photos} фото создана!`, 
+                    `Объявление опубликовано!`, 
                     'success');
                 
                 setTimeout(() => {
@@ -722,13 +720,13 @@ async function submitForm() {
             }, 1000);
             
         } else {
-            throw new Error(result.error || 'Ошибка создания галереи');
+            throw new Error(result.error || 'Ошибка публикации');
         }
         
     } catch (error) {
         console.error('❌ Ошибка публикации:', error);
         
-        let errorMessage = 'Ошибка при создании галереи';
+        let errorMessage = 'Ошибка при публикации объявления';
         if (error.message.includes('network') || error.message.includes('fetch')) {
             errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
         }
@@ -937,7 +935,8 @@ window.loadDistricts = function(city) {
     const districtSelect = document.getElementById('districtSelect');
     const districts = [
         'Центр', 'Восточный', 'Западный', 'Северный', 'Южный',
-        'Аламедин', 'Октябрьский', 'Первомайский', 'Свердловский'
+        'Аламедин', 'Октябрьский', 'Первомайский', 'Свердловский',
+        'Ленинский', 'Советский', 'Калининский', 'Фрунзенский'
     ];
     
     districtSelect.innerHTML = '<option value="">Выберите район</option>';
@@ -1099,7 +1098,7 @@ function updateContactStepUI() {
     validateCurrentStep();
 }
 
-console.log('✅ Flower Market Frontend с галереей готов!');
+console.log('✅ Flower Market Frontend готов!');
   </script>
 </body>
 </html>
