@@ -577,7 +577,7 @@ function validateCurrentStep() {
                 isValid = cleanPhone.length === 9;
                 errorMessage = 'Введите 9 цифр номера телефона';
             } else {
-                isValid = true;
+                isValid = true; // "Не указывать" всегда валидно
             }
             break;
             
@@ -1015,28 +1015,147 @@ window.focusPriceInput = function() {
     document.getElementById('priceBtnEnter').classList.add('active');
 };
 
+// ============================================
+// ИСПРАВЛЕННАЯ ФУНКЦИЯ ВЫБОРА КОНТАКТОВ
+// ============================================
 window.selectContactType = function(type) {
     selectedContactType = type;
     updateContactStepUI();
+};
+
+function updateContactStepUI() {
+    // Обновляем активные кнопки
+    document.querySelectorAll('.contact-option').forEach(opt => {
+        opt.classList.remove('active');
+    });
+    document.getElementById(`${selectedContactType}Option`).classList.add('active');
+    
+    // Показываем/скрываем поля ввода
+    document.getElementById('telegramInputGroup').style.display = 
+        selectedContactType === 'telegram' ? 'block' : 'none';
+    document.getElementById('phoneInputGroup').style.display = 
+        selectedContactType === 'phone' ? 'block' : 'none';
+    document.getElementById('noContactGroup').style.display = 
+        selectedContactType === 'none' ? 'block' : 'none';
+    
+    // Сбрасываем значения полей
+    if (selectedContactType !== 'telegram') {
+        document.getElementById('telegram').value = '';
+    }
+    if (selectedContactType !== 'phone') {
+        document.getElementById('phone').value = '';
+    }
+    
+    // Снимаем обязательность с полей
+    const telegramLabel = document.querySelector('#telegramInputGroup label');
+    const phoneLabel = document.querySelector('#phoneInputGroup label');
+    
+    if (selectedContactType === 'telegram') {
+        telegramLabel.classList.add('field-required');
+        phoneLabel?.classList.remove('field-required');
+    } else if (selectedContactType === 'phone') {
+        telegramLabel?.classList.remove('field-required');
+        phoneLabel.classList.add('field-required');
+    } else {
+        telegramLabel?.classList.remove('field-required');
+        phoneLabel?.classList.remove('field-required');
+    }
+    
+    validateCurrentStep();
+}
+
+// ============================================
+// ИСПРАВЛЕННАЯ ФУНКЦИЯ ЗАГРУЗКИ РАЙОНОВ
+// ============================================
+// Данные районов для городов Кыргызстана
+const districtsData = {
+    'Бишкек': [
+        'Аламединский', 'Ленинский', 'Октябрьский', 'Первомайский', 'Свердловский',
+        'Центральный', 'Ала-Арчинский', 'Аламедин-1', 'Восток', 'Западный',
+        'Южный', 'Северный', 'Тунгуч', 'Орто-Сай', 'Кок-Жар'
+    ],
+    'Ош': [
+        'Ош', 'Алайский', 'Араванский', 'Кара-Сууский', 'Ноокатский',
+        'Узгенский', 'Чон-Алайский', 'Центральный', 'Ленинский', 'Советский',
+        'Кызыл-Кия', 'Майлуу-Суу', 'Кара-Кульджа'
+    ],
+    'Токмок': [
+        'Токмок', 'Центральный', 'Северный', 'Южный', 'Восточный',
+        'Западный', 'Ак-Бешим', 'Борбордук'
+    ],
+    'Кара-Балта': [
+        'Кара-Балта', 'Центральный', 'Жайылский', 'Сокулукский',
+        'Ак-Суу', 'Кара-Бууринский'
+    ],
+    'Кант': [
+        'Кант', 'Центральный', 'Ысык-Атинский', 'Аламедин',
+        'Кара-Балтинский'
+    ],
+    'Каракол': [
+        'Каракол', 'Центральный', 'Ак-Сууский', 'Джети-Огузский',
+        'Тонский', 'Тюпский', 'Иссык-Кульский'
+    ],
+    'Балыкчи': [
+        'Балыкчи', 'Центральный', 'Иссык-Кульский', 'Тонский',
+        'Ак-Сууский'
+    ],
+    'Чолпон-Ата': [
+        'Чолпон-Ата', 'Центральный', 'Иссык-Кульский', 'Тонский'
+    ],
+    'Джалал-Абад': [
+        'Джалал-Абад', 'Аксынский', 'Ала-Букинский', 'Базар-Коргонский',
+        'Ноокенский', 'Сузакский', 'Тогуз-Тороуский', 'Токтогульский',
+        'Чаткальский'
+    ],
+    'Майлуу-Суу': [
+        'Майлуу-Суу', 'Центральный', 'Лейлекский', 'Кадамжайский'
+    ],
+    'Нарын': [
+        'Нарын', 'Ак-Талинский', 'Ат-Башинский', 'Жумгальский',
+        'Кочкорский', 'Нарынский'
+    ],
+    'Талас': [
+        'Талас', 'Бакай-Атинский', 'Кара-Бууринский', 'Манасский',
+        'Таласский'
+    ],
+    'Баткен': [
+        'Баткен', 'Баткенский', 'Кадамжайский', 'Лейлекский',
+        'Кызыл-Кия', 'Сулюкта'
+    ]
 };
 
 window.loadDistricts = function(city) {
     if (!city) return;
     
     const districtSelect = document.getElementById('districtSelect');
-    const districts = [
-        'Центр', 'Восточный', 'Западный', 'Северный', 'Южный',
-        'Аламедин', 'Октябрьский', 'Первомайский', 'Свердловский',
-        'Ленинский', 'Советский', 'Калининский', 'Фрунзенский'
-    ];
     
+    // Очищаем список
     districtSelect.innerHTML = '<option value="">Выберите район</option>';
-    districts.forEach(district => {
+    
+    // Добавляем опцию с названием самого города (первым пунктом после "Выберите район")
+    const cityOption = document.createElement('option');
+    cityOption.value = city;
+    cityOption.textContent = city;
+    districtSelect.appendChild(cityOption);
+    
+    // Добавляем районы для этого города
+    const districts = districtsData[city] || [];
+    
+    // Фильтруем, чтобы не добавлять сам город еще раз (если он уже есть в списке районов)
+    const uniqueDistricts = districts.filter(district => district !== city);
+    
+    // Добавляем уникальные районы
+    uniqueDistricts.forEach(district => {
         const option = document.createElement('option');
         option.value = district;
         option.textContent = district;
         districtSelect.appendChild(option);
     });
+    
+    // Если для города нет данных о районах, оставляем только город
+    if (uniqueDistricts.length === 0) {
+        console.log(`Для города "${city}" нет данных о районах`);
+    }
     
     validateCurrentStep();
 };
@@ -1159,34 +1278,11 @@ function validateStep(step) {
                 const cleanPhone = phone.replace(/\D/g, '');
                 return cleanPhone.length === 9;
             }
-            return true;
+            return true; // "Не указывать" всегда валидно
         case 5: return !!document.getElementById('citySelect')?.value;
         case 6: return !!document.getElementById('freshnessSelect')?.value;
         default: return true;
     }
-}
-
-function updateContactStepUI() {
-    document.querySelectorAll('.contact-option').forEach(opt => {
-        opt.classList.remove('active');
-    });
-    document.getElementById(`${selectedContactType}Option`).classList.add('active');
-    
-    document.getElementById('telegramInputGroup').style.display = 
-        selectedContactType === 'telegram' ? 'block' : 'none';
-    document.getElementById('phoneInputGroup').style.display = 
-        selectedContactType === 'phone' ? 'block' : 'none';
-    document.getElementById('noContactGroup').style.display = 
-        selectedContactType === 'none' ? 'block' : 'none';
-    
-    if (selectedContactType !== 'telegram') {
-        document.getElementById('telegram').value = '';
-    }
-    if (selectedContactType !== 'phone') {
-        document.getElementById('phone').value = '';
-    }
-    
-    validateCurrentStep();
 }
 
 console.log('✅ Flower Market Frontend готов!');
