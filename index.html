@@ -10,195 +10,156 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* === ВСЁ ОРИГИНАЛЬНОЕ СТИЛЕВОЕ ОПИСАНИЕ === */
-/* Основные стили */
-* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-.container { max-width: 800px; margin: 0 auto; padding-bottom: env(safe-area-inset-bottom, 20px); position: relative; z-index: 2; }
-.header { text-align: center; color: white; margin-bottom: 30px; padding-top: env(safe-area-inset-top, 0); position: relative; z-index: 2; }
-.header h1 { font-size: 24px; margin-bottom: 8px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; }
-.header p { opacity: 0.9; font-size: 14px; }
-.form-container { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); margin-bottom: 20px; position: relative; z-index: 2; }
-.form-step { display: none; animation-duration: 0.3s; animation-fill-mode: both; position: relative; z-index: 2; }
-.form-step.active { display: block; animation-name: fadeInUp; }
-@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-.step-title { font-size: 20px; color: #333; margin-bottom: 25px; text-align: center; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; position: relative; z-index: 2; }
-.form-group { margin-bottom: 25px; position: relative; z-index: 2; }
-label { display: block; margin-bottom: 10px; color: #555; font-weight: 500; font-size: 15px; position: relative; z-index: 2; }
-input, textarea, select { width: 100%; padding: 14px 16px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 16px; font-family: inherit; transition: all 0.3s ease; background: #fff; position: relative; z-index: 2; }
-input:focus, textarea:focus, select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
-textarea { min-height: 140px; resize: vertical; line-height: 1.5; position: relative; z-index: 2; }
-.input-hint { display: block; margin-top: 8px; color: #888; font-size: 13px; position: relative; z-index: 2; }
-.photo-upload { border: 3px dashed #667eea; border-radius: 12px; padding: 40px 20px; text-align: center; cursor: pointer; transition: all 0.3s ease; background: rgba(102, 126, 234, 0.05); position: relative; z-index: 2; }
-.photo-upload:hover, .photo-upload:active { background: rgba(102, 126, 234, 0.1); }
-.photo-upload-icon { font-size: 48px; color: #667eea; margin-bottom: 15px; display: block; }
-#mediaInput { display: none; }
-#mediaPreview { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; position: relative; z-index: 2; }
-.media-item { position: relative; width: 100px; height: 100px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: transform 0.2s ease; position: relative; z-index: 2; }
-.media-item:hover { transform: scale(1.05); }
-.media-item img, .media-item video { width: 100%; height: 100%; object-fit: cover; }
-.media-type { position: absolute; top: 6px; left: 6px; background: rgba(0, 0, 0, 0.7); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
-.remove-media { position: absolute; top: 6px; right: 6px; background: rgba(255, 59, 48, 0.9); color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; font-weight: bold; transition: background 0.2s; border: 2px solid white; position: relative; z-index: 3; }
-.remove-media:hover { background: rgba(255, 59, 48, 1); }
-.contact-options { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 25px; position: relative; z-index: 2; }
-@media (max-width: 480px) { .contact-options { grid-template-columns: 1fr; } }
-.contact-option { padding: 20px 15px; border: 2px solid #e0e0e0; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s ease; background: #fff; position: relative; z-index: 2; }
-.contact-option:hover { border-color: #667eea; background: rgba(102, 126, 234, 0.05); }
-.contact-option.active { border-color: #667eea; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3); }
-.contact-option i { font-size: 28px; margin-bottom: 12px; display: block; }
-.contact-option p { font-size: 15px; font-weight: 500; margin-bottom: 5px; }
-.contact-option small { font-size: 12px; opacity: 0.8; }
-.location-map { width: 100%; height: 300px; border-radius: 12px; overflow: hidden; margin-bottom: 20px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; color: #667eea; border: 2px solid #e0e0e0; position: relative; z-index: 2; }
-.location-map i { font-size: 48px; margin-bottom: 10px; }
-.btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 16px 30px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 10px; position: relative; z-index: 2; overflow: hidden; }
-.btn:after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 100%); opacity: 0; transition: opacity 0.3s; }
-.btn:hover:after, .btn:active:after { opacity: 1; }
-.btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4); }
-.btn:active { transform: translateY(0); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); }
-.btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; box-shadow: none !important; background: linear-gradient(135deg, #a0aec0 0%, #718096 100%); }
-.btn:disabled:hover { transform: none !important; box-shadow: none !important; }
-.btn:disabled:after { opacity: 0; }
-.btn-secondary { background: #f0f0f0; color: #333; background-image: none; }
-.btn-secondary:hover { background: #e0e0e0; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-.btn-tertiary { background: #4CAF50; color: white; background-image: none; }
-.btn-tertiary:hover { background: #45a049; box-shadow: 0 10px 20px rgba(76, 175, 80, 0.3); }
-.navigation { display: flex; gap: 15px; margin-top: 30px; position: relative; z-index: 2; }
-.navigation .btn { flex: 1; }
-.preview-item { background: rgba(102, 126, 234, 0.05); padding: 18px; border-radius: 12px; margin-bottom: 15px; border-left: 4px solid #667eea; position: relative; z-index: 2; }
-.preview-label { font-weight: 600; color: #667eea; margin-bottom: 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
-.preview-value { color: #333; font-size: 16px; line-height: 1.5; }
-.photos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; position: relative; z-index: 2; }
-.photo-preview { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-.photo-more { display: flex; align-items: center; justify-content: center; background: rgba(102, 126, 234, 0.1); border-radius: 8px; font-size: 20px; font-weight: bold; color: #667eea; }
-.progress-bar { display: flex; justify-content: space-between; margin-bottom: 30px; position: relative; z-index: 2; }
-.progress-bar:before { content: ''; position: absolute; top: 15px; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.3); z-index: 1; }
-.progress-step { position: relative; z-index: 2; text-align: center; flex: 1; }
-.step-number { width: 36px; height: 36px; background: rgba(255,255,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; color: white; font-weight: 600; transition: all 0.3s; }
-.step-number.active { background: white; color: #667eea; box-shadow: 0 0 0 4px rgba(255,255,255,0.3); }
-.step-label { color: rgba(255,255,255,0.7); font-size: 12px; transition: color 0.3s; }
-.step-label.active { color: white; font-weight: 500; }
-.notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: white; padding: 15px 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 1000; display: flex; align-items: center; gap: 12px; transition: transform 0.4s ease; max-width: 90%; width: 400px; }
-.notification.show { transform: translateX(-50%) translateY(0); }
-.notification-icon { font-size: 22px; color: #ff3b30; }
-.notification.success .notification-icon { color: #34c759; }
-.notification-content { flex: 1; }
-.notification-title { font-weight: 600; margin-bottom: 4px; color: #333; }
-.notification-message { color: #666; font-size: 14px; }
-.loader { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.success-screen { text-align: center; padding: 40px 20px; animation: fadeIn 0.5s ease; position: relative; z-index: 2; }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-.success-icon { font-size: 80px; color: #34c759; margin-bottom: 25px; animation: bounce 1s ease infinite; }
-@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-.success-title { font-size: 28px; color: #333; margin-bottom: 15px; font-weight: 600; }
-.success-message { color: #666; line-height: 1.6; margin-bottom: 30px; font-size: 16px; }
-.success-steps { background: rgba(102, 126, 234, 0.05); border-radius: 12px; padding: 20px; margin: 30px 0; text-align: left; position: relative; z-index: 2; }
-.success-step { display: flex; align-items: flex-start; margin-bottom: 15px; }
-.success-step:last-child { margin-bottom: 0; }
-.step-badge { background: #667eea; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; flex-shrink: 0; }
-.step-text { flex: 1; color: #555; }
-.telegram-info { background: linear-gradient(135deg, #0088cc 0%, #34aadc 100%); color: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: center; display: none; }
-.telegram-info.show { display: block; animation: fadeIn 0.5s ease; }
-.telegram-info p { margin: 5px 0; }
-.telegram-info i { font-size: 24px; margin-bottom: 10px; display: block; }
-.close-telegram-btn { background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; margin-top: 10px; display: inline-block; font-size: 14px; }
-.channel-link { display: inline-block; background: white; color: #0088cc; padding: 8px 16px; border-radius: 20px; text-decoration: none; margin-top: 10px; font-weight: bold; }
-.server-url { position: fixed; top: 20px; left: 20px; background: rgba(0,0,0,0.7); color: white; padding: 8px 12px; border-radius: 8px; font-size: 12px; z-index: 999; font-family: monospace; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        .container { max-width: 800px; margin: 0 auto; padding-bottom: env(safe-area-inset-bottom, 20px); position: relative; z-index: 2; }
+        .header { text-align: center; color: white; margin-bottom: 30px; padding-top: env(safe-area-inset-top, 0); position: relative; z-index: 2; }
+        .header h1 { font-size: 24px; margin-bottom: 8px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .header p { opacity: 0.9; font-size: 14px; }
+        .form-container { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); margin-bottom: 20px; position: relative; z-index: 2; }
+        .form-step { display: none; animation-duration: 0.3s; animation-fill-mode: both; position: relative; z-index: 2; }
+        .form-step.active { display: block; animation-name: fadeInUp; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .step-title { font-size: 20px; color: #333; margin-bottom: 25px; text-align: center; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; position: relative; z-index: 2; }
+        .form-group { margin-bottom: 25px; position: relative; z-index: 2; }
+        label { display: block; margin-bottom: 10px; color: #555; font-weight: 500; font-size: 15px; position: relative; z-index: 2; }
+        input, textarea, select { width: 100%; padding: 14px 16px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 16px; font-family: inherit; transition: all 0.3s ease; background: #fff; position: relative; z-index: 2; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        textarea { min-height: 140px; resize: vertical; line-height: 1.5; position: relative; z-index: 2; }
+        .input-hint { display: block; margin-top: 8px; color: #888; font-size: 13px; position: relative; z-index: 2; }
+        .photo-upload { border: 3px dashed #667eea; border-radius: 12px; padding: 40px 20px; text-align: center; cursor: pointer; transition: all 0.3s ease; background: rgba(102, 126, 234, 0.05); position: relative; z-index: 2; }
+        .photo-upload:hover, .photo-upload:active { background: rgba(102, 126, 234, 0.1); }
+        .photo-upload-icon { font-size: 48px; color: #667eea; margin-bottom: 15px; display: block; }
+        #mediaInput { display: none; }
+        #mediaPreview { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; position: relative; z-index: 2; }
+        .media-item { position: relative; width: 100px; height: 100px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: transform 0.2s ease; position: relative; z-index: 2; }
+        .media-item:hover { transform: scale(1.05); }
+        .media-item img, .media-item video { width: 100%; height: 100%; object-fit: cover; }
+        .media-type { position: absolute; top: 6px; left: 6px; background: rgba(0, 0, 0, 0.7); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
+        .remove-media { position: absolute; top: 6px; right: 6px; background: rgba(255, 59, 48, 0.9); color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; font-weight: bold; transition: background 0.2s; border: 2px solid white; position: relative; z-index: 3; }
+        .remove-media:hover { background: rgba(255, 59, 48, 1); }
+        
+        /* ИСПРАВЛЕННЫЕ СТИЛИ ДЛЯ КОНТАКТОВ */
+        .contact-options { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 25px; position: relative; z-index: 2; }
+        @media (max-width: 480px) { .contact-options { grid-template-columns: 1fr; } }
+        .contact-option { padding: 20px 15px; border: 2px solid #e0e0e0; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s ease; background: #fff; position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 120px; }
+        .contact-option:hover { border-color: #667eea; background: rgba(102, 126, 234, 0.05); }
+        .contact-option.active { border-color: #667eea; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3); }
+        .contact-option i { font-size: 28px; margin-bottom: 12px; display: block; }
+        .contact-option p { font-size: 15px; font-weight: 500; margin-bottom: 5px; text-align: center; }
+        .contact-option small { font-size: 12px; opacity: 0.8; text-align: center; }
+        
+        /* Специальный стиль для кнопки "Не указывать" */
+        .contact-option.no-contact.active { border-color: #6c757d; background: linear-gradient(135deg, #6c757d 0%, #495057 100%); }
+        .contact-option.no-contact:hover { border-color: #6c757d; background: rgba(108, 117, 125, 0.05); }
+        
+        /* ИСПРАВЛЕННЫЕ СТИЛИ ДЛЯ ИНПУТОВ В КОНТАКТАХ */
+        .contact-input-wrapper { position: relative; width: 100%; }
+        .telegram-input { padding-left: 40px !important; padding-right: 40px !important; text-align: center; font-size: 16px; }
+        .telegram-prefix { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #667eea; font-weight: bold; font-size: 16px; z-index: 3; }
+        
+        .phone-input-wrapper { display: flex; align-items: center; }
+        .phone-prefix { background: #f8f9fa; padding: 14px 15px; border: 2px solid #e0e0e0; border-right: none; border-radius: 12px 0 0 12px; color: #666; font-weight: 600; font-size: 16px; white-space: nowrap; }
+        .phone-input { border-radius: 0 12px 12px 0 !important; padding: 14px 16px !important; text-align: center; font-size: 16px; }
+        
+        /* ИСПРАВЛЕННЫЙ СТИЛЬ ДЛЯ ИНФО ПАНЕЛИ "НЕ УКАЗЫВАТЬ" */
+        .no-contact-info { background: #f8f9fa; padding: 20px; border-radius: 12px; border-left: 4px solid #6c757d; margin-top: 15px; }
+        .no-contact-info p { color: #666; margin: 0; line-height: 1.5; }
+        .no-contact-info i { color: #6c757d; margin-right: 8px; }
+        
+        /* Остальные стили */
+        .btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 16px 30px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 10px; position: relative; z-index: 2; overflow: hidden; }
+        .btn:after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 100%); opacity: 0; transition: opacity 0.3s; }
+        .btn:hover:after, .btn:active:after { opacity: 1; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4); }
+        .btn:active { transform: translateY(0); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; box-shadow: none !important; background: linear-gradient(135deg, #a0aec0 0%, #718096 100%); }
+        .btn:disabled:hover { transform: none !important; box-shadow: none !important; }
+        .btn:disabled:after { opacity: 0; }
+        .btn-secondary { background: #f0f0f0; color: #333; background-image: none; }
+        .btn-secondary:hover { background: #e0e0e0; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .navigation { display: flex; gap: 15px; margin-top: 30px; position: relative; z-index: 2; }
+        .navigation .btn { flex: 1; }
+        
+        /* ИСПРАВЛЕННЫЕ СТИЛИ ДЛЯ ПРЕВЬЮ */
+        .preview-item { background: rgba(102, 126, 234, 0.05); padding: 18px; border-radius: 12px; margin-bottom: 15px; border-left: 4px solid #667eea; position: relative; z-index: 2; }
+        .preview-label { font-weight: 600; color: #667eea; margin-bottom: 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .preview-value { color: #333; font-size: 16px; line-height: 1.5; }
+        
+        /* ИСПРАВЛЕННАЯ ГАЛЕРЕЯ В ПРЕВЬЮ */
+        .preview-gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; position: relative; z-index: 2; }
+        @media (max-width: 600px) { .preview-gallery { grid-template-columns: repeat(2, 1fr); } }
+        .preview-gallery-item { width: 100%; aspect-ratio: 1; border-radius: 8px; overflow: hidden; position: relative; background: #f8f9fa; }
+        .preview-gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .preview-gallery-item video { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .preview-gallery-badge { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
+        .preview-gallery-more { display: flex; align-items: center; justify-content: center; background: rgba(102, 126, 234, 0.1); border-radius: 8px; font-size: 16px; font-weight: bold; color: #667eea; }
+        
+        .photos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; position: relative; z-index: 2; }
+        .photo-preview { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .photo-more { display: flex; align-items: center; justify-content: center; background: rgba(102, 126, 234, 0.1); border-radius: 8px; font-size: 20px; font-weight: bold; color: #667eea; }
+        .progress-bar { display: flex; justify-content: space-between; margin-bottom: 30px; position: relative; z-index: 2; }
+        .progress-bar:before { content: ''; position: absolute; top: 15px; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.3); z-index: 1; }
+        .progress-step { position: relative; z-index: 2; text-align: center; flex: 1; }
+        .step-number { width: 36px; height: 36px; background: rgba(255,255,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; color: white; font-weight: 600; transition: all 0.3s; }
+        .step-number.active { background: white; color: #667eea; box-shadow: 0 0 0 4px rgba(255,255,255,0.3); }
+        .step-label { color: rgba(255,255,255,0.7); font-size: 12px; transition: color 0.3s; }
+        .step-label.active { color: white; font-weight: 500; }
+        .notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: white; padding: 15px 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 1000; display: flex; align-items: center; gap: 12px; transition: transform 0.4s ease; max-width: 90%; width: 400px; }
+        .notification.show { transform: translateX(-50%) translateY(0); }
+        .notification-icon { font-size: 22px; color: #ff3b30; }
+        .notification.success .notification-icon { color: #34c759; }
+        .notification-content { flex: 1; }
+        .notification-title { font-weight: 600; margin-bottom: 4px; color: #333; }
+        .notification-message { color: #666; font-size: 14px; }
+        .loader { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .success-screen { text-align: center; padding: 40px 20px; animation: fadeIn 0.5s ease; position: relative; z-index: 2; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .success-icon { font-size: 80px; color: #34c759; margin-bottom: 25px; animation: bounce 1s ease infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .success-title { font-size: 28px; color: #333; margin-bottom: 15px; font-weight: 600; }
+        .success-message { color: #666; line-height: 1.6; margin-bottom: 30px; font-size: 16px; }
+        .success-steps { background: rgba(102, 126, 234, 0.05); border-radius: 12px; padding: 20px; margin: 30px 0; text-align: left; position: relative; z-index: 2; }
+        .success-step { display: flex; align-items: flex-start; margin-bottom: 15px; }
+        .success-step:last-child { margin-bottom: 0; }
+        .step-badge { background: #667eea; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; flex-shrink: 0; }
+        .step-text { flex: 1; color: #555; }
+        
+        /* Новые стили для выбора региона и города */
+        .location-select-group { display: flex; gap: 15px; margin-bottom: 20px; }
+        .location-select-group .form-group { flex: 1; margin-bottom: 0; }
+        .location-select-group label { margin-bottom: 8px; font-size: 14px; }
+        .location-select-group select { padding: 12px 14px; font-size: 15px; }
+        
+        /* Стиль для индикатора заполнения */
+        .field-required { position: relative; }
+        .field-required:after { content: '*'; color: #ff3b30; margin-left: 4px; }
+        .field-hint { color: #ff6b6b; font-size: 13px; margin-top: 5px; display: none; }
+        .field-hint.show { display: block; }
+        
+        /* Новые стили для кнопок цены */
+        .price-buttons { display: flex; gap: 10px; margin-bottom: 15px; }
+        .price-btn { flex: 1; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; background: white; color: #333; font-weight: 500; cursor: pointer; transition: all 0.3s ease; text-align: center; }
+        .price-btn:hover { border-color: #667eea; background: rgba(102, 126, 234, 0.05); }
+        .price-btn.active { border-color: #4CAF50; background: #4CAF50; color: white; box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3); }
+        .price-btn i { margin-right: 8px; font-size: 14px; }
 
-/* Стили для карты в стиле 2GIS */
-.map-container { width: 100%; height: 300px; border-radius: 12px; overflow: hidden; margin-bottom: 20px; border: 2px solid #e0e0e0; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative; z-index: 2; }
-.map-controls { position: absolute; top: 10px; right: 10px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; }
-.map-btn { background: white; border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.15); font-size: 16px; color: #333; transition: all 0.3s; z-index: 1000; }
-.map-btn:hover { background: #f5f5f5; transform: scale(1.05); }
-.map-btn.active { background: #667eea; color: white; }
-.map-search-container { position: absolute; top: 10px; left: 10px; right: 50px; z-index: 1000; }
-.map-search { width: 100%; padding: 20px 40px 10px 15px; border: none; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); font-size: 14px; z-index: 1000; }
-.map-search:focus { outline: none; box-shadow: 0 2px 12px rgba(0,0,0,0.2); }
-.search-icon { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #667eea; }
-.location-pin { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 500; color: #ff3b30; font-size: 32px; text-shadow: 0 2px 4px rgba(0,0,0,0.3); pointer-events: none; }
-.map-address-display { position: absolute; bottom: 10px; left: 10px; right: 10px; background: rgba(255,255,255,0.95); padding: 10px 15px; border-radius: 8px; font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 1000; }
-.map-layer-controls { position: absolute; bottom: 50px; right: 10px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; }
-.layer-btn { background: rgba(255,255,255,0.9); border: 1px solid #ddd; padding: 6px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; transition: all 0.3s; z-index: 1000; }
-.layer-btn:hover { background: white; }
-.layer-btn.active { background: #667eea; color: white; border-color: #667eea; }
-
-/* Petal layer - ИСПРАВЛЕННЫЕ СТИЛИ */
-#petalLayer { 
-    pointer-events: none; 
-    position: fixed; 
-    top: 0; 
-    left: 0; 
-    right: 0; 
-    bottom: 0; 
-    z-index: 1; /* Уменьшен z-index чтобы был под формой */
-    overflow: hidden; 
-}
-.petal { 
-    position: absolute; 
-    top: -50px; 
-    will-change: transform, opacity; 
-    user-select: none;
-    -webkit-user-select: none;
-    z-index: 1; /* Лепестки под всеми элементами формы */
-}
-@keyframes petalFall {
-    0% { 
-        transform: translateY(0) rotate(0deg); 
-        opacity: 0.6; /* Уменьшена прозрачность */
-    }
-    10% { 
-        opacity: 0.8; /* Уменьшена прозрачность */
-    }
-    100% { 
-        transform: translateY(110vh) rotate(360deg); /* Уменьшено вращение */
-        opacity: 0.1; /* Сильно уменьшена прозрачность в конце */
-    }
-}
-
-/* Новые стили для выбора региона и города */
-.location-select-group { display: flex; gap: 15px; margin-bottom: 20px; }
-.location-select-group .form-group { flex: 1; margin-bottom: 0; }
-.location-select-group label { margin-bottom: 8px; font-size: 14px; }
-.location-select-group select { padding: 12px 14px; font-size: 15px; }
-.auto-location-btn { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 15px; }
-.auto-location-btn i { font-size: 14px; }
-
-/* Стиль для индикатора заполнения */
-.field-required { position: relative; }
-.field-required:after { content: '*'; color: #ff3b30; margin-left: 4px; }
-.field-hint { color: #ff6b6b; font-size: 13px; margin-top: 5px; display: none; }
-.field-hint.show { display: block; }
-
-/* Новые стили для кнопок цены */
-.price-buttons { display: flex; gap: 10px; margin-bottom: 15px; }
-.price-btn { flex: 1; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; background: white; color: #333; font-weight: 500; cursor: pointer; transition: all 0.3s ease; text-align: center; }
-.price-btn:hover { border-color: #667eea; background: rgba(102, 126, 234, 0.05); }
-.price-btn.active { border-color: #4CAF50; background: #4CAF50; color: white; box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3); }
-.price-btn i { margin-right: 8px; font-size: 14px; }
-
-/* Стили для прогресс-бара загрузки файлов */
-.file-progress { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
-.progress-bar-container { flex: 1; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; }
-.progress-bar-fill { height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); width: 0%; transition: width 0.3s ease; }
-#progressText { font-size: 12px; color: #667eea; font-weight: 600; min-width: 40px; }
-
-/* Стили для ошибок загрузки */
-.file-error { color: #ff3b30; font-size: 12px; margin-top: 5px; display: none; }
-.file-error.show { display: block; }
-
-@media (max-width: 600px) {
-    body { padding: 15px; }
-    .form-container { padding: 20px; border-radius: 16px; }
-    .step-title { font-size: 18px; }
-    .media-item { width: 80px; height: 80px; }
-    .btn { padding: 14px 20px; font-size: 15px; }
-    .server-url { display: none; }
-    .map-container { height: 250px; }
-    .map-controls { top: 5px; right: 5px; }
-    .map-btn { width: 32px; height: 32px; font-size: 14px; }
-    .location-select-group { flex-direction: column; gap: 10px; }
-    .price-buttons { flex-direction: column; }
-}
-@media (max-width: 380px) { .photos-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 600px) {
+            body { padding: 15px; }
+            .form-container { padding: 20px; border-radius: 16px; }
+            .step-title { font-size: 18px; }
+            .media-item { width: 80px; height: 80px; }
+            .btn { padding: 14px 20px; font-size: 15px; }
+            .location-select-group { flex-direction: column; gap: 10px; }
+            .price-buttons { flex-direction: column; }
+            .telegram-input, .phone-input { text-align: left; padding-left: 40px !important; }
+        }
+        
+        @media (max-width: 380px) { 
+            .photos-grid { grid-template-columns: repeat(2, 1fr); } 
+            .contact-options { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -289,7 +250,7 @@ textarea { min-height: 140px; resize: vertical; line-height: 1.5; position: rela
           </div>
       </div>
 
-      <!-- Шаг 4 - Контакты -->
+      <!-- Шаг 4 - Контакты (ИСПРАВЛЕНО) -->
       <div class="form-step" id="step4">
           <h2 class="step-title"><i class="fas fa-phone"></i> Контакты для связи</h2>
           <div class="contact-options">
@@ -303,7 +264,7 @@ textarea { min-height: 140px; resize: vertical; line-height: 1.5; position: rela
                   <p><strong>Телефон</strong></p>
                   <small>Ввести номер</small>
               </div>
-              <div class="contact-option" id="noContactOption" onclick="selectContactType('none')">
+              <div class="contact-option no-contact" id="noContactOption" onclick="selectContactType('none')">
                   <i class="fas fa-eye-slash"></i>
                   <p><strong>Не указывать</strong></p>
                   <small>Без контактов</small>
@@ -312,9 +273,9 @@ textarea { min-height: 140px; resize: vertical; line-height: 1.5; position: rela
           
           <div class="form-group" id="telegramInputGroup">
               <label for="telegram" class="field-required">Введите Telegram username:</label>
-              <div style="position: relative;">
-                  <input type="text" id="telegram" placeholder="username" style="padding-left: 40px;">
-                  <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #667eea; font-weight: bold;">@</span>
+              <div class="contact-input-wrapper">
+                  <span class="telegram-prefix">@</span>
+                  <input type="text" id="telegram" class="telegram-input" placeholder="username">
               </div>
               <p class="input-hint">Введите только имя пользователя (без @)</p>
               <div id="telegramHint" class="field-hint">Введите Telegram username для продолжения</div>
@@ -325,19 +286,19 @@ textarea { min-height: 140px; resize: vertical; line-height: 1.5; position: rela
           
           <div class="form-group" id="phoneInputGroup" style="display: none;">
               <label for="phone" class="field-required">Введите номер телефона:</label>
-              <div class="phone-prefix">
-                  <span>+996</span>
-                  <input type="tel" id="phone" placeholder="XXX XXX XXX" maxlength="9">
+              <div class="phone-input-wrapper">
+                  <span class="phone-prefix">+996</span>
+                  <input type="tel" id="phone" class="phone-input" placeholder="XXX XXX XXX">
               </div>
-              <p class="input-hint">Введите 9 цифр номера после +996</p>
+              <p class="input-hint">Введите 9 цифр номера после +996 (например: 555 123 456)</p>
               <div id="phoneHint" class="field-hint">Введите номер телефона для продолжения</div>
           </div>
           
-          <div class="form-group" id="noContactGroup" style="display: none; background: #f8f9fa; padding: 15px; border-radius: 10px; border-left: 4px solid #6c757d;">
-              <p style="color: #666; margin: 0;">
-                  <i class="fas fa-info-circle"></i> Контакты не будут указаны в объявлении.<br>
-                  <small>Покупатели смогут связаться через комментарии в Telegram.</small>
-              </p>
+          <div class="form-group" id="noContactGroup" style="display: none;">
+              <div class="no-contact-info">
+                  <p><i class="fas fa-info-circle"></i> Контакты не будут указаны в объявлении.</p>
+                  <p><small>Покупатели смогут связаться через комментарии в Telegram.</small></p>
+              </div>
           </div>
           
           <div class="navigation">
@@ -412,7 +373,7 @@ textarea { min-height: 140px; resize: vertical; line-height: 1.5; position: rela
           </div>
       </div>
 
-      <!-- Шаг 7 - Превью -->
+      <!-- Шаг 7 - Превью (ИСПРАВЛЕНО) -->
       <div class="form-step" id="step7">
           <h2 class="step-title"><i class="fas fa-eye"></i> Превью объявления</h2>
 
@@ -871,6 +832,7 @@ function generateHashtags() {
     return hashtags.join(' ');
 }
 
+// ИСПРАВЛЕННАЯ ФУНКЦИЯ ДЛЯ ПРЕВЬЮ
 function updatePreview() {
     const previewMedia = document.getElementById('previewMedia');
     const previewMediaCount = document.getElementById('previewMediaCount');
@@ -884,17 +846,28 @@ function updatePreview() {
             item.className = 'preview-gallery-item';
             
             if (file.type.startsWith('image/')) {
-                item.innerHTML = `
-                    <img src="${file.url}" alt="Фото ${index + 1}">
-                    ${file.type.startsWith('video/') ? '<div class="preview-gallery-badge">ВИДЕО</div>' : ''}
-                `;
+                const img = document.createElement('img');
+                img.src = file.url;
+                img.alt = `Фото ${index + 1}`;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                item.appendChild(img);
             } else if (file.type.startsWith('video/')) {
-                item.innerHTML = `
-                    <video>
-                        <source src="${file.url}" type="${file.type}">
-                    </video>
-                    <div class="preview-gallery-badge">ВИДЕО</div>
-                `;
+                const video = document.createElement('video');
+                video.style.width = '100%';
+                video.style.height = '100%';
+                video.style.objectFit = 'cover';
+                const source = document.createElement('source');
+                source.src = file.url;
+                source.type = file.type;
+                video.appendChild(source);
+                item.appendChild(video);
+                
+                const badge = document.createElement('div');
+                badge.className = 'preview-gallery-badge';
+                badge.textContent = 'ВИДЕО';
+                item.appendChild(badge);
             }
             
             previewMedia.appendChild(item);
@@ -903,14 +876,8 @@ function updatePreview() {
         // Если файлов больше 6, показываем "и ещё N"
         if (mediaFiles.length > 6) {
             const moreItem = document.createElement('div');
-            moreItem.className = 'preview-gallery-item';
-            moreItem.style.display = 'flex';
-            moreItem.style.alignItems = 'center';
-            moreItem.style.justifyContent = 'center';
-            moreItem.style.backgroundColor = '#667eea';
-            moreItem.style.color = 'white';
-            moreItem.style.fontWeight = 'bold';
-            moreItem.innerHTML = `+${mediaFiles.length - 6}`;
+            moreItem.className = 'preview-gallery-item preview-gallery-more';
+            moreItem.textContent = `+${mediaFiles.length - 6}`;
             previewMedia.appendChild(moreItem);
         }
     }
@@ -1180,19 +1147,37 @@ function setupEventListeners() {
     const telegramInput = document.getElementById('telegram');
     if (telegramInput) {
         telegramInput.addEventListener('input', function() {
+            // Ограничиваем только английские буквы, цифры и подчеркивание
             this.value = this.value.replace(/[^a-zA-Z0-9_]/g, '');
             validateCurrentStep();
         });
     }
     
-    // Phone input
+    // Phone input с автоформатированием
     const phoneInput = document.getElementById('phone');
     if (phoneInput) {
         phoneInput.addEventListener('input', function() {
-            this.value = this.value.replace(/\D/g, '');
-            if (this.value.length > 9) {
-                this.value = this.value.substring(0, 9);
+            // Убираем все нецифровые символы
+            let value = this.value.replace(/\D/g, '');
+            
+            // Ограничиваем до 9 цифр
+            if (value.length > 9) {
+                value = value.substring(0, 9);
             }
+            
+            // Форматируем: XXX XXX XXX
+            let formatted = '';
+            if (value.length > 0) {
+                formatted = value.substring(0, 3);
+                if (value.length > 3) {
+                    formatted += ' ' + value.substring(3, 6);
+                }
+                if (value.length > 6) {
+                    formatted += ' ' + value.substring(6, 9);
+                }
+            }
+            
+            this.value = formatted;
             validateCurrentStep();
         });
     }
