@@ -190,16 +190,10 @@
     <div class="form-container" id="formContainer">
       <!-- Шаг 1 - Фото/Видео -->
       <div class="form-step active" id="step1">
-          <h2 class="step-title"><i class="fas fa-images"></i> Добавьте фото и видео</h2>
           <div class="form-group">
               <div class="photo-upload" id="mediaUpload" onclick="document.getElementById('mediaInput').click()">
                   <i class="fas fa-cloud-upload-alt photo-upload-icon"></i>
                   <p><strong>Нажмите для загрузки фото и видео</strong></p>
-                  <p class="input-hint">Можно выбрать несколько файлов. Все они будут в одном посте!</p>
-                  <p class="input-hint" style="color: #667eea; font-weight: bold;">
-                      <i class="fas fa-check-circle"></i> Telegram сгруппирует фото и видео в один пост<br>
-                      <i class="fas fa-info-circle"></i> Максимум 10 файлов, до 50MB каждый
-                  </p>
                   <div id="mediaHint" class="field-hint">Добавьте хотя бы одно фото или видео</div>
               </div>
               <input type="file" id="mediaInput" accept="image/*,video/*" multiple style="display: none;" onchange="handleMediaUpload(event)">
@@ -215,8 +209,8 @@
           <h2 class="step-title"><i class="fas fa-edit"></i> Описание товара</h2>
           <div class="form-group">
               <label for="description" class="field-required">Опишите ваш товар:</label>
-              <textarea id="description" placeholder="Например: Свежие розы из Эквадора, идеально подходят для свадебных букетов. Доставка по городу." rows="4"></textarea>
-              <p class="input-hint">Минимум 3 символа. Опишите ваши цветы подробно</p>
+              <textarea id="description" placeholder="Например: Свежие розы из Эквадора, идеально подходят для свадебных букетов." rows="4"></textarea>
+              <!-- <p class="input-hint">Минимум 3 символа. Опишите ваши цветы подробно</p> -->
               <div id="descriptionHint" class="field-hint">Описание должно содержать минимум 3 символа</div>
           </div>
           <div class="navigation">
@@ -277,7 +271,6 @@
                   <span class="telegram-prefix">@</span>
                   <input type="text" id="telegram" class="telegram-input" placeholder="username">
               </div>
-              <p class="input-hint">Введите только имя пользователя (без @)</p>
               <div id="telegramHint" class="field-hint">Введите Telegram username для продолжения</div>
               <div id="telegramLanguageHint" class="language-hint">
                   <i class="fas fa-language"></i> Пожалуйста, используйте английскую раскладку
@@ -290,7 +283,6 @@
                   <span class="phone-prefix">+996</span>
                   <input type="tel" id="phone" class="phone-input" placeholder="XXX XXX XXX">
               </div>
-              <p class="input-hint">Введите 9 цифр номера после +996 (например: 555 123 456)</p>
               <div id="phoneHint" class="field-hint">Введите номер телефона для продолжения</div>
           </div>
           
