@@ -67,12 +67,21 @@
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         .loader { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Стили для медиа-превью */
         #mediaPreview { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
         .media-item { position: relative; width: 100px; height: 100px; border-radius: 8px; overflow: hidden; }
         .media-item img, .media-item video { width: 100%; height: 100%; object-fit: cover; }
         .remove-media { position: absolute; top: 5px; right: 5px; background: rgba(231, 76, 60, 0.9); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 11px; }
         .media-type { position: absolute; bottom: 5px; left: 5px; background: rgba(0,0,0,0.7); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; }
         .media-status { position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.7); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; }
+        
+        /* Галерея в превью */
+        .preview-gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+        .preview-gallery-item { width: 100%; height: 80px; border-radius: 6px; overflow: hidden; position: relative; }
+        .preview-gallery-item img, .preview-gallery-item video { width: 100%; height: 100%; object-fit: cover; }
+        .preview-gallery-badge { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; }
+        
         .success-screen { text-align: center; padding: 30px 15px; }
         .success-icon { font-size: 60px; color: #2ecc71; margin-bottom: 15px; }
         .success-title { color: #2ecc71; margin-bottom: 15px; font-size: 1.5rem; }
@@ -90,6 +99,7 @@
             .contact-options { grid-template-columns: 1fr; }
             .price-buttons { grid-template-columns: 1fr; }
             .progress-bar::before { left: 5%; right: 5%; }
+            .preview-gallery { grid-template-columns: repeat(2, 1fr); }
         }
         /* Специфичные стили для инпутов */
         .language-hint { font-size: 12px; color: #ff6b00; margin-top: 3px; display: none; }
@@ -102,12 +112,12 @@
 <body>
   <div class="container">
     <div class="header">
-        <h1><i class="fas fa-flower-tulip"></i> Flower Market Kyrgyzstan</h1>
-        <p>Создайте красивое объявление о продаже цветов</p>
+        <h1><i class="fas fa-flower-tulip"></i> Flower Market</h1>
+        <p>Создайте красивое объявление с галереей фото/видео</p>
     </div>
 
     <div class="progress-bar" id="progressBar">
-        <div class="progress-step"><div class="step-number active">1</div><div class="step-label active">Медиа</div></div>
+        <div class="progress-step"><div class="step-number active">1</div><div class="step-label active">Галерея</div></div>
         <div class="progress-step"><div class="step-number">2</div><div class="step-label">Описание</div></div>
         <div class="progress-step"><div class="step-number">3</div><div class="step-label">Цена</div></div>
         <div class="progress-step"><div class="step-number">4</div><div class="step-label">Контакты</div></div>
@@ -125,40 +135,19 @@
     </div>
 
     <div class="form-container" id="formContainer">
-      <!-- Шаг 1 - Фото -->
+      <!-- Шаг 1 - Фото/Видео галерея -->
       <div class="form-step active" id="step1">
-          <h2 class="step-title"><i class="fas fa-camera"></i> Загрузите фото/видео</h2>
-         <!-- Добавьте этот блок в шаг 1 (Медиа) -->
-<div class="form-group">
-    <div class="photo-upload" id="mediaUpload" onclick="document.getElementById('mediaInput').click()">
-        <i class="fas fa-cloud-upload-alt photo-upload-icon"></i>
-        <p><strong>Нажмите для загрузки фото/видео</strong></p>
-        <p class="input-hint">Можно выбрать несколько файлов</p>
-        
-        <!-- ВАЖНОЕ ПРЕДУПРЕЖДЕНИЕ -->
-        <div id="telegramWarning" style="display: none; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 10px; margin-top: 10px;">
-            <i class="fas fa-exclamation-triangle" style="color: #ffc107;"></i>
-            <strong>Ограничение Telegram:</strong>
-            <p style="margin: 5px 0 0 0; font-size: 12px;">
-                Фото и видео не могут быть вместе в одном альбоме.<br>
-                Рекомендуем загружать только фото или только видео.
-            </p>
-        </div>
-        
-        <div id="mediaHint" class="field-hint">Загрузите хотя бы один файл</div>
-    </div>
-    <input type="file" id="mediaInput" accept="image/*,video/*" multiple style="display: none;" onchange="handleMediaUpload(event)">
-    <div id="mediaPreview"></div>
-</div>
+          <h2 class="step-title"><i class="fas fa-images"></i> Создайте галерею фото/видео</h2>
+          <div class="form-group">
               <div class="photo-upload" id="mediaUpload" onclick="document.getElementById('mediaInput').click()">
                   <i class="fas fa-cloud-upload-alt photo-upload-icon"></i>
-                  <p><strong>Нажмите для загрузки фото или видео</strong></p>
-                  <p class="input-hint">Выберите до 10 файлов (фото JPG/PNG или видео MP4)</p>
+                  <p><strong>Нажмите для загрузки фото и видео</strong></p>
+                  <p class="input-hint">Добавьте до 10 файлов. Telegram сгруппирует их в одну галерею</p>
                   <p class="input-hint" style="color: #667eea; font-weight: bold;">
-                      <i class="fas fa-images"></i> Все фото будут в одном объявлении!<br>
-                      <i class="fas fa-video"></i> Видео также поддерживается
+                      <i class="fas fa-images"></i> Все медиафайлы будут в одной галерее!<br>
+                      <i class="fas fa-video"></i> Поддерживаются фото и видео
                   </p>
-                  <div id="mediaHint" class="field-hint">Загрузите хотя бы одно фото или видео для продолжения</div>
+                  <div id="mediaHint" class="field-hint">Добавьте хотя бы одно фото или видео</div>
               </div>
               <input type="file" id="mediaInput" accept="image/*,video/*" multiple style="display: none;" onchange="handleMediaUpload(event)">
               <div id="mediaPreview"></div>
@@ -168,6 +157,7 @@
           </div>
       </div>
 
+      <!-- Остальные шаги остаются без изменений -->
       <!-- Шаг 2 - Описание -->
       <div class="form-step" id="step2">
           <h2 class="step-title"><i class="fas fa-edit"></i> Описание товара</h2>
@@ -336,8 +326,9 @@
           <h2 class="step-title"><i class="fas fa-eye"></i> Превью объявления</h2>
 
           <div class="preview-item">
-              <div class="preview-label">Фото/Видео</div>
-              <div id="previewMedia" class="photos-grid"></div>
+              <div class="preview-label">Галерея фото/видео</div>
+              <div id="previewMedia" class="preview-gallery"></div>
+              <p class="input-hint" style="margin-top: 8px;">Всего файлов: <span id="previewMediaCount">0</span></p>
           </div>
           <div class="preview-item">
               <div class="preview-label">Комментарий</div>
@@ -373,14 +364,14 @@
             <i class="fas fa-check-circle success-icon"></i>
             <h2 class="success-title">Объявление успешно опубликовано!</h2>
             <p class="success-message" id="successMessageText">
-                Ваше объявление опубликовано в канале с комментариями.<br>
-                Теперь покупатели могут задавать вопросы под вашим объявлением.
+                Ваше объявление с галереей опубликовано в канале.<br>
+                Все фото и видео сгруппированы в один блок.
             </p>
 
             <div class="success-steps">
                 <div class="success-step">
                     <div class="step-badge">1</div>
-                    <div class="step-text">Объявление опубликовано в канале</div>
+                    <div class="step-text">Галерея создана и опубликована</div>
                 </div>
                 <div class="success-step">
                     <div class="step-badge">2</div>
@@ -388,13 +379,13 @@
                 </div>
                 <div class="success-step">
                     <div class="step-badge">3</div>
-                    <div class="step-text">Объявление будет активно 7 дней</div>
+                    <div class="step-text">Объявление активно 7 дней</div>
                 </div>
             </div>
 
             <div id="postLinkContainer" style="margin: 20px 0;">
                 <a href="#" id="postLink" target="_blank" class="btn" style="text-decoration: none;">
-                    <i class="fas fa-external-link-alt"></i> Перейти к объявлению
+                    <i class="fas fa-external-link-alt"></i> Перейти к объявлению с галереей
                 </a>
             </div>
 
@@ -407,7 +398,7 @@
 
   <script>
 // ============================================
-// Flower Market Kyrgyzstan - Frontend (ПОЛНОСТЬЮ ИСПРАВЛЕННЫЙ)
+// Flower Market - Frontend с галереей
 // ============================================
 
 const BACKEND_URL = 'https://backend-flower-2-production.up.railway.app';
@@ -417,79 +408,10 @@ let totalSteps = 7;
 let mediaFiles = [];
 let selectedContactType = 'telegram';
 let isSubmitting = false;
-let tg = window.Telegram?.WebApp;
-
-// Полные данные по районам для всех городов
-const districtsData = {
-    'Бишкек': [
-        'Аламедин', 'Аламедин-1', 'Ала-Тоо', 'Асанбай', 'Бакай-Ата', 'Восток-5', 
-        'Джал', 'Жибек-Жолу', 'Искра', 'Кок-Жар', 'Лебединовка', 'Манас', 
-        'Манас-Ата', 'Октябрьский', 'Орто-Сай', 'Первомайский', 'Свердловский', 
-        'Таш-Добо', 'Токтогула', 'Тунгуч', 'Улан', 'Чон-Арык', 'Шопоков', 'Юг-2'
-    ],
-    'Ош': [
-        'Алай', 'Араван', 'Базар-Коргон', 'Гулистан', 'Джапалак', 'Кара-Суу', 
-        'Керемет', 'Курманжан-Датка', 'Кызыл-Кия', 'Ленинский', 'Максат', 
-        'Нариман', 'Ноокат', 'Октябрьский', 'Раззаков', 'Советский', 'Сулайман-Тоо', 
-        'Тейит', 'Толойкон', 'Турат', 'Узген', 'Черемушки', 'Шарк'
-    ],
-    'Токмок': [
-        'Центр', 'Северный', 'Южный', 'Восточный', 'Западный', 'Микрорайон', 
-        'Кызыл-Аскер', 'Молодёжный', 'Садовый', 'Строитель'
-    ],
-    'Кара-Балта': [
-        'Центр', 'Ак-Тюз', 'Бирлик', 'Жаштык', 'Келечек', 'Мир', 'Нариман', 
-        'Салтанат', 'Табылгы', 'Ынтымак'
-    ],
-    'Кант': [
-        'Центр', 'Ак-Орго', 'Ала-Тоо', 'Бакы', 'Жети-Казык', 'Кара-Жыгач', 
-        'Кереге-Таш', 'Кызыл-Туу', 'Сары-Булак', 'Чолпон'
-    ],
-    'Каракол': [
-        'Центр', 'Ак-Суу', 'Ала-Тоо', 'Баетов', 'Дружба', 'Жаш-Тилек', 
-        'Каракол', 'Кызыл-Суу', 'Пристань', 'Сан-Таш', 'Тепе-Коргон', 'Чолпон-Ата'
-    ],
-    'Балыкчи': [
-        'Центр', 'Ак-Булун', 'Балыкчи', 'Дружба', 'Жаны-Арык', 'Кара-Ой', 
-        'Кызыл-Туу', 'Пристань', 'Токой', 'Чон-Арык'
-    ],
-    'Чолпон-Ата': [
-        'Центр', 'Ак-Терек', 'Ала-Тоо', 'Бостери', 'Жети-Огюз', 'Каракол', 
-        'Кызыл-Суу', 'Орто-Токой', 'Пристань', 'Сары-Камыш', 'Чолпон'
-    ],
-    'Джалал-Абад': [
-        'Центр', 'Абдырахманов', 'Ак-Орго', 'Ала-Тоо', 'Базар-Коргон', 
-        'Жаны-Жер', 'Кара-Куль', 'Кызыл-Жар', 'Маймак', 'Ноокат', 'Октябрьский', 
-        'Раззаков', 'Советский', 'Сузак', 'Токтогул', 'Узген'
-    ],
-    'Майлуу-Суу': [
-        'Центр', 'Ак-Таш', 'Ала-Тоо', 'Бирлик', 'Жаш-Куч', 'Кара-Жыгач', 
-        'Кызыл-Туу', 'Мир', 'Советский', 'Таш-Кумыр'
-    ],
-    'Нарын': [
-        'Центр', 'Ак-Талаа', 'Ала-Тоо', 'Ат-Баши', 'Жаны-Арык', 'Кара-Кужур', 
-        'Кочкор', 'Мин-Куш', 'Орто-Токой', 'Сары-Булак'
-    ],
-    'Талас': [
-        'Центр', 'Ак-Суу', 'Ала-Тоо', 'Бакай-Ата', 'Жаны-Арык', 'Кара-Буура', 
-        'Кызыл-Адыр', 'Манас', 'Токтогул', 'Чолпон'
-    ],
-    'Баткен': [
-        'Центр', 'Айдаркен', 'Ала-Тоо', 'Бирлик', 'Жаны-Арык', 'Кадамжай', 
-        'Кызыл-Кия', 'Лейлек', 'Советский', 'Сулюкта'
-    ]
-};
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🌺 Flower Market Frontend запущен');
-    
-    if (tg) {
-        tg.ready();
-        tg.expand();
-        console.log('✅ Telegram WebApp инициализирован');
-    }
-    
+    console.log('🌺 Flower Market с галереей запущен');
     setupEventListeners();
     showStep(1);
     updateContactStepUI();
@@ -505,7 +427,6 @@ function showStep(step) {
         updateProgressBar();
         validateCurrentStep();
         
-        // Обновляем UI для конкретных шагов
         if (currentStep === 4) {
             updateContactStepUI();
         }
@@ -555,7 +476,6 @@ function validateCurrentStep() {
         case 4:
             if (selectedContactType === 'telegram') {
                 const telegram = document.getElementById('telegram')?.value.trim() || '';
-                // Проверяем на английские символы
                 const isValidEnglish = /^[a-zA-Z0-9_]+$/.test(telegram);
                 isValid = telegram.length >= 3 && isValidEnglish;
                 errorMessage = isValidEnglish ? 
@@ -563,12 +483,11 @@ function validateCurrentStep() {
                     'Используйте только английские буквы, цифры и нижнее подчеркивание';
             } else if (selectedContactType === 'phone') {
                 const phone = document.getElementById('phone')?.value.trim() || '';
-                // Убираем все нецифровые символы и проверяем что осталось 9 цифр
                 const cleanPhone = phone.replace(/\D/g, '');
                 isValid = cleanPhone.length === 9;
                 errorMessage = 'Введите 9 цифр номера телефона';
             } else {
-                isValid = true; // "Не указывать" всегда валидно
+                isValid = true;
             }
             break;
             
@@ -604,20 +523,7 @@ function validateCurrentStep() {
     return isValid;
 }
 
-function getHintIdForStep(step) {
-    const hints = {
-        1: 'mediaHint',
-        2: 'descriptionHint',
-        3: 'priceHint',
-        4: selectedContactType === 'telegram' ? 'telegramHint' : 
-           (selectedContactType === 'phone' ? 'phoneHint' : null),
-        5: 'cityHint',
-        6: 'freshnessHint'
-    };
-    return hints[step];
-}
-
-// Обработка медиа файлов (фото и видео)
+// Обработка медиа файлов для галереи
 function handleMediaUpload(event) {
     const files = Array.from(event.target.files);
     const maxFiles = 10;
@@ -629,10 +535,7 @@ function handleMediaUpload(event) {
         return;
     }
     
-    // Проверяем типы файлов
     const newFiles = [];
-    let hasNewPhotos = false;
-    let hasNewVideos = false;
     
     for (const file of files) {
         if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
@@ -646,23 +549,8 @@ function handleMediaUpload(event) {
         }
         
         newFiles.push(file);
-        if (file.type.startsWith('image/')) hasNewPhotos = true;
-        if (file.type.startsWith('video/')) hasNewVideos = true;
     }
     
-    // Проверяем общий состав файлов
-    const currentHasPhotos = mediaFiles.some(f => f.type.startsWith('image/'));
-    const currentHasVideos = mediaFiles.some(f => f.type.startsWith('video/'));
-    
-    const willHaveBoth = (currentHasPhotos || hasNewPhotos) && (currentHasVideos || hasNewVideos);
-    
-    // Показываем/скрываем предупреждение
-    const warningElement = document.getElementById('telegramWarning');
-    if (warningElement) {
-        warningElement.style.display = willHaveBoth ? 'block' : 'none';
-    }
-    
-    // Обрабатываем файлы
     for (const file of newFiles) {
         const reader = new FileReader();
         
@@ -689,15 +577,13 @@ function handleMediaUpload(event) {
     
     event.target.value = '';
 }
+
 function updateMediaPreview() {
     const previewContainer = document.getElementById('mediaPreview');
     if (!previewContainer) return;
     
     previewContainer.innerHTML = '';
-    const uploadInfo = document.getElementById('uploadInfo');
-    if (uploadInfo) {
-        uploadInfo.style.display = mediaFiles.length > 0 ? 'block' : 'none';
-    }
+    
     mediaFiles.forEach((file, index) => {
         const item = document.createElement('div');
         item.className = 'media-item';
@@ -747,44 +633,12 @@ function updateMediaPreview() {
     }
 }
 
-// Функции публикации
-async function publishAd(formData) {
-    try {
-        console.log('📤 Отправка данных на публикацию:', formData);
-        
-        const response = await fetch(`${BACKEND_URL}/api/publish`, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(formData)
-        });
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
-        }
-        
-        const result = await response.json();
-        console.log('📥 Ответ от сервера:', result);
-        return result;
-        
-    } catch (error) {
-        console.error('❌ Ошибка публикации:', error);
-        throw error;
-    }
-}
-
+// Функция публикации с галереей
 async function submitForm() {
-    if (isSubmitting) {
-        console.log('Публикация уже выполняется...');
-        return;
-    }
+    if (isSubmitting) return;
     
-    console.log('🚀 Начинаю публикацию в одном визуальном блоке...');
+    console.log('🚀 Публикация с галереей...');
     
-    // Проверяем все обязательные поля
     if (!validateAllSteps()) {
         showNotification('Ошибка', 'Заполните все обязательные поля', 'error');
         return;
@@ -805,8 +659,8 @@ async function submitForm() {
         mediaFiles: []
     };
     
-    // Добавляем файлы
-    console.log(`📁 Подготовка ${mediaFiles.length} файлов...`);
+    // Подготавливаем файлы для галереи
+    console.log(`📁 Подготовка ${mediaFiles.length} файлов для галереи...`);
     for (const file of mediaFiles) {
         try {
             const base64Data = file.url.split(',')[1];
@@ -823,17 +677,17 @@ async function submitForm() {
     // Показываем загрузку
     const submitBtn = document.getElementById('submitBtn');
     const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<div class="loader"></div> Публикация...';
+    submitBtn.innerHTML = '<div class="loader"></div> Создание галереи...';
     submitBtn.disabled = true;
     
     // Информационное сообщение
     showNotification('Публикация', 
-        `Отправка ${1 + mediaFiles.length} сообщений... Telegram сгруппирует их в один блок.`, 
+        `Создаем галерею из ${mediaFiles.length} файлов...`, 
         'info');
     
     try {
-        // Используем оптимизированный endpoint
-        const endpoint = '/api/publish-optimized';
+        // Используем специальный endpoint для галереи
+        const endpoint = '/api/publish-gallery';
         
         console.log(`📤 Отправка на ${endpoint}...`);
         
@@ -855,28 +709,26 @@ async function submitForm() {
         console.log('📥 Результат:', result);
         
         if (result.success) {
-            console.log('✅ Публикация успешна!');
+            console.log('✅ Галерея создана успешно!');
             
-            // Показываем успешное уведомление
             setTimeout(() => {
                 showNotification('✅ Успешно!', 
-                    `Объявление опубликовано! ${result.stats.totalSent} сообщений сгруппированы в один блок.`, 
+                    `Галерея из ${result.stats.photos} фото создана!`, 
                     'success');
                 
-                // Показываем успешный экран
                 setTimeout(() => {
                     showSuccessScreen(result.postLink);
                 }, 1500);
             }, 1000);
             
         } else {
-            throw new Error(result.error || 'Ошибка публикации');
+            throw new Error(result.error || 'Ошибка создания галереи');
         }
         
     } catch (error) {
         console.error('❌ Ошибка публикации:', error);
         
-        let errorMessage = 'Ошибка при публикации объявления';
+        let errorMessage = 'Ошибка при создании галереи';
         if (error.message.includes('network') || error.message.includes('fetch')) {
             errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
         }
@@ -886,40 +738,6 @@ async function submitForm() {
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
         isSubmitting = false;
-    }
-}
-function validateAllSteps() {
-    for (let i = 1; i <= 6; i++) {
-        if (!validateStep(i)) {
-            showStep(i);
-            return false;
-        }
-    }
-    return true;
-}
-
-function validateStep(step) {
-    switch (step) {
-        case 1: return mediaFiles.length > 0;
-        case 2: return document.getElementById('description')?.value.trim().length >= 3;
-        case 3: 
-            const price = document.getElementById('price')?.value || '';
-            const isNegotiable = document.getElementById('priceBtnNegotiable')?.classList.contains('active');
-            return isNegotiable || (price && !isNaN(parseFloat(price)) && parseFloat(price) > 0);
-        case 4:
-            if (selectedContactType === 'telegram') {
-                const telegram = document.getElementById('telegram')?.value.trim() || '';
-                const isValidEnglish = /^[a-zA-Z0-9_]+$/.test(telegram);
-                return telegram.length >= 3 && isValidEnglish;
-            } else if (selectedContactType === 'phone') {
-                const phone = document.getElementById('phone')?.value.trim() || '';
-                const cleanPhone = phone.replace(/\D/g, '');
-                return cleanPhone.length === 9;
-            }
-            return true;
-        case 5: return !!document.getElementById('citySelect')?.value;
-        case 6: return !!document.getElementById('freshnessSelect')?.value;
-        default: return true;
     }
 }
 
@@ -966,32 +784,50 @@ function generateHashtags() {
 
 function updatePreview() {
     const previewMedia = document.getElementById('previewMedia');
+    const previewMediaCount = document.getElementById('previewMediaCount');
+    
     if (previewMedia) {
         previewMedia.innerHTML = '';
-        mediaFiles.slice(0, 3).forEach((file, index) => {
+        
+        // Показываем до 6 превью
+        mediaFiles.slice(0, 6).forEach((file, index) => {
+            const item = document.createElement('div');
+            item.className = 'preview-gallery-item';
+            
             if (file.type.startsWith('image/')) {
-                const img = document.createElement('img');
-                img.className = 'photo-preview';
-                img.src = file.url;
-                img.alt = 'Фото объявления';
-                previewMedia.appendChild(img);
-            } else {
-                const videoIcon = document.createElement('div');
-                videoIcon.className = 'photo-preview';
-                videoIcon.innerHTML = '<i class="fas fa-video" style="font-size: 20px; color: #667eea;"></i>';
-                videoIcon.style.display = 'flex';
-                videoIcon.style.alignItems = 'center';
-                videoIcon.style.justifyContent = 'center';
-                previewMedia.appendChild(videoIcon);
+                item.innerHTML = `
+                    <img src="${file.url}" alt="Фото ${index + 1}">
+                    ${file.type.startsWith('video/') ? '<div class="preview-gallery-badge">ВИДЕО</div>' : ''}
+                `;
+            } else if (file.type.startsWith('video/')) {
+                item.innerHTML = `
+                    <video>
+                        <source src="${file.url}" type="${file.type}">
+                    </video>
+                    <div class="preview-gallery-badge">ВИДЕО</div>
+                `;
             }
+            
+            previewMedia.appendChild(item);
         });
         
-        if (mediaFiles.length > 3) {
-            const more = document.createElement('div');
-            more.className = 'photo-preview photo-more';
-            more.textContent = `+${mediaFiles.length - 3}`;
-            previewMedia.appendChild(more);
+        // Если файлов больше 6, показываем "и ещё N"
+        if (mediaFiles.length > 6) {
+            const moreItem = document.createElement('div');
+            moreItem.className = 'preview-gallery-item';
+            moreItem.style.display = 'flex';
+            moreItem.style.alignItems = 'center';
+            moreItem.style.justifyContent = 'center';
+            moreItem.style.backgroundColor = '#667eea';
+            moreItem.style.color = 'white';
+            moreItem.style.fontWeight = 'bold';
+            moreItem.innerHTML = `+${mediaFiles.length - 6}`;
+            previewMedia.appendChild(moreItem);
         }
+    }
+    
+    if (previewMediaCount) {
+        previewMediaCount.textContent = mediaFiles.length;
     }
     
     document.getElementById('previewDescription').textContent = 
@@ -1024,7 +860,6 @@ function showNotification(title, message, type = 'info') {
     titleEl.textContent = title;
     messageEl.textContent = message;
     
-    // Устанавливаем иконку в зависимости от типа
     if (iconEl) {
         if (type === 'success') {
             iconEl.className = 'notification-icon fas fa-check-circle';
@@ -1054,7 +889,7 @@ function showSuccessScreen(postLink) {
         linkElement.href = postLink;
     } else {
         document.getElementById('postLinkContainer').innerHTML = 
-            '<p style="color: #666; padding: 10px; background: #f8f9fa; border-radius: 8px;">Объявление опубликовано в канале</p>';
+            '<p style="color: #666; padding: 10px; background: #f8f9fa; border-radius: 8px;">Объявление с галереей опубликовано</p>';
     }
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1091,32 +926,6 @@ window.focusPriceInput = function() {
     document.getElementById('priceBtnEnter').classList.add('active');
 };
 
-function updateContactStepUI() {
-    // Обновляем активную опцию
-    document.querySelectorAll('.contact-option').forEach(opt => {
-        opt.classList.remove('active');
-    });
-    document.getElementById(`${selectedContactType}Option`).classList.add('active');
-    
-    // Показываем/скрываем поля ввода
-    document.getElementById('telegramInputGroup').style.display = 
-        selectedContactType === 'telegram' ? 'block' : 'none';
-    document.getElementById('phoneInputGroup').style.display = 
-        selectedContactType === 'phone' ? 'block' : 'none';
-    document.getElementById('noContactGroup').style.display = 
-        selectedContactType === 'none' ? 'block' : 'none';
-    
-    // Сбрасываем значения
-    if (selectedContactType !== 'telegram') {
-        document.getElementById('telegram').value = '';
-    }
-    if (selectedContactType !== 'phone') {
-        document.getElementById('phone').value = '';
-    }
-    
-    validateCurrentStep();
-}
-
 window.selectContactType = function(type) {
     selectedContactType = type;
     updateContactStepUI();
@@ -1126,7 +935,10 @@ window.loadDistricts = function(city) {
     if (!city) return;
     
     const districtSelect = document.getElementById('districtSelect');
-    const districts = districtsData[city] || ['Центр', 'Восточный', 'Западный', 'Северный', 'Южный'];
+    const districts = [
+        'Центр', 'Восточный', 'Западный', 'Северный', 'Южный',
+        'Аламедин', 'Октябрьский', 'Первомайский', 'Свердловский'
+    ];
     
     districtSelect.innerHTML = '<option value="">Выберите район</option>';
     districts.forEach(district => {
@@ -1155,42 +967,23 @@ window.submitForm = submitForm;
 
 // Настройка слушателей событий
 function setupEventListeners() {
-    // Telegram input - только английские символы
+    // Telegram input
     const telegramInput = document.getElementById('telegram');
     if (telegramInput) {
         telegramInput.addEventListener('input', function() {
-            // Убираем все неанглийские символы
             this.value = this.value.replace(/[^a-zA-Z0-9_]/g, '');
-            
-            // Показываем/скрываем подсказку о языке
-            const languageHint = document.getElementById('telegramLanguageHint');
-            if (languageHint) {
-                const hasNonEnglish = /[^a-zA-Z0-9_]/.test(this.value);
-                languageHint.classList.toggle('show', hasNonEnglish);
-            }
-            
             validateCurrentStep();
         });
     }
     
-    // Phone input - только цифры и ограничение 9 символов
+    // Phone input
     const phoneInput = document.getElementById('phone');
     if (phoneInput) {
         phoneInput.addEventListener('input', function() {
-            // Убираем все нецифровые символы
             this.value = this.value.replace(/\D/g, '');
-            
-            // Ограничиваем до 9 цифр
             if (this.value.length > 9) {
                 this.value = this.value.substring(0, 9);
             }
-            
-            // Добавляем пробелы для читаемости
-            const cleanValue = this.value.replace(/\D/g, '');
-            if (cleanValue.length >= 3) {
-                this.value = cleanValue.replace(/(\d{3})(\d{0,3})(\d{0,3})/, '$1 $2 $3').trim();
-            }
-            
             validateCurrentStep();
         });
     }
@@ -1234,7 +1027,79 @@ function setupEventListeners() {
     }
 }
 
-console.log('✅ Flower Market Frontend готов к работе!');
+// Вспомогательные функции для валидации
+function getHintIdForStep(step) {
+    const hints = {
+        1: 'mediaHint',
+        2: 'descriptionHint',
+        3: 'priceHint',
+        4: selectedContactType === 'telegram' ? 'telegramHint' : 
+           (selectedContactType === 'phone' ? 'phoneHint' : null),
+        5: 'cityHint',
+        6: 'freshnessHint'
+    };
+    return hints[step];
+}
+
+function validateAllSteps() {
+    for (let i = 1; i <= 6; i++) {
+        if (!validateStep(i)) {
+            showStep(i);
+            return false;
+        }
+    }
+    return true;
+}
+
+function validateStep(step) {
+    switch (step) {
+        case 1: return mediaFiles.length > 0;
+        case 2: return document.getElementById('description')?.value.trim().length >= 3;
+        case 3: 
+            const price = document.getElementById('price')?.value || '';
+            const isNegotiable = document.getElementById('priceBtnNegotiable')?.classList.contains('active');
+            return isNegotiable || (price && !isNaN(parseFloat(price)) && parseFloat(price) > 0);
+        case 4:
+            if (selectedContactType === 'telegram') {
+                const telegram = document.getElementById('telegram')?.value.trim() || '';
+                const isValidEnglish = /^[a-zA-Z0-9_]+$/.test(telegram);
+                return telegram.length >= 3 && isValidEnglish;
+            } else if (selectedContactType === 'phone') {
+                const phone = document.getElementById('phone')?.value.trim() || '';
+                const cleanPhone = phone.replace(/\D/g, '');
+                return cleanPhone.length === 9;
+            }
+            return true;
+        case 5: return !!document.getElementById('citySelect')?.value;
+        case 6: return !!document.getElementById('freshnessSelect')?.value;
+        default: return true;
+    }
+}
+
+function updateContactStepUI() {
+    document.querySelectorAll('.contact-option').forEach(opt => {
+        opt.classList.remove('active');
+    });
+    document.getElementById(`${selectedContactType}Option`).classList.add('active');
+    
+    document.getElementById('telegramInputGroup').style.display = 
+        selectedContactType === 'telegram' ? 'block' : 'none';
+    document.getElementById('phoneInputGroup').style.display = 
+        selectedContactType === 'phone' ? 'block' : 'none';
+    document.getElementById('noContactGroup').style.display = 
+        selectedContactType === 'none' ? 'block' : 'none';
+    
+    if (selectedContactType !== 'telegram') {
+        document.getElementById('telegram').value = '';
+    }
+    if (selectedContactType !== 'phone') {
+        document.getElementById('phone').value = '';
+    }
+    
+    validateCurrentStep();
+}
+
+console.log('✅ Flower Market Frontend с галереей готов!');
   </script>
 </body>
 </html>
