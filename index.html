@@ -435,7 +435,7 @@
             </div>
 
             <div id="postLinkContainer" style="margin: 20px 0;">
-                <a href="#" id="postLink" target="_blank" class="btn" style="text-decoration: none;">
+                <a href="https://t.me/flowers_market_kg" id="postLink" target="_blank" class="btn" style="text-decoration: none;">
                     <i class="fas fa-external-link-alt"></i> Перейти к объявлению
                 </a>
             </div>
@@ -538,7 +538,9 @@ function validateCurrentStep() {
                 isValid = cleanPhone.length === 9;
                 errorMessage = 'Введите 9 цифр номера телефона';
             } else {
-                isValid = true; // "Не указывать" всегда валидно
+                // ВАЖНО: Для "Не указывать" всегда валидно
+                isValid = true;
+                errorMessage = '';
             }
             break;
             
@@ -1028,7 +1030,16 @@ function updateContactStepUI() {
         phoneLabel?.classList.remove('field-required');
     }
     
+    // ВАЖНО: При выборе "Не указывать" сразу активируем кнопку "Далее"
     validateCurrentStep();
+    
+    // Особенная логика для кнопки "Не указывать"
+    if (selectedContactType === 'none') {
+        const nextBtn = document.getElementById('nextBtn4');
+        if (nextBtn) {
+            nextBtn.disabled = false;
+        }
+    }
 }
 
 // ============================================
@@ -1263,7 +1274,8 @@ function validateStep(step) {
                 const cleanPhone = phone.replace(/\D/g, '');
                 return cleanPhone.length === 9;
             }
-            return true; // "Не указывать" всегда валидно
+            // ВАЖНО: Для "Не указывать" всегда возвращаем true
+            return true;
         case 5: return !!document.getElementById('citySelect')?.value;
         case 6: return !!document.getElementById('freshnessSelect')?.value;
         default: return true;
