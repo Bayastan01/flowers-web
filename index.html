@@ -113,11 +113,11 @@
   <div class="container">
     <div class="header">
         <h1><i class="fas fa-flower-tulip"></i> Flower Market</h1>
-        <p>Создайте красивое объявление с галереей фото/видео</p>
+        <p>Создайте объявление с фото/видео в одном посте</p>
     </div>
 
     <div class="progress-bar" id="progressBar">
-        <div class="progress-step"><div class="step-number active">1</div><div class="step-label active">Галерея</div></div>
+        <div class="progress-step"><div class="step-number active">1</div><div class="step-label active">Фото/Видео</div></div>
         <div class="progress-step"><div class="step-number">2</div><div class="step-label">Описание</div></div>
         <div class="progress-step"><div class="step-number">3</div><div class="step-label">Цена</div></div>
         <div class="progress-step"><div class="step-number">4</div><div class="step-label">Контакты</div></div>
@@ -135,17 +135,17 @@
     </div>
 
     <div class="form-container" id="formContainer">
-      <!-- Шаг 1 - Фото/Видео галерея -->
+      <!-- Шаг 1 - Фото/Видео -->
       <div class="form-step active" id="step1">
-          <h2 class="step-title"><i class="fas fa-images"></i> Создайте галерею фото/видео</h2>
+          <h2 class="step-title"><i class="fas fa-images"></i> Добавьте фото и видео</h2>
           <div class="form-group">
               <div class="photo-upload" id="mediaUpload" onclick="document.getElementById('mediaInput').click()">
                   <i class="fas fa-cloud-upload-alt photo-upload-icon"></i>
                   <p><strong>Нажмите для загрузки фото и видео</strong></p>
-                  <p class="input-hint">Добавьте до 10 файлов. Telegram сгруппирует их в одну галерею</p>
+                  <p class="input-hint">Можно выбрать несколько файлов. Все они будут в одном посте!</p>
                   <p class="input-hint" style="color: #667eea; font-weight: bold;">
-                      <i class="fas fa-images"></i> Все медиафайлы будут в одном объявлении!<br>
-                      <i class="fas fa-video"></i> Поддерживаются фото и видео
+                      <i class="fas fa-check-circle"></i> Telegram сгруппирует фото и видео в один пост<br>
+                      <i class="fas fa-info-circle"></i> Максимум 10 файлов, до 50MB каждый
                   </p>
                   <div id="mediaHint" class="field-hint">Добавьте хотя бы одно фото или видео</div>
               </div>
@@ -325,7 +325,7 @@
           <h2 class="step-title"><i class="fas fa-eye"></i> Превью объявления</h2>
 
           <div class="preview-item">
-              <div class="preview-label">Галерея фото/видео</div>
+              <div class="preview-label">Фото/Видео</div>
               <div id="previewMedia" class="preview-gallery"></div>
               <p class="input-hint" style="margin-top: 8px;">Всего файлов: <span id="previewMediaCount">0</span></p>
           </div>
@@ -363,14 +363,13 @@
             <i class="fas fa-check-circle success-icon"></i>
             <h2 class="success-title">Объявление успешно опубликовано!</h2>
             <p class="success-message" id="successMessageText">
-                Ваше объявление с галереей опубликовано в канале.<br>
-                Все фото и видео сгруппированы в один блок.
+                Ваше объявление с фото и видео опубликовано в одном посте.
             </p>
 
             <div class="success-steps">
                 <div class="success-step">
                     <div class="step-badge">1</div>
-                    <div class="step-text">Галерея создана и опубликована</div>
+                    <div class="step-text">Все фото/видео сгруппированы в один пост</div>
                 </div>
                 <div class="success-step">
                     <div class="step-badge">2</div>
@@ -384,7 +383,7 @@
 
             <div id="postLinkContainer" style="margin: 20px 0;">
                 <a href="#" id="postLink" target="_blank" class="btn" style="text-decoration: none;">
-                    <i class="fas fa-external-link-alt"></i> Перейти к объявлению с галереей
+                    <i class="fas fa-external-link-alt"></i> Перейти к объявлению
                 </a>
             </div>
 
@@ -397,7 +396,7 @@
 
   <script>
 // ============================================
-// Flower Market - Frontend с галереей
+// Flower Market - Frontend
 // ============================================
 
 const BACKEND_URL = 'https://backend-flower-2-production.up.railway.app';
@@ -410,7 +409,7 @@ let isSubmitting = false;
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🌺 Flower Market с галереей запущен');
+    console.log('🌺 Flower Market запущен');
     setupEventListeners();
     showStep(1);
     updateContactStepUI();
@@ -522,7 +521,7 @@ function validateCurrentStep() {
     return isValid;
 }
 
-// Обработка медиа файлов для галереи
+// Обработка медиа файлов
 function handleMediaUpload(event) {
     const files = Array.from(event.target.files);
     const maxFiles = 10;
@@ -636,7 +635,7 @@ function updateMediaPreview() {
 async function submitForm() {
     if (isSubmitting) return;
     
-    console.log('🚀 Публикация...');
+    console.log('🚀 Публикация объявления...');
     
     if (!validateAllSteps()) {
         showNotification('Ошибка', 'Заполните все обязательные поля', 'error');
@@ -684,8 +683,8 @@ async function submitForm() {
         'info');
     
     try {
-        // Используем endpoint для публикации
-        const endpoint = '/api/publish';
+        // Используем новый endpoint для медиагруппы
+        const endpoint = '/api/publish-media-group';
         
         console.log(`📤 Отправка на ${endpoint}...`);
         
@@ -711,7 +710,7 @@ async function submitForm() {
             
             setTimeout(() => {
                 showNotification('✅ Успешно!', 
-                    `Объявление опубликовано!`, 
+                    `Объявление с ${result.mediaCount} файлами опубликовано в одном посте!`, 
                     'success');
                 
                 setTimeout(() => {
@@ -887,7 +886,7 @@ function showSuccessScreen(postLink) {
         linkElement.href = postLink;
     } else {
         document.getElementById('postLinkContainer').innerHTML = 
-            '<p style="color: #666; padding: 10px; background: #f8f9fa; border-radius: 8px;">Объявление с галереей опубликовано</p>';
+            '<p style="color: #666; padding: 10px; background: #f8f9fa; border-radius: 8px;">Объявление опубликовано</p>';
     }
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
