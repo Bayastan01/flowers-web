@@ -44,14 +44,30 @@
         @media (max-width: 480px) { .contact-options { grid-template-columns: 1fr; } }
         .contact-option { padding: 20px 15px; border: 2px solid #e0e0e0; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s ease; background: #fff; position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 120px; }
         .contact-option:hover { border-color: #667eea; background: rgba(102, 126, 234, 0.05); }
-        .contact-option.active { border-color: #667eea; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3); }
+        
+        /* ИСПРАВЛЕННЫЕ СТИЛИ ДЛЯ АКТИВНЫХ КНОПОК */
+        .contact-option.active { 
+            border-color: #667eea !important; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; 
+            color: white !important;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3) !important;
+        }
+        
         .contact-option i { font-size: 28px; margin-bottom: 12px; display: block; }
         .contact-option p { font-size: 15px; font-weight: 500; margin-bottom: 5px; text-align: center; }
         .contact-option small { font-size: 12px; opacity: 0.8; text-align: center; }
         
-        /* Специальный стиль для кнопки "Не указывать" */
-        .contact-option.no-contact.active { border-color: #6c757d; background: linear-gradient(135deg, #6c757d 0%, #495057 100%); }
-        .contact-option.no-contact:hover { border-color: #6c757d; background: rgba(108, 117, 125, 0.05); }
+        /* ИСПРАВЛЕННЫЙ СТИЛЬ ДЛЯ КНОПКИ "НЕ УКАЗЫВАТЬ" */
+        .contact-option.no-contact.active { 
+            border-color: #6c757d !important; 
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%) !important; 
+            color: white !important;
+            box-shadow: 0 6px 20px rgba(108, 117, 125, 0.3) !important;
+        }
+        .contact-option.no-contact:hover { 
+            border-color: #6c757d; 
+            background: rgba(108, 117, 125, 0.1); 
+        }
         
         /* ИСПРАВЛЕННЫЕ СТИЛИ ДЛЯ ИНПУТОВ В КОНТАКТАХ */
         .contact-input-wrapper { position: relative; width: 100%; }
@@ -190,10 +206,16 @@
     <div class="form-container" id="formContainer">
       <!-- Шаг 1 - Фото/Видео -->
       <div class="form-step active" id="step1">
+          <h2 class="step-title"><i class="fas fa-images"></i> Добавьте фото и видео</h2>
           <div class="form-group">
               <div class="photo-upload" id="mediaUpload" onclick="document.getElementById('mediaInput').click()">
                   <i class="fas fa-cloud-upload-alt photo-upload-icon"></i>
                   <p><strong>Нажмите для загрузки фото и видео</strong></p>
+                  <p class="input-hint">Можно выбрать несколько файлов. Все они будут в одном посте!</p>
+                  <p class="input-hint" style="color: #667eea; font-weight: bold;">
+                      <i class="fas fa-check-circle"></i> Telegram сгруппирует фото и видео в один пост<br>
+                      <i class="fas fa-info-circle"></i> Максимум 10 файлов, до 50MB каждый
+                  </p>
                   <div id="mediaHint" class="field-hint">Добавьте хотя бы одно фото или видео</div>
               </div>
               <input type="file" id="mediaInput" accept="image/*,video/*" multiple style="display: none;" onchange="handleMediaUpload(event)">
@@ -209,8 +231,8 @@
           <h2 class="step-title"><i class="fas fa-edit"></i> Описание товара</h2>
           <div class="form-group">
               <label for="description" class="field-required">Опишите ваш товар:</label>
-              <textarea id="description" placeholder="Например: Свежие розы из Эквадора, идеально подходят для свадебных букетов." rows="4"></textarea>
-              <!-- <p class="input-hint">Минимум 3 символа. Опишите ваши цветы подробно</p> -->
+              <textarea id="description" placeholder="Например: Свежие розы из Эквадора, идеально подходят для свадебных букетов. Доставка по городу." rows="4"></textarea>
+              <p class="input-hint">Минимум 3 символа. Опишите ваши цветы подробно</p>
               <div id="descriptionHint" class="field-hint">Описание должно содержать минимум 3 символа</div>
           </div>
           <div class="navigation">
@@ -271,6 +293,7 @@
                   <span class="telegram-prefix">@</span>
                   <input type="text" id="telegram" class="telegram-input" placeholder="username">
               </div>
+              <p class="input-hint">Введите только имя пользователя (без @)</p>
               <div id="telegramHint" class="field-hint">Введите Telegram username для продолжения</div>
               <div id="telegramLanguageHint" class="language-hint">
                   <i class="fas fa-language"></i> Пожалуйста, используйте английскую раскладку
@@ -283,6 +306,7 @@
                   <span class="phone-prefix">+996</span>
                   <input type="tel" id="phone" class="phone-input" placeholder="XXX XXX XXX">
               </div>
+              <p class="input-hint">Введите 9 цифр номера после +996 (например: 555 123 456)</p>
               <div id="phoneHint" class="field-hint">Введите номер телефона для продолжения</div>
           </div>
           
@@ -428,8 +452,11 @@
 
             <div id="postLinkContainer" style="margin: 20px 0;">
                 <a href="https://t.me/flowers_market_kg" id="postLink" target="_blank" class="btn" style="text-decoration: none;">
-                    <i class="fas fa-external-link-alt"></i> Перейти к объявлению
+                    <i class="fab fa-telegram"></i> Перейти в канал Flower Market
                 </a>
+                <p style="color: #666; font-size: 14px; margin-top: 10px;">
+                    Ваше объявление будет в последних сообщениях канала
+                </p>
             </div>
 
             <button class="btn" onclick="createNewAd()" style="margin-top: 20px;">
@@ -529,10 +556,14 @@ function validateCurrentStep() {
                 const cleanPhone = phone.replace(/\D/g, '');
                 isValid = cleanPhone.length === 9;
                 errorMessage = 'Введите 9 цифр номера телефона';
-            } else {
+            } else if (selectedContactType === 'none') {
                 // ВАЖНО: Для "Не указывать" всегда валидно
                 isValid = true;
                 errorMessage = '';
+                console.log('✅ Валидация для "Не указывать" пройдена');
+            } else {
+                isValid = false;
+                errorMessage = 'Выберите способ связи';
             }
             break;
             
@@ -761,7 +792,9 @@ async function submitForm() {
                     'success');
                 
                 setTimeout(() => {
-                    showSuccessScreen(result.postLink);
+                    // Используем ссылку из результата или общую ссылку на канал
+                    const postLink = result.postLink || 'https://t.me/flowers_market_kg';
+                    showSuccessScreen(result);
                 }, 1500);
             }, 1000);
             
@@ -930,17 +963,21 @@ function showNotification(title, message, type = 'info') {
     }, 5000);
 }
 
-function showSuccessScreen(postLink) {
+function showSuccessScreen(result) {
     document.getElementById('formContainer').style.display = 'none';
     document.getElementById('successScreen').style.display = 'block';
     
-    const linkElement = document.getElementById('postLink');
-    if (linkElement && postLink) {
-        linkElement.href = postLink;
-    } else {
-        document.getElementById('postLinkContainer').innerHTML = 
-            '<p style="color: #666; padding: 10px; background: #f8f9fa; border-radius: 8px;">Объявление опубликовано</p>';
-    }
+    // Обновляем текст сообщения
+    const photoCount = mediaFiles.filter(f => f.type.startsWith('image/')).length;
+    const videoCount = mediaFiles.filter(f => f.type.startsWith('video/')).length;
+    const mediaText = mediaFiles.length === 1 ? '1 файл' : `${mediaFiles.length} файлов`;
+    
+    const successMessage = document.getElementById('successMessageText');
+    successMessage.innerHTML = `
+        Ваше объявление с <strong>${mediaText}</strong> опубликовано в одном посте Telegram.
+        ${photoCount > 0 ? `<br>📸 Фото: ${photoCount}` : ''}
+        ${videoCount > 0 ? `<br>🎬 Видео: ${videoCount}` : ''}
+    `;
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -980,18 +1017,27 @@ window.focusPriceInput = function() {
 // ИСПРАВЛЕННАЯ ФУНКЦИЯ ВЫБОРА КОНТАКТОВ
 // ============================================
 window.selectContactType = function(type) {
+    console.log('Выбран тип контакта:', type);
     selectedContactType = type;
     updateContactStepUI();
 };
 
 function updateContactStepUI() {
-    // Обновляем активные кнопки
+    console.log('Обновление UI контактов, выбран тип:', selectedContactType);
+    
+    // 1. Сбрасываем все кнопки
     document.querySelectorAll('.contact-option').forEach(opt => {
         opt.classList.remove('active');
     });
-    document.getElementById(`${selectedContactType}Option`).classList.add('active');
     
-    // Показываем/скрываем поля ввода
+    // 2. Активируем выбранную кнопку
+    const selectedOption = document.getElementById(`${selectedContactType}Option`);
+    if (selectedOption) {
+        selectedOption.classList.add('active');
+        console.log('Кнопка активирована:', selectedOption);
+    }
+    
+    // 3. Показываем/скрываем поля ввода
     document.getElementById('telegramInputGroup').style.display = 
         selectedContactType === 'telegram' ? 'block' : 'none';
     document.getElementById('phoneInputGroup').style.display = 
@@ -999,7 +1045,7 @@ function updateContactStepUI() {
     document.getElementById('noContactGroup').style.display = 
         selectedContactType === 'none' ? 'block' : 'none';
     
-    // Сбрасываем значения полей
+    // 4. Сбрасываем значения полей
     if (selectedContactType !== 'telegram') {
         document.getElementById('telegram').value = '';
     }
@@ -1007,29 +1053,15 @@ function updateContactStepUI() {
         document.getElementById('phone').value = '';
     }
     
-    // Снимаем обязательность с полей
-    const telegramLabel = document.querySelector('#telegramInputGroup label');
-    const phoneLabel = document.querySelector('#phoneInputGroup label');
-    
-    if (selectedContactType === 'telegram') {
-        telegramLabel.classList.add('field-required');
-        phoneLabel?.classList.remove('field-required');
-    } else if (selectedContactType === 'phone') {
-        telegramLabel?.classList.remove('field-required');
-        phoneLabel.classList.add('field-required');
-    } else {
-        telegramLabel?.classList.remove('field-required');
-        phoneLabel?.classList.remove('field-required');
-    }
-    
-    // ВАЖНО: При выборе "Не указывать" сразу активируем кнопку "Далее"
-    validateCurrentStep();
-    
-    // Особенная логика для кнопки "Не указывать"
-    if (selectedContactType === 'none') {
-        const nextBtn = document.getElementById('nextBtn4');
-        if (nextBtn) {
+    // 5. ВАЖНО: Для "Не указывать" сразу активируем кнопку "Далее"
+    const nextBtn = document.getElementById('nextBtn4');
+    if (nextBtn) {
+        if (selectedContactType === 'none') {
             nextBtn.disabled = false;
+            console.log('✅ Кнопка "Далее" активирована для "Не указывать"');
+        } else {
+            // Для других типов запускаем обычную валидацию
+            validateCurrentStep();
         }
     }
 }
@@ -1146,6 +1178,14 @@ window.submitForm = submitForm;
 
 // Настройка слушателей событий
 function setupEventListeners() {
+    // Для отладки - проверяем, что кнопка существует
+    console.log('Кнопка "Не указывать" существует:', !!document.getElementById('noContactOption'));
+    
+    // Добавляем визуальный индикатор при клике
+    document.getElementById('noContactOption')?.addEventListener('click', function() {
+        console.log('Клик на "Не указывать", активен ли:', this.classList.contains('active'));
+    });
+    
     // Telegram input
     const telegramInput = document.getElementById('telegram');
     if (telegramInput) {
@@ -1265,9 +1305,11 @@ function validateStep(step) {
                 const phone = document.getElementById('phone')?.value.trim() || '';
                 const cleanPhone = phone.replace(/\D/g, '');
                 return cleanPhone.length === 9;
+            } else if (selectedContactType === 'none') {
+                // ВАЖНО: Для "Не указывать" всегда возвращаем true
+                return true;
             }
-            // ВАЖНО: Для "Не указывать" всегда возвращаем true
-            return true;
+            return false;
         case 5: return !!document.getElementById('citySelect')?.value;
         case 6: return !!document.getElementById('freshnessSelect')?.value;
         default: return true;
