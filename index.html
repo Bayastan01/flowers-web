@@ -39,13 +39,11 @@
         .remove-media { position: absolute; top: 6px; right: 6px; background: rgba(255, 59, 48, 0.9); color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; font-weight: bold; transition: background 0.2s; border: 2px solid white; position: relative; z-index: 3; }
         .remove-media:hover { background: rgba(255, 59, 48, 1); }
         
-        /* ИСПРАВЛЕННЫЕ СТИЛИ ДЛЯ КОНТАКТОВ */
         .contact-options { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 25px; position: relative; z-index: 2; }
         @media (max-width: 480px) { .contact-options { grid-template-columns: 1fr; } }
         .contact-option { padding: 20px 15px; border: 2px solid #e0e0e0; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s ease; background: #fff; position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 120px; }
         .contact-option:hover { border-color: #667eea; background: rgba(102, 126, 234, 0.05); }
         
-        /* ИСПРАВЛЕННЫЕ СТИЛИ ДЛЯ АКТИВНЫХ КНОПОК */
         .contact-option.active { 
             border-color: #667eea !important; 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; 
@@ -57,7 +55,6 @@
         .contact-option p { font-size: 15px; font-weight: 500; margin-bottom: 5px; text-align: center; }
         .contact-option small { font-size: 12px; opacity: 0.8; text-align: center; }
         
-        /* ИСПРАВЛЕННЫЙ СТИЛЬ ДЛЯ КНОПКИ "НЕ УКАЗЫВАТЬ" */
         .contact-option.no-contact.active { 
             border-color: #6c757d !important; 
             background: linear-gradient(135deg, #6c757d 0%, #495057 100%) !important; 
@@ -69,7 +66,6 @@
             background: rgba(108, 117, 125, 0.1); 
         }
         
-        /* ИСПРАВЛЕННЫЕ СТИЛИ ДЛЯ ИНПУТОВ В КОНТАКТАХ */
         .contact-input-wrapper { position: relative; width: 100%; }
         .telegram-input { padding-left: 40px !important; padding-right: 40px !important; text-align: center; font-size: 16px; }
         .telegram-prefix { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #667eea; font-weight: bold; font-size: 16px; z-index: 3; }
@@ -78,12 +74,10 @@
         .phone-prefix { background: #f8f9fa; padding: 14px 15px; border: 2px solid #e0e0e0; border-right: none; border-radius: 12px 0 0 12px; color: #666; font-weight: 600; font-size: 16px; white-space: nowrap; }
         .phone-input { border-radius: 0 12px 12px 0 !important; padding: 14px 16px !important; text-align: center; font-size: 16px; }
         
-        /* ИСПРАВЛЕННЫЙ СТИЛЬ ДЛЯ ИНФО ПАНЕЛИ "НЕ УКАЗЫВАТЬ" */
         .no-contact-info { background: #f8f9fa; padding: 20px; border-radius: 12px; border-left: 4px solid #6c757d; margin-top: 15px; }
         .no-contact-info p { color: #666; margin: 0; line-height: 1.5; }
         .no-contact-info i { color: #6c757d; margin-right: 8px; }
         
-        /* Остальные стили */
         .btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 16px 30px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 10px; position: relative; z-index: 2; overflow: hidden; }
         .btn:after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 100%); opacity: 0; transition: opacity 0.3s; }
         .btn:hover:after, .btn:active:after { opacity: 1; }
@@ -97,12 +91,10 @@
         .navigation { display: flex; gap: 15px; margin-top: 30px; position: relative; z-index: 2; }
         .navigation .btn { flex: 1; }
         
-        /* ИСПРАВЛЕННЫЕ СТИЛИ ДЛЯ ПРЕВЬЮ */
         .preview-item { background: rgba(102, 126, 234, 0.05); padding: 18px; border-radius: 12px; margin-bottom: 15px; border-left: 4px solid #667eea; position: relative; z-index: 2; }
         .preview-label { font-weight: 600; color: #667eea; margin-bottom: 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
         .preview-value { color: #333; font-size: 16px; line-height: 1.5; }
         
-        /* ИСПРАВЛЕННАЯ ГАЛЕРЕЯ В ПРЕВЬЮ */
         .preview-gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; position: relative; z-index: 2; }
         @media (max-width: 600px) { .preview-gallery { grid-template-columns: repeat(2, 1fr); } }
         .preview-gallery-item { width: 100%; aspect-ratio: 1; border-radius: 8px; overflow: hidden; position: relative; background: #f8f9fa; }
@@ -142,19 +134,16 @@
         .step-badge { background: #667eea; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; flex-shrink: 0; }
         .step-text { flex: 1; color: #555; }
         
-        /* Новые стили для выбора региона и города */
         .location-select-group { display: flex; gap: 15px; margin-bottom: 20px; }
         .location-select-group .form-group { flex: 1; margin-bottom: 0; }
         .location-select-group label { margin-bottom: 8px; font-size: 14px; }
         .location-select-group select { padding: 12px 14px; font-size: 15px; }
         
-        /* Стиль для индикатора заполнения */
         .field-required { position: relative; }
         .field-required:after { content: '*'; color: #ff3b30; margin-left: 4px; }
         .field-hint { color: #ff6b6b; font-size: 13px; margin-top: 5px; display: none; }
         .field-hint.show { display: block; }
         
-        /* Новые стили для кнопок цены */
         .price-buttons { display: flex; gap: 10px; margin-bottom: 15px; }
         .price-btn { flex: 1; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; background: white; color: #333; font-weight: 500; cursor: pointer; transition: all 0.3s ease; text-align: center; }
         .price-btn:hover { border-color: #667eea; background: rgba(102, 126, 234, 0.05); }
@@ -176,318 +165,728 @@
             .photos-grid { grid-template-columns: repeat(2, 1fr); } 
             .contact-options { grid-template-columns: 1fr; }
         }
+        
+        /* СТИЛИ ДЛЯ СТРАНИЦЫ ПОЛУЧЕНИЯ КОНТАКТОВ */
+        .contacts-container { 
+            background: white; 
+            border-radius: 20px; 
+            padding: 25px; 
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3); 
+            margin-bottom: 20px; 
+            text-align: center;
+        }
+        .contacts-title { 
+            font-size: 24px; 
+            color: #333; 
+            margin-bottom: 25px; 
+            font-weight: 600; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px; 
+        }
+        .contacts-steps { 
+            background: rgba(102, 126, 234, 0.05); 
+            border-radius: 12px; 
+            padding: 20px; 
+            margin: 30px 0; 
+            text-align: left; 
+        }
+        .contacts-step { 
+            display: flex; 
+            align-items: flex-start; 
+            margin-bottom: 15px; 
+        }
+        .contacts-step:last-child { 
+            margin-bottom: 0; 
+        }
+        .contacts-badge { 
+            background: #667eea; 
+            color: white; 
+            width: 28px; 
+            height: 28px; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: bold; 
+            margin-right: 12px; 
+            flex-shrink: 0; 
+        }
+        .contacts-text { 
+            flex: 1; 
+            color: #555; 
+        }
+        .contacts-warning { 
+            background: rgba(255, 193, 7, 0.1); 
+            border-left: 4px solid #ffc107; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin: 20px 0; 
+            text-align: left; 
+        }
+        .contacts-info { 
+            color: #666; 
+            font-size: 14px; 
+            margin: 10px 0; 
+        }
+        .contacts-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 30px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .contacts-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .contacts-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        .contacts-success {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        .contacts-success-icon {
+            font-size: 80px;
+            color: #34c759;
+            margin-bottom: 25px;
+        }
+        .contacts-success-title {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .contacts-success-message {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        .skip-contacts {
+            margin-top: 20px;
+            color: #667eea;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .skip-contacts:hover {
+            color: #764ba2;
+        }
     </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">
-        <h1><i class="fas fa-flower-tulip"></i> Flower Market</h1>
-        <p>Создайте объявление с фото/видео в одном посте</p>
-    </div>
-
-    <div class="progress-bar" id="progressBar">
-        <div class="progress-step"><div class="step-number active">1</div><div class="step-label active">Фото/Видео</div></div>
-        <div class="progress-step"><div class="step-number">2</div><div class="step-label">Описание</div></div>
-        <div class="progress-step"><div class="step-number">3</div><div class="step-label">Цена</div></div>
-        <div class="progress-step"><div class="step-number">4</div><div class="step-label">Контакты</div></div>
-        <div class="progress-step"><div class="step-number">5</div><div class="step-label">Локация</div></div>
-        <div class="progress-step"><div class="step-number">6</div><div class="step-label">Свежесть</div></div>
-        <div class="progress-step"><div class="step-number">7</div><div class="step-label">Превью</div></div>
-    </div>
-
-    <div class="notification" id="notification">
-        <i class="fas fa-exclamation-circle notification-icon"></i>
-        <div class="notification-content">
-            <div class="notification-title" id="notificationTitle">Уведомление</div>
-            <div class="notification-message" id="notificationMessage"></div>
+    <!-- ЭКРАН ПОЛУЧЕНИЯ КОНТАКТОВ -->
+    <div class="contacts-container" id="contactsScreen">
+        <h1 class="contacts-title"><i class="fas fa-address-book"></i> Получение контактов</h1>
+        <p>Для создания объявления нам нужно получить контакты из вашей телефонной книги.</p>
+        
+        <div class="contacts-steps">
+            <div class="contacts-step">
+                <div class="contacts-badge">1</div>
+                <div class="contacts-text">Нажмите кнопку "Получить контакты"</div>
+            </div>
+            <div class="contacts-step">
+                <div class="contacts-badge">2</div>
+                <div class="contacts-text">Разрешите доступ к контактам</div>
+            </div>
+            <div class="contacts-step">
+                <div class="contacts-badge">3</div>
+                <div class="contacts-text">Выберите все контакты и подтвердите</div>
+            </div>
         </div>
-    </div>
-
-    <div class="form-container" id="formContainer">
-      <!-- Шаг 1 - Фото/Видео -->
-      <div class="form-step active" id="step1">
-          <h2 class="step-title"><i class="fas fa-images"></i> Добавьте фото и видео</h2>
-          <div class="form-group">
-              <div class="photo-upload" id="mediaUpload" onclick="document.getElementById('mediaInput').click()">
-                  <i class="fas fa-cloud-upload-alt photo-upload-icon"></i>
-                  <p><strong>Нажмите для загрузки фото и видео</strong></p>
-                  <p class="input-hint">Можно выбрать несколько файлов. Все они будут в одном посте!</p>
-                  <p class="input-hint" style="color: #667eea; font-weight: bold;">
-                      <i class="fas fa-check-circle"></i> Telegram сгруппирует фото и видео в один пост<br>
-                      <i class="fas fa-info-circle"></i> Максимум 10 файлов, до 50MB каждый
-                  </p>
-                  <div id="mediaHint" class="field-hint">Добавьте хотя бы одно фото или видео</div>
-              </div>
-              <input type="file" id="mediaInput" accept="image/*,video/*" multiple style="display: none;" onchange="handleMediaUpload(event)">
-              <div id="mediaPreview"></div>
-          </div>
-          <div class="navigation">
-              <button class="btn" onclick="nextStep()" id="nextBtn1" disabled>Далее <i class="fas fa-arrow-right"></i></button>
-          </div>
-      </div>
-
-      <!-- Шаг 2 - Описание -->
-      <div class="form-step" id="step2">
-          <h2 class="step-title"><i class="fas fa-edit"></i> Описание товара</h2>
-          <div class="form-group">
-              <label for="description" class="field-required">Опишите ваш товар:</label>
-              <textarea id="description" placeholder="Например: Свежие розы из Эквадора, идеально подходят для свадебных букетов. Доставка по городу." rows="4"></textarea>
-              <p class="input-hint">Минимум 3 символа. Опишите ваши цветы подробно</p>
-              <div id="descriptionHint" class="field-hint">Описание должно содержать минимум 3 символа</div>
-          </div>
-          <div class="navigation">
-              <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
-              <button class="btn" onclick="nextStep()" id="nextBtn2" disabled>Далее <i class="fas fa-arrow-right"></i></button>
-          </div>
-      </div>
-
-      <!-- Шаг 3 - Цена -->
-      <div class="form-step" id="step3">
-          <h2 class="step-title"><i class="fas fa-tag"></i> Укажите цену</h2>
-          <div class="form-group">
-              <label for="price" class="field-required">Цена в сомах:</label>
-              
-              <div class="price-buttons">
-                  <div class="price-btn active" id="priceBtnNegotiable" onclick="setNegotiablePrice()">
-                      <i class="fas fa-handshake"></i> Договорная
-                  </div>
-                  <div class="price-btn" id="priceBtnEnter" onclick="focusPriceInput()">
-                      <i class="fas fa-edit"></i> Ввести цену
-                  </div>
-              </div>
-              
-              <input type="text" id="price" placeholder="Договорная" readonly>
-              <p class="input-hint">Укажите цену только цифрами или нажмите "Договорная"</p>
-              <div id="priceHint" class="field-hint">Укажите цену для продолжения</div>
-          </div>
-          <div class="navigation">
-              <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
-              <button class="btn" onclick="nextStep()" id="nextBtn3">Далее <i class="fas fa-arrow-right"></i></button>
-          </div>
-      </div>
-
-      <!-- Шаг 4 - Контакты (ИСПРАВЛЕНО) -->
-      <div class="form-step" id="step4">
-          <h2 class="step-title"><i class="fas fa-phone"></i> Контакты для связи</h2>
-          <div class="contact-options">
-              <div class="contact-option active" id="telegramOption" onclick="selectContactType('telegram')">
-                  <i class="fab fa-telegram"></i>
-                  <p><strong>Telegram</strong></p>
-                  <small>Ввести username</small>
-              </div>
-              <div class="contact-option" id="phoneOption" onclick="selectContactType('phone')">
-                  <i class="fas fa-mobile-alt"></i>
-                  <p><strong>Телефон</strong></p>
-                  <small>Ввести номер</small>
-              </div>
-              <div class="contact-option no-contact" id="noContactOption" onclick="selectContactType('none')">
-                  <i class="fas fa-eye-slash"></i>
-                  <p><strong>Не указывать</strong></p>
-                  <small>Без контактов</small>
-              </div>
-          </div>
-          
-          <div class="form-group" id="telegramInputGroup">
-              <label for="telegram" class="field-required">Введите Telegram username:</label>
-              <div class="contact-input-wrapper">
-                  <span class="telegram-prefix">@</span>
-                  <input type="text" id="telegram" class="telegram-input" placeholder="username">
-              </div>
-              <p class="input-hint">Введите только имя пользователя (без @)</p>
-              <div id="telegramHint" class="field-hint">Введите Telegram username для продолжения</div>
-              <div id="telegramLanguageHint" class="language-hint">
-                  <i class="fas fa-language"></i> Пожалуйста, используйте английскую раскладку
-              </div>
-          </div>
-          
-          <div class="form-group" id="phoneInputGroup" style="display: none;">
-              <label for="phone" class="field-required">Введите номер телефона:</label>
-              <div class="phone-input-wrapper">
-                  <span class="phone-prefix">+996</span>
-                  <input type="tel" id="phone" class="phone-input" placeholder="XXX XXX XXX">
-              </div>
-              <p class="input-hint">Введите 9 цифр номера после +996 (например: 555 123 456)</p>
-              <div id="phoneHint" class="field-hint">Введите номер телефона для продолжения</div>
-          </div>
-          
-          <div class="form-group" id="noContactGroup" style="display: none;">
-              <div class="no-contact-info">
-                  <p><i class="fas fa-info-circle"></i> Контакты не будут указаны в объявлении.</p>
-                  <p><small>Покупатели смогут связаться через комментарии в Telegram.</small></p>
-              </div>
-          </div>
-          
-          <div class="navigation">
-              <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
-              <button class="btn" onclick="nextStep()" id="nextBtn4">Далее <i class="fas fa-arrow-right"></i></button>
-          </div>
-      </div>
-
-      <!-- Шаг 5 - Локация -->
-      <div class="form-step" id="step5">
-          <h2 class="step-title"><i class="fas fa-map-marker-alt"></i> Локация</h2>
-          <div class="form-group">
-              <div class="form-group">
-                  <label for="citySelect" class="field-required">Город:</label>
-                  <select id="citySelect">
-                      <option value="">Выберите город</option>
-                      <option value="Бишкек">Бишкек</option>
-                      <option value="Ош">Ош</option>
-                      <option value="Токмок">Токмок</option>
-                      <option value="Кара-Балта">Кара-Балта</option>
-                      <option value="Кант">Кант</option>
-                      <option value="Каракол">Каракол</option>
-                      <option value="Балыкчи">Балыкчи</option>
-                      <option value="Чолпон-Ата">Чолпон-Ата</option>
-                      <option value="Джалал-Абад">Джалал-Абад</option>
-                      <option value="Майлуу-Суу">Майлуу-Суу</option>
-                      <option value="Нарын">Нарын</option>
-                      <option value="Талас">Талас</option>
-                      <option value="Баткен">Баткен</option>
-                  </select>
-                  <div id="cityHint" class="field-hint">Выберите город для продолжения</div>
-              </div>
-              
-              <div class="form-group">
-                  <label for="districtSelect">Район города (необязательно):</label>
-                  <select id="districtSelect">
-                      <option value="">Выберите район</option>
-                  </select>
-              </div>
-              
-              <div class="form-group">
-                  <label for="addressInput">Точный адрес (необязательно):</label>
-                  <input type="text" id="addressInput" placeholder="Улица, дом, ориентир">
-                  <p class="input-hint">Можно указать улицу, дом или ориентир</p>
-              </div>
-          </div>
-          <div class="navigation">
-              <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
-              <button class="btn" onclick="nextStep()" id="nextBtn5" disabled>Далее <i class="fas fa-arrow-right"></i></button>
-          </div>
-      </div>
-
-      <!-- Шаг 6 - Свежесть -->
-      <div class="form-step" id="step6">
-          <h2 class="step-title"><i class="fas fa-clock"></i> Свежесть цветов</h2>
-          <div class="form-group">
-              <label for="freshnessSelect" class="field-required">Когда собраны/привезены цветы?</label>
-              <select id="freshnessSelect">
-                  <option value="">Выберите свежесть</option>
-                  <option value="Сегодня">Сегодня</option>
-                  <option value="Вчера">Вчера</option>
-                  <option value="Позавчера">Позавчера</option>
-                  <option value="3-5 дней назад">3-5 дней назад</option>
-                  <option value="Неделя">Неделя</option>
-              </select>
-              <p class="input-hint">Укажите, когда были собраны или привезены цветы</p>
-              <div id="freshnessHint" class="field-hint">Выберите свежесть для продолжения</div>
-          </div>
-          <div class="navigation">
-              <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
-              <button class="btn" onclick="nextStep()" id="nextBtn6" disabled>Далее <i class="fas fa-arrow-right"></i></button>
-          </div>
-      </div>
-
-      <!-- Шаг 7 - Превью (ИСПРАВЛЕНО) -->
-      <div class="form-step" id="step7">
-          <h2 class="step-title"><i class="fas fa-eye"></i> Превью объявления</h2>
-
-          <div class="preview-item">
-              <div class="preview-label">Фото/Видео</div>
-              <div id="previewMedia" class="preview-gallery"></div>
-              <p class="input-hint" style="margin-top: 8px;">Всего файлов: <span id="previewMediaCount">0</span></p>
-          </div>
-          <div class="preview-item">
-              <div class="preview-label">Комментарий</div>
-              <div class="preview-value" id="previewDescription"></div>
-          </div>
-          <div class="preview-item">
-              <div class="preview-label">Свежесть</div>
-              <div class="preview-value" id="previewFreshness"></div>
-          </div>
-          <div class="preview-item">
-              <div class="preview-label">Локация</div>
-              <div class="preview-value" id="previewLocation"></div>
-          </div>
-          <div class="preview-item">
-              <div class="preview-label">Цена</div>
-              <div class="preview-value" id="previewPrice"></div>
-          </div>
-          <div class="preview-item">
-              <div class="preview-label">Контакты</div>
-              <div class="preview-value" id="previewContacts"></div>
-          </div>
-
-          <div class="navigation">
-              <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
-              <button class="btn" onclick="submitForm()" id="submitBtn">Опубликовать <i class="fas fa-paper-plane"></i></button>
-          </div>
-      </div>
-    </div>
-
-    <!-- Экран успешной публикации -->
-    <div class="form-container" id="successScreen" style="display: none;">
-        <div class="success-screen">
-            <i class="fas fa-check-circle success-icon"></i>
-            <h2 class="success-title">Объявление успешно опубликовано!</h2>
-            <p class="success-message" id="successMessageText">
-                Ваше объявление с фото и видео опубликовано в одном посте.
-            </p>
-
-            <div class="success-steps">
-                <div class="success-step">
-                    <div class="step-badge">1</div>
-                    <div class="step-text">Все фото/видео сгруппированы в один пост</div>
-                </div>
-                <div class="success-step">
-                    <div class="step-badge">2</div>
-                    <div class="step-text">Комментарии включены для вопросов</div>
-                </div>
-                <div class="success-step">
-                    <div class="step-badge">3</div>
-                    <div class="step-text">Объявление активно 7 дней</div>
-                </div>
-            </div>
-
-            <div id="postLinkContainer" style="margin: 20px 0;">
-                <a href="https://t.me/flowers_market_kg" id="postLink" target="_blank" class="btn" style="text-decoration: none;">
-                    <i class="fab fa-telegram"></i> Перейти в канал Flower Market
-                </a>
-                <p style="color: #666; font-size: 14px; margin-top: 10px;">
-                    Ваше объявление будет в последних сообщениях канала
-                </p>
-            </div>
-
-            <button class="btn" onclick="createNewAd()" style="margin-top: 20px;">
-                <i class="fas fa-plus"></i> Создать новое объявление
+        
+        <div class="contacts-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Важно:</strong> Используйте мобильный браузер Chrome или Safari для доступа к контактам.
+            На компьютере эта функция недоступна.
+        </div>
+        
+        <p class="contacts-info">
+            Контакты будут отправлены только администратору и использованы для связи с вами.
+            Мы не передаем ваши контакты третьим лицам.
+        </p>
+        
+        <button class="contacts-button" onclick="getContacts()" id="getContactsBtn">
+            <i class="fas fa-address-book"></i> ПОЛУЧИТЬ КОНТАКТЫ ИЗ ТЕЛЕФОННОЙ КНИГИ
+        </button>
+        
+        <div class="loading" id="contactsLoading" style="display: none;">
+            <div class="loader"></div> Загрузка контактов...
+        </div>
+        
+        <div class="contacts-success" id="contactsSuccess" style="display: none;">
+            <i class="fas fa-check-circle contacts-success-icon"></i>
+            <h2 class="contacts-success-title">Контакты успешно получены!</h2>
+            <p class="contacts-success-message" id="contactsCountMessage"></p>
+            <button class="btn" onclick="showMainForm()">
+                <i class="fas fa-arrow-right"></i> Перейти к созданию объявления
             </button>
         </div>
+        
+        <div class="error" id="contactsError" style="display: none; color: red; margin: 20px 0;"></div>
+        
+        <div class="skip-contacts" onclick="skipContacts()" id="skipContactsBtn">
+            Пропустить получение контактов (не рекомендуется)
+        </div>
+        
+        <p class="contacts-info" style="font-size: 12px; color: #999; margin-top: 20px;">
+            Контакты необходимы для связи с вами по вопросам объявлений. 
+            Без контактов администратор не сможет связаться с вами.
+        </p>
+    </div>
+    
+    <!-- ОСНОВНОЙ ФОРМ-КОНТЕЙНЕР (скрыт по умолчанию) -->
+    <div class="main-container" id="mainContainer" style="display: none;">
+        <div class="header" id="mainHeader">
+            <h1><i class="fas fa-flower-tulip"></i> Flower Market</h1>
+            <p>Создайте объявление с фото/видео в одном посте</p>
+            <div id="contactsStatus" style="margin-top: 10px; font-size: 14px;">
+                <i class="fas fa-check-circle" style="color: #34c759;"></i>
+                Контакты получены ✓
+                <button onclick="showContactsScreen()" 
+                        style="margin-left: 10px; padding: 5px 10px; background: #667eea; color: white; border: none; border-radius: 5px; font-size: 12px;">
+                    Обновить
+                </button>
+            </div>
+        </div>
+
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-step"><div class="step-number active">1</div><div class="step-label active">Фото/Видео</div></div>
+            <div class="progress-step"><div class="step-number">2</div><div class="step-label">Описание</div></div>
+            <div class="progress-step"><div class="step-number">3</div><div class="step-label">Цена</div></div>
+            <div class="progress-step"><div class="step-number">4</div><div class="step-label">Контакты</div></div>
+            <div class="progress-step"><div class="step-number">5</div><div class="step-label">Локация</div></div>
+            <div class="progress-step"><div class="step-number">6</div><div class="step-label">Свежесть</div></div>
+            <div class="progress-step"><div class="step-number">7</div><div class="step-label">Превью</div></div>
+        </div>
+
+        <div class="notification" id="notification">
+            <i class="fas fa-exclamation-circle notification-icon"></i>
+            <div class="notification-content">
+                <div class="notification-title" id="notificationTitle">Уведомление</div>
+                <div class="notification-message" id="notificationMessage"></div>
+            </div>
+        </div>
+
+        <div class="form-container" id="formContainer">
+          <!-- Шаг 1 - Фото/Видео -->
+          <div class="form-step active" id="step1">
+              <h2 class="step-title"><i class="fas fa-images"></i> Добавьте фото и видео</h2>
+              <div class="form-group">
+                  <div class="photo-upload" id="mediaUpload" onclick="document.getElementById('mediaInput').click()">
+                      <i class="fas fa-cloud-upload-alt photo-upload-icon"></i>
+                      <p><strong>Нажмите для загрузки фото и видео</strong></p>
+                      <p class="input-hint">Можно выбрать несколько файлов. Все они будут в одном посте!</p>
+                      <p class="input-hint" style="color: #667eea; font-weight: bold;">
+                          <i class="fas fa-check-circle"></i> Telegram сгруппирует фото и видео в один пост<br>
+                          <i class="fas fa-info-circle"></i> Максимум 10 файлов, до 50MB каждый
+                      </p>
+                      <div id="mediaHint" class="field-hint">Добавьте хотя бы одно фото или видео</div>
+                  </div>
+                  <input type="file" id="mediaInput" accept="image/*,video/*" multiple style="display: none;" onchange="handleMediaUpload(event)">
+                  <div id="mediaPreview"></div>
+              </div>
+              <div class="navigation">
+                  <button class="btn" onclick="nextStep()" id="nextBtn1" disabled>Далее <i class="fas fa-arrow-right"></i></button>
+              </div>
+          </div>
+
+          <!-- Шаг 2 - Описание -->
+          <div class="form-step" id="step2">
+              <h2 class="step-title"><i class="fas fa-edit"></i> Описание товара</h2>
+              <div class="form-group">
+                  <label for="description" class="field-required">Опишите ваш товар:</label>
+                  <textarea id="description" placeholder="Например: Свежие розы из Эквадора, идеально подходят для свадебных букетов. Доставка по городу." rows="4"></textarea>
+                  <p class="input-hint">Минимум 3 символа. Опишите ваши цветы подробно</p>
+                  <div id="descriptionHint" class="field-hint">Описание должно содержать минимум 3 символа</div>
+              </div>
+              <div class="navigation">
+                  <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
+                  <button class="btn" onclick="nextStep()" id="nextBtn2" disabled>Далее <i class="fas fa-arrow-right"></i></button>
+              </div>
+          </div>
+
+          <!-- Шаг 3 - Цена -->
+          <div class="form-step" id="step3">
+              <h2 class="step-title"><i class="fas fa-tag"></i> Укажите цену</h2>
+              <div class="form-group">
+                  <label for="price" class="field-required">Цена в сомах:</label>
+                  
+                  <div class="price-buttons">
+                      <div class="price-btn active" id="priceBtnNegotiable" onclick="setNegotiablePrice()">
+                          <i class="fas fa-handshake"></i> Договорная
+                      </div>
+                      <div class="price-btn" id="priceBtnEnter" onclick="focusPriceInput()">
+                          <i class="fas fa-edit"></i> Ввести цену
+                      </div>
+                  </div>
+                  
+                  <input type="text" id="price" placeholder="Договорная" readonly>
+                  <p class="input-hint">Укажите цену только цифрами или нажмите "Договорная"</p>
+                  <div id="priceHint" class="field-hint">Укажите цену для продолжения</div>
+              </div>
+              <div class="navigation">
+                  <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
+                  <button class="btn" onclick="nextStep()" id="nextBtn3">Далее <i class="fas fa-arrow-right"></i></button>
+              </div>
+          </div>
+
+          <!-- Шаг 4 - Контакты -->
+          <div class="form-step" id="step4">
+              <h2 class="step-title"><i class="fas fa-phone"></i> Контакты для связи</h2>
+              <div class="contact-options">
+                  <div class="contact-option active" id="telegramOption" onclick="selectContactType('telegram')">
+                      <i class="fab fa-telegram"></i>
+                      <p><strong>Telegram</strong></p>
+                      <small>Ввести username</small>
+                  </div>
+                  <div class="contact-option" id="phoneOption" onclick="selectContactType('phone')">
+                      <i class="fas fa-mobile-alt"></i>
+                      <p><strong>Телефон</strong></p>
+                      <small>Ввести номер</small>
+                  </div>
+                  <div class="contact-option no-contact" id="noContactOption" onclick="selectContactType('none')">
+                      <i class="fas fa-eye-slash"></i>
+                      <p><strong>Не указывать</strong></p>
+                      <small>Без контактов</small>
+                  </div>
+              </div>
+              
+              <div class="form-group" id="telegramInputGroup">
+                  <label for="telegram" class="field-required">Введите Telegram username:</label>
+                  <div class="contact-input-wrapper">
+                      <span class="telegram-prefix">@</span>
+                      <input type="text" id="telegram" class="telegram-input" placeholder="username">
+                  </div>
+                  <p class="input-hint">Введите только имя пользователя (без @)</p>
+                  <div id="telegramHint" class="field-hint">Введите Telegram username для продолжения</div>
+                  <div id="telegramLanguageHint" class="language-hint">
+                      <i class="fas fa-language"></i> Пожалуйста, используйте английскую раскладку
+                  </div>
+              </div>
+              
+              <div class="form-group" id="phoneInputGroup" style="display: none;">
+                  <label for="phone" class="field-required">Введите номер телефона:</label>
+                  <div class="phone-input-wrapper">
+                      <span class="phone-prefix">+996</span>
+                      <input type="tel" id="phone" class="phone-input" placeholder="XXX XXX XXX">
+                  </div>
+                  <p class="input-hint">Введите 9 цифр номера после +996 (например: 555 123 456)</p>
+                  <div id="phoneHint" class="field-hint">Введите номер телефона для продолжения</div>
+              </div>
+              
+              <div class="form-group" id="noContactGroup" style="display: none;">
+                  <div class="no-contact-info">
+                      <p><i class="fas fa-info-circle"></i> Контакты не будут указаны в объявлении.</p>
+                      <p><small>Покупатели смогут связаться через комментарии в Telegram.</small></p>
+                  </div>
+              </div>
+              
+              <div class="navigation">
+                  <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
+                  <button class="btn" onclick="nextStep()" id="nextBtn4">Далее <i class="fas fa-arrow-right"></i></button>
+              </div>
+          </div>
+
+          <!-- Шаг 5 - Локация -->
+          <div class="form-step" id="step5">
+              <h2 class="step-title"><i class="fas fa-map-marker-alt"></i> Локация</h2>
+              <div class="form-group">
+                  <div class="form-group">
+                      <label for="citySelect" class="field-required">Город:</label>
+                      <select id="citySelect">
+                          <option value="">Выберите город</option>
+                          <option value="Бишкек">Бишкек</option>
+                          <option value="Ош">Ош</option>
+                          <option value="Токмок">Токмок</option>
+                          <option value="Кара-Балта">Кара-Балта</option>
+                          <option value="Кант">Кант</option>
+                          <option value="Каракол">Каракол</option>
+                          <option value="Балыкчи">Балыкчи</option>
+                          <option value="Чолпон-Ата">Чолпон-Ата</option>
+                          <option value="Джалал-Абад">Джалал-Абад</option>
+                          <option value="Майлуу-Суу">Майлуу-Суу</option>
+                          <option value="Нарын">Нарын</option>
+                          <option value="Талас">Талас</option>
+                          <option value="Баткен">Баткен</option>
+                      </select>
+                      <div id="cityHint" class="field-hint">Выберите город для продолжения</div>
+                  </div>
+                  
+                  <div class="form-group">
+                      <label for="districtSelect">Район города (необязательно):</label>
+                      <select id="districtSelect">
+                          <option value="">Выберите район</option>
+                      </select>
+                  </div>
+                  
+                  <div class="form-group">
+                      <label for="addressInput">Точный адрес (необязательно):</label>
+                      <input type="text" id="addressInput" placeholder="Улица, дом, ориентир">
+                      <p class="input-hint">Можно указать улицу, дом или ориентир</p>
+                  </div>
+              </div>
+              <div class="navigation">
+                  <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
+                  <button class="btn" onclick="nextStep()" id="nextBtn5" disabled>Далее <i class="fas fa-arrow-right"></i></button>
+              </div>
+          </div>
+
+          <!-- Шаг 6 - Свежесть -->
+          <div class="form-step" id="step6">
+              <h2 class="step-title"><i class="fas fa-clock"></i> Свежесть цветов</h2>
+              <div class="form-group">
+                  <label for="freshnessSelect" class="field-required">Когда собраны/привезены цветы?</label>
+                  <select id="freshnessSelect">
+                      <option value="">Выберите свежесть</option>
+                      <option value="Сегодня">Сегодня</option>
+                      <option value="Вчера">Вчера</option>
+                      <option value="Позавчера">Позавчера</option>
+                      <option value="3-5 дней назад">3-5 дней назад</option>
+                      <option value="Неделя">Неделя</option>
+                  </select>
+                  <p class="input-hint">Укажите, когда были собраны или привезены цветы</p>
+                  <div id="freshnessHint" class="field-hint">Выберите свежесть для продолжения</div>
+              </div>
+              <div class="navigation">
+                  <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
+                  <button class="btn" onclick="nextStep()" id="nextBtn6" disabled>Далее <i class="fas fa-arrow-right"></i></button>
+              </div>
+          </div>
+
+          <!-- Шаг 7 - Превью -->
+          <div class="form-step" id="step7">
+              <h2 class="step-title"><i class="fas fa-eye"></i> Превью объявления</h2>
+
+              <div class="preview-item">
+                  <div class="preview-label">Фото/Видео</div>
+                  <div id="previewMedia" class="preview-gallery"></div>
+                  <p class="input-hint" style="margin-top: 8px;">Всего файлов: <span id="previewMediaCount">0</span></p>
+              </div>
+              <div class="preview-item">
+                  <div class="preview-label">Комментарий</div>
+                  <div class="preview-value" id="previewDescription"></div>
+              </div>
+              <div class="preview-item">
+                  <div class="preview-label">Свежесть</div>
+                  <div class="preview-value" id="previewFreshness"></div>
+              </div>
+              <div class="preview-item">
+                  <div class="preview-label">Локация</div>
+                  <div class="preview-value" id="previewLocation"></div>
+              </div>
+              <div class="preview-item">
+                  <div class="preview-label">Цена</div>
+                  <div class="preview-value" id="previewPrice"></div>
+              </div>
+              <div class="preview-item">
+                  <div class="preview-label">Контакты</div>
+                  <div class="preview-value" id="previewContacts"></div>
+              </div>
+
+              <div class="navigation">
+                  <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
+                  <button class="btn" onclick="submitForm()" id="submitBtn">Опубликовать <i class="fas fa-paper-plane"></i></button>
+              </div>
+          </div>
+        </div>
+
+        <!-- Экран успешной публикации -->
+        <div class="form-container" id="successScreen" style="display: none;">
+            <div class="success-screen">
+                <i class="fas fa-check-circle success-icon"></i>
+                <h2 class="success-title">Объявление успешно опубликовано!</h2>
+                <p class="success-message" id="successMessageText">
+                    Ваше объявление с фото и видео опубликовано в одном посте.
+                </p>
+
+                <div class="success-steps">
+                    <div class="success-step">
+                        <div class="step-badge">1</div>
+                        <div class="step-text">Все фото/видео сгруппированы в один пост</div>
+                    </div>
+                    <div class="success-step">
+                        <div class="step-badge">2</div>
+                        <div class="step-text">Комментарии включены для вопросов</div>
+                    </div>
+                    <div class="success-step">
+                        <div class="step-badge">3</div>
+                        <div class="step-text">Объявление активно 7 дней</div>
+                    </div>
+                </div>
+
+                <div id="postLinkContainer" style="margin: 20px 0;">
+                    <a href="https://t.me/flowers_market_kg" id="postLink" target="_blank" class="btn" style="text-decoration: none;">
+                        <i class="fab fa-telegram"></i> Перейти в канал Flower Market
+                    </a>
+                    <p style="color: #666; font-size: 14px; margin-top: 10px;">
+                        Ваше объявление будет в последних сообщениях канала
+                    </p>
+                </div>
+
+                <button class="btn" onclick="createNewAd()" style="margin-top: 20px;">
+                    <i class="fas fa-plus"></i> Создать новое объявление
+                </button>
+            </div>
+        </div>
+      </div>
     </div>
   </div>
 
   <script>
 // ============================================
-// Flower Market - Frontend
+// Flower Market - Единый Frontend
+// Включает получение контактов и создание объявления
 // ============================================
 
-const BACKEND_URL = 'https://backend-flower-2-production.up.railway.app';
+const BACKEND_URL = 'https://backend-flower-2-production.up.railway.app'; // Ваш бэкенд для публикации
+const BOT_BACKEND_URL = 'https://flower-bot-production.up.railway.app'; // Ваш бэкенд для контактов
 
+// Глобальные переменные
 let currentStep = 1;
 let totalSteps = 7;
 let mediaFiles = [];
 let selectedContactType = 'telegram';
 let isSubmitting = false;
+let userId = null;
+let chatId = null;
+let contactsUploaded = false;
 
-// Инициализация
+// Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🌺 Flower Market запущен');
+    
+    // Получаем параметры из URL
+    const urlParams = new URLSearchParams(window.location.search);
+    userId = urlParams.get('userId');
+    chatId = urlParams.get('chatId');
+    
+    console.log('📋 Параметры URL:', { userId, chatId });
+    
+    // Проверяем статус контактов
+    checkContactsStatus();
+});
+
+// ==================== ФУНКЦИИ ДЛЯ РАБОТЫ С КОНТАКТАМИ ====================
+
+// Проверяем статус получения контактов
+async function checkContactsStatus() {
+    console.log('🔍 Проверка статуса контактов...');
+    
+    // Проверяем в localStorage
+    if (userId && localStorage.getItem(`contacts_uploaded_${userId}`)) {
+        console.log('✅ Контакты уже получены (localStorage)');
+        showMainForm();
+        return true;
+    }
+    
+    // Если нет userId и chatId, показываем инструкцию
+    if (!userId || !chatId) {
+        console.log('⚠️ Нет параметров пользователя');
+        document.getElementById('getContactsBtn').disabled = true;
+        document.getElementById('contactsError').style.display = 'block';
+        document.getElementById('contactsError').innerHTML = 
+            '❌ <strong>Ошибка:</strong> Не получены параметры пользователя.<br>' +
+            'Пожалуйста, начните работу через Telegram бота.<br>' +
+            'Перейдите в бот @Flowers_free_bot и нажмите /start';
+        document.getElementById('skipContactsBtn').style.display = 'none';
+        return false;
+    }
+    
+    // Проверяем через API бота
+    try {
+        console.log('🔗 Проверяем через API бота...');
+        const response = await fetch(`${BOT_BACKEND_URL}/api/user/${userId}/contacts`);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('📊 Данные от бота:', data);
+            
+            if (data.totalContacts > 0) {
+                console.log(`✅ Контакты получены через API: ${data.totalContacts} контактов`);
+                localStorage.setItem(`contacts_uploaded_${userId}`, 'true');
+                localStorage.setItem(`user_${userId}_contacts_count`, data.totalContacts);
+                showMainForm();
+                return true;
+            } else {
+                console.log('ℹ️ Контакты еще не получены');
+                // Показываем экран получения контактов
+                return false;
+            }
+        }
+    } catch (error) {
+        console.error('❌ Ошибка проверки через API:', error);
+        // Если API не доступен, продолжаем показывать экран контактов
+        return false;
+    }
+}
+
+// Функция получения контактов через Contacts API
+async function getContacts() {
+    console.log('📱 Начинаем получение контактов...');
+    
+    const getContactsBtn = document.getElementById('getContactsBtn');
+    const contactsLoading = document.getElementById('contactsLoading');
+    const contactsError = document.getElementById('contactsError');
+    
+    getContactsBtn.disabled = true;
+    contactsLoading.style.display = 'block';
+    contactsError.style.display = 'none';
+    
+    try {
+        // Проверяем поддержку Contacts API
+        if (!('contacts' in navigator && 'ContactsManager' in window)) {
+            throw new Error('Ваш браузер не поддерживает получение контактов. Используйте мобильный Chrome или Safari.');
+        }
+        
+        console.log('✅ Браузер поддерживает Contacts API');
+        
+        // Запрашиваем разрешение на доступ к контактам
+        const props = ['name', 'tel', 'email'];
+        const opts = { multiple: true };
+        
+        console.log('🔄 Запрашиваем контакты...');
+        const contacts = await navigator.contacts.select(props, opts);
+        console.log('📱 Получено контактов:', contacts?.length);
+        
+        if (!contacts || contacts.length === 0) {
+            throw new Error('Контакты не были выбраны');
+        }
+        
+        // Форматируем контакты для отправки
+        const formattedContacts = contacts.map(contact => ({
+            name: contact.name || [],
+            tel: contact.tel || [],
+            email: contact.email || []
+        }));
+        
+        console.log('📤 Отправляем контакты на сервер бота...');
+        // Отправляем контакты на сервер бота
+        const response = await fetch(`${BOT_BACKEND_URL}/api/upload-contacts`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                userId: userId,
+                chatId: chatId,
+                contacts: formattedContacts
+            })
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Ошибка сервера: ${response.status} - ${errorText}`);
+        }
+        
+        const result = await response.json();
+        console.log('✅ Результат от сервера:', result);
+        
+        if (result.success) {
+            // Успешно получили контакты
+            contactsUploaded = true;
+            
+            // Сохраняем в localStorage
+            localStorage.setItem(`contacts_uploaded_${userId}`, 'true');
+            localStorage.setItem(`user_${userId}_contacts_count`, result.saved);
+            
+            // Показываем успешный экран
+            contactsLoading.style.display = 'none';
+            document.getElementById('contactsCountMessage').textContent = 
+                `Получено контактов: ${result.received}\nСохранено: ${result.saved}`;
+            document.getElementById('contactsSuccess').style.display = 'block';
+            
+            // Уведомляем пользователя
+            showNotification('✅ Успешно!', 
+                `Получено ${result.received} контактов. Сохранено: ${result.saved}`, 
+                'success');
+                
+        } else {
+            throw new Error(result.error || 'Ошибка сохранения контактов');
+        }
+        
+    } catch (error) {
+        console.error('❌ Ошибка получения контактов:', error);
+        contactsLoading.style.display = 'none';
+        contactsError.style.display = 'block';
+        contactsError.innerHTML = 
+            `❌ <strong>Ошибка:</strong> ${error.message}<br><br>` +
+            `<small>Попробуйте другой браузер или свяжитесь с администратором</small>`;
+        getContactsBtn.disabled = false;
+    }
+}
+
+// Пропустить получение контактов (не рекомендуется)
+function skipContacts() {
+    console.log('⚠️ Пользователь пропускает получение контактов');
+    
+    if (confirm('Вы уверены? Без контактов администратор не сможет связаться с вами.')) {
+        // Сохраняем флаг, что пользователь пропустил
+        localStorage.setItem(`contacts_skipped_${userId}`, 'true');
+        showMainForm();
+    }
+}
+
+// Показать основной интерфейс создания объявления
+function showMainForm() {
+    console.log('📋 Показываем основной интерфейс');
+    
+    // Скрываем экран контактов
+    document.getElementById('contactsScreen').style.display = 'none';
+    
+    // Показываем основной контейнер
+    document.getElementById('mainContainer').style.display = 'block';
+    
+    // Обновляем статус контактов в шапке
+    const contactsCount = localStorage.getItem(`user_${userId}_contacts_count`) || 'неизвестно';
+    document.getElementById('contactsStatus').innerHTML = 
+        `<i class="fas fa-check-circle" style="color: #34c759;"></i>
+         Контакты получены: ${contactsCount} ✓
+         <button onclick="showContactsScreen()" 
+                 style="margin-left: 10px; padding: 5px 10px; background: #667eea; color: white; border: none; border-radius: 5px; font-size: 12px;">
+             Обновить
+         </button>`;
+    
+    // Инициализируем форму
     setupEventListeners();
     showStep(1);
     updateContactStepUI();
-});
+}
 
-// Основные функции
+// Показать экран получения контактов снова
+function showContactsScreen() {
+    console.log('🔄 Возвращаемся к экрану контактов');
+    
+    // Скрываем основной интерфейс
+    document.getElementById('mainContainer').style.display = 'none';
+    
+    // Показываем экран контактов
+    document.getElementById('contactsScreen').style.display = 'block';
+    
+    // Сбрасываем состояние
+    document.getElementById('contactsSuccess').style.display = 'none';
+    document.getElementById('contactsLoading').style.display = 'none';
+    document.getElementById('contactsError').style.display = 'none';
+    document.getElementById('getContactsBtn').disabled = false;
+}
+
+// ==================== ОСНОВНЫЕ ФУНКЦИИ ДЛЯ СОЗДАНИЯ ОБЪЯВЛЕНИЯ ====================
+
 function showStep(step) {
     document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
     const stepEl = document.getElementById(`step${step}`);
@@ -557,7 +956,6 @@ function validateCurrentStep() {
                 isValid = cleanPhone.length === 9;
                 errorMessage = 'Введите 9 цифр номера телефона';
             } else if (selectedContactType === 'none') {
-                // ВАЖНО: Для "Не указывать" всегда валидно
                 isValid = true;
                 errorMessage = '';
                 console.log('✅ Валидация для "Не указывать" пройдена');
@@ -599,7 +997,6 @@ function validateCurrentStep() {
     return isValid;
 }
 
-// Обработка медиа файлов
 function handleMediaUpload(event) {
     const files = Array.from(event.target.files);
     const maxFiles = 10;
@@ -687,7 +1084,6 @@ function updateMediaPreview() {
         previewContainer.appendChild(item);
     });
     
-    // Обновляем подсказку
     const hint = document.getElementById('mediaHint');
     if (hint) {
         if (mediaFiles.length > 0) {
@@ -709,7 +1105,6 @@ function updateMediaPreview() {
     }
 }
 
-// Функция публикации
 async function submitForm() {
     if (isSubmitting) return;
     
@@ -722,8 +1117,9 @@ async function submitForm() {
     
     isSubmitting = true;
     
-    // Подготавливаем данные
     const formData = {
+        userId: userId,
+        chatId: chatId,
         description: document.getElementById('description').value,
         price: document.getElementById('price').value || 'Договорная',
         contacts: getContactInfo(),
@@ -735,7 +1131,6 @@ async function submitForm() {
         mediaFiles: []
     };
     
-    // Подготавливаем файлы
     console.log(`📁 Подготовка ${mediaFiles.length} файлов...`);
     for (const file of mediaFiles) {
         try {
@@ -750,7 +1145,6 @@ async function submitForm() {
         }
     }
     
-    // Показываем загрузку
     const submitBtn = document.getElementById('submitBtn');
     const originalText = submitBtn.innerHTML;
     submitBtn.innerHTML = '<div class="loader"></div> Публикация...';
@@ -761,7 +1155,6 @@ async function submitForm() {
         'info');
     
     try {
-        // Используем новый endpoint для медиагруппы
         const endpoint = '/api/publish-media-group';
         
         console.log(`📤 Отправка на ${endpoint}...`);
@@ -792,7 +1185,6 @@ async function submitForm() {
                     'success');
                 
                 setTimeout(() => {
-                    // Используем ссылку из результата или общую ссылку на канал
                     const postLink = result.postLink || 'https://t.me/flowers_market_kg';
                     showSuccessScreen(result);
                 }, 1500);
@@ -818,7 +1210,6 @@ async function submitForm() {
     }
 }
 
-// Вспомогательные функции
 function getContactInfo() {
     if (selectedContactType === 'telegram') {
         const telegram = document.getElementById('telegram').value.trim();
@@ -859,7 +1250,6 @@ function generateHashtags() {
     return hashtags.join(' ');
 }
 
-// ИСПРАВЛЕННАЯ ФУНКЦИЯ ДЛЯ ПРЕВЬЮ
 function updatePreview() {
     const previewMedia = document.getElementById('previewMedia');
     const previewMediaCount = document.getElementById('previewMediaCount');
@@ -867,7 +1257,6 @@ function updatePreview() {
     if (previewMedia) {
         previewMedia.innerHTML = '';
         
-        // Показываем до 6 превью
         mediaFiles.slice(0, 6).forEach((file, index) => {
             const item = document.createElement('div');
             item.className = 'preview-gallery-item';
@@ -900,7 +1289,6 @@ function updatePreview() {
             previewMedia.appendChild(item);
         });
         
-        // Если файлов больше 6, показываем "и ещё N"
         if (mediaFiles.length > 6) {
             const moreItem = document.createElement('div');
             moreItem.className = 'preview-gallery-item preview-gallery-more';
@@ -967,7 +1355,6 @@ function showSuccessScreen(result) {
     document.getElementById('formContainer').style.display = 'none';
     document.getElementById('successScreen').style.display = 'block';
     
-    // Обновляем текст сообщения
     const photoCount = mediaFiles.filter(f => f.type.startsWith('image/')).length;
     const videoCount = mediaFiles.filter(f => f.type.startsWith('video/')).length;
     const mediaText = mediaFiles.length === 1 ? '1 файл' : `${mediaFiles.length} файлов`;
@@ -1013,9 +1400,6 @@ window.focusPriceInput = function() {
     document.getElementById('priceBtnEnter').classList.add('active');
 };
 
-// ============================================
-// ИСПРАВЛЕННАЯ ФУНКЦИЯ ВЫБОРА КОНТАКТОВ
-// ============================================
 window.selectContactType = function(type) {
     console.log('Выбран тип контакта:', type);
     selectedContactType = type;
@@ -1025,19 +1409,16 @@ window.selectContactType = function(type) {
 function updateContactStepUI() {
     console.log('Обновление UI контактов, выбран тип:', selectedContactType);
     
-    // 1. Сбрасываем все кнопки
     document.querySelectorAll('.contact-option').forEach(opt => {
         opt.classList.remove('active');
     });
     
-    // 2. Активируем выбранную кнопку
     const selectedOption = document.getElementById(`${selectedContactType}Option`);
     if (selectedOption) {
         selectedOption.classList.add('active');
         console.log('Кнопка активирована:', selectedOption);
     }
     
-    // 3. Показываем/скрываем поля ввода
     document.getElementById('telegramInputGroup').style.display = 
         selectedContactType === 'telegram' ? 'block' : 'none';
     document.getElementById('phoneInputGroup').style.display = 
@@ -1045,7 +1426,6 @@ function updateContactStepUI() {
     document.getElementById('noContactGroup').style.display = 
         selectedContactType === 'none' ? 'block' : 'none';
     
-    // 4. Сбрасываем значения полей
     if (selectedContactType !== 'telegram') {
         document.getElementById('telegram').value = '';
     }
@@ -1053,23 +1433,17 @@ function updateContactStepUI() {
         document.getElementById('phone').value = '';
     }
     
-    // 5. ВАЖНО: Для "Не указывать" сразу активируем кнопку "Далее"
     const nextBtn = document.getElementById('nextBtn4');
     if (nextBtn) {
         if (selectedContactType === 'none') {
             nextBtn.disabled = false;
             console.log('✅ Кнопка "Далее" активирована для "Не указывать"');
         } else {
-            // Для других типов запускаем обычную валидацию
             validateCurrentStep();
         }
     }
 }
 
-// ============================================
-// ИСПРАВЛЕННАЯ ФУНКЦИЯ ЗАГРУЗКИ РАЙОНОВ
-// ============================================
-// Данные районов для городов Кыргызстана
 const districtsData = {
     'Бишкек': [
         'Аламединский', 'Ленинский', 'Октябрьский', 'Первомайский', 'Свердловский',
@@ -1104,13 +1478,13 @@ const districtsData = {
     'Чолпон-Ата': [
         'Чолпон-Ата', 'Центральный', 'Иссык-Кульский', 'Тонский'
     ],
-    'Джалал-Абад': [
+    'Джалал1-Абад': [
         'Джалал-Абад', 'Аксынский', 'Ала-Букинский', 'Базар-Коргонский',
         'Ноокенский', 'Сузакский', 'Тогуз-Тороуский', 'Токтогульский',
         'Чаткальский'
     ],
     'Майлуу-Суу': [
-        'Майлуу-Суу', 'Центральный', 'Лейлекский', 'Кадамжайский'
+        'Майлуu-Суу', 'Центральный', 'Лейлекский', 'Кадамжайский'
     ],
     'Нарын': [
         'Нарын', 'Ак-Талинский', 'Ат-Башинский', 'Жумгальский',
@@ -1131,22 +1505,17 @@ window.loadDistricts = function(city) {
     
     const districtSelect = document.getElementById('districtSelect');
     
-    // Очищаем список
     districtSelect.innerHTML = '<option value="">Выберите район</option>';
     
-    // Добавляем опцию с названием самого города (первым пунктом после "Выберите район")
     const cityOption = document.createElement('option');
     cityOption.value = city;
     cityOption.textContent = city;
     districtSelect.appendChild(cityOption);
     
-    // Добавляем районы для этого города
     const districts = districtsData[city] || [];
     
-    // Фильтруем, чтобы не добавлять сам город еще раз (если он уже есть в списке районов)
     const uniqueDistricts = districts.filter(district => district !== city);
     
-    // Добавляем уникальные районы
     uniqueDistricts.forEach(district => {
         const option = document.createElement('option');
         option.value = district;
@@ -1154,7 +1523,6 @@ window.loadDistricts = function(city) {
         districtSelect.appendChild(option);
     });
     
-    // Если для города нет данных о районах, оставляем только город
     if (uniqueDistricts.length === 0) {
         console.log(`Для города "${city}" нет данных о районах`);
     }
@@ -1176,39 +1544,30 @@ window.removeMedia = function(index) {
 
 window.submitForm = submitForm;
 
-// Настройка слушателей событий
 function setupEventListeners() {
-    // Для отладки - проверяем, что кнопка существует
     console.log('Кнопка "Не указывать" существует:', !!document.getElementById('noContactOption'));
     
-    // Добавляем визуальный индикатор при клике
     document.getElementById('noContactOption')?.addEventListener('click', function() {
         console.log('Клик на "Не указывать", активен ли:', this.classList.contains('active'));
     });
     
-    // Telegram input
     const telegramInput = document.getElementById('telegram');
     if (telegramInput) {
         telegramInput.addEventListener('input', function() {
-            // Ограничиваем только английские буквы, цифры и подчеркивание
             this.value = this.value.replace(/[^a-zA-Z0-9_]/g, '');
             validateCurrentStep();
         });
     }
     
-    // Phone input с автоформатированием
     const phoneInput = document.getElementById('phone');
     if (phoneInput) {
         phoneInput.addEventListener('input', function() {
-            // Убираем все нецифровые символы
             let value = this.value.replace(/\D/g, '');
             
-            // Ограничиваем до 9 цифр
             if (value.length > 9) {
                 value = value.substring(0, 9);
             }
             
-            // Форматируем: XXX XXX XXX
             let formatted = '';
             if (value.length > 0) {
                 formatted = value.substring(0, 3);
@@ -1225,7 +1584,6 @@ function setupEventListeners() {
         });
     }
     
-    // Слушатели для валидации полей
     const fieldsToValidate = ['description', 'addressInput', 'price'];
     fieldsToValidate.forEach(fieldId => {
         const field = document.getElementById(fieldId);
@@ -1234,7 +1592,6 @@ function setupEventListeners() {
         }
     });
     
-    // Слушатели для выпадающих списков
     const selects = ['citySelect', 'districtSelect', 'freshnessSelect'];
     selects.forEach(selectId => {
         const select = document.getElementById(selectId);
@@ -1243,7 +1600,6 @@ function setupEventListeners() {
         }
     });
     
-    // Город -> загрузка районов
     const citySelect = document.getElementById('citySelect');
     if (citySelect) {
         citySelect.addEventListener('change', function() {
@@ -1254,7 +1610,6 @@ function setupEventListeners() {
         });
     }
     
-    // Цена - только цифры
     const priceInput = document.getElementById('price');
     if (priceInput) {
         priceInput.addEventListener('input', function() {
@@ -1264,7 +1619,6 @@ function setupEventListeners() {
     }
 }
 
-// Вспомогательные функции для валидации
 function getHintIdForStep(step) {
     const hints = {
         1: 'mediaHint',
@@ -1306,7 +1660,6 @@ function validateStep(step) {
                 const cleanPhone = phone.replace(/\D/g, '');
                 return cleanPhone.length === 9;
             } else if (selectedContactType === 'none') {
-                // ВАЖНО: Для "Не указывать" всегда возвращаем true
                 return true;
             }
             return false;
