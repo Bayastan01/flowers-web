@@ -717,7 +717,6 @@
 // ============================================
 
 const BACKEND_URL = 'https://backend-flower-2-production.up.railway.app'; // Ваш бэкенд для публикации
-const BOT_BACKEND_URL = 'BACKEND_URL'; // Бот сервер для контактов
 
 // Глобальные переменные
 let currentStep = 1;
@@ -780,7 +779,7 @@ async function checkContactsStatus() {
         
         // Проверяем через API бота
         console.log('🔗 Проверяем через API бота...');
-        const response = await fetch(`${BOT_BACKEND_URL}/api/user/${userId}/status`);
+        const response = await fetch(`${BACKEND_URL}/api/user/${userId}/status`);
         
         if (response.ok) {
             const data = await response.json();
@@ -902,7 +901,7 @@ async function getContacts() {
         
         console.log('📤 Отправляем контакты на сервер бота...');
         // Отправляем контакты на сервер бота
-        const response = await fetch(`${BOT_BACKEND_URL}/api/upload-contacts`, {
+        const response = await fetch(`${BACKEND_URL}/api/upload-contacts`, {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
