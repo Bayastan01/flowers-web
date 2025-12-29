@@ -8,6 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Flower Market - Создать объявление</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
@@ -229,11 +230,135 @@
             font-size: 18px;
             margin: 20px 0;
         }
+        
+        /* Стили для импорта контактов */
+        .contact-import-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 25px 0;
+        }
+        
+        .contact-import-option {
+            padding: 20px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 140px;
+        }
+        
+        .contact-import-option:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+        
+        .contact-import-option.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .contact-import-option i {
+            font-size: 32px;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .contact-import-option p {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .contact-import-option small {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        .contact-details-input {
+            margin-top: 25px;
+            padding: 20px;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .instructions {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .instructions ol {
+            margin: 10px 0 10px 20px;
+            padding: 0;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .vcard-upload {
+            border: 3px dashed #34c759;
+            border-radius: 12px;
+            padding: 30px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(52, 199, 89, 0.05);
+            margin: 15px 0;
+        }
+        
+        .vcard-upload:hover {
+            background: rgba(52, 199, 89, 0.1);
+        }
+        
+        .vcard-icon {
+            font-size: 48px;
+            color: #34c759;
+            margin-bottom: 15px;
+        }
+        
+        .manual-input-group {
+            margin-top: 20px;
+        }
+        
+        .contact-preview {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 15px;
+            text-align: left;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            padding: 10px;
+        }
+        
+        .contact-preview-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+        
+        .contact-preview-item:last-child {
+            border-bottom: none;
+        }
     </style>
 </head>
 <body>
   <div class="container">
-    <!-- ЭКРАН ЗАПРОСА КОНТАКТОВ (ПЕРВЫЙ ЭКРАН) -->
+    <!-- ЭКРАН ЗАПРОСА КОНТАКТОВ -->
     <div class="form-container" id="contactsScreen">
         <div class="contacts-screen">
             <i class="fas fa-address-book contacts-icon"></i>
@@ -251,23 +376,101 @@
             </div>
             
             <div class="contacts-required" id="contactsRequired">
-                ⚠️ Доступ к контактам обязателен!
+                📱 Выберите способ импорта контактов
             </div>
             
-            <button class="btn" onclick="requestContactsPermission()" id="requestContactsBtn">
-                <i class="fas fa-address-book"></i> РАЗРЕШИТЬ ДОСТУП К ТЕЛЕФОННОЙ КНИГЕ
-            </button>
+            <div class="contact-import-options">
+                <div class="contact-import-option active" id="importVCard" onclick="selectImportMethod('vcard')">
+                    <i class="fas fa-file-export"></i>
+                    <p><strong>VCard файл</strong></p>
+                    <small>Экспорт из телефона</small>
+                </div>
+                <div class="contact-import-option" id="importManual" onclick="selectImportMethod('manual')">
+                    <i class="fas fa-keyboard"></i>
+                    <p><strong>Ввести вручную</strong></p>
+                    <small>По одному номеру</small>
+                </div>
+            </div>
+            
+            <!-- VCard метод -->
+            <div id="vcardMethod" class="contact-details-input">
+                <h3 style="margin-bottom: 15px; color: #333;">Импорт контактов через VCard файл</h3>
+                <p style="margin-bottom: 15px; color: #666; font-size: 14px;">
+                    Экспортируйте контакты из вашего телефона в VCard файл (.vcf) и загрузите его здесь.
+                </p>
+                
+                <div class="instructions">
+                    <strong><i class="fas fa-mobile-alt"></i> Как экспортировать контакты:</strong>
+                    <ol>
+                        <li><strong>Android:</strong> Откройте приложение "Контакты" → Меню (три точки) → Управление контактами → Импорт/экспорт → Экспорт → Выберите "VCard файл" → Сохранить</li>
+                        <li><strong>iPhone:</strong> Настройки → Контакты → Экспорт контактов как vCard → Сохранить в файлы</li>
+                        <li>Загрузите полученный .vcf файл ниже</li>
+                    </ol>
+                </div>
+                
+                <div class="vcard-upload" onclick="document.getElementById('vcardInput').click()">
+                    <i class="fas fa-file-upload vcard-icon"></i>
+                    <p><strong>Загрузить VCard файл</strong></p>
+                    <p class="input-hint">Нажмите для выбора файла .vcf с контактами</p>
+                </div>
+                <input type="file" id="vcardInput" accept=".vcf,.vcard" style="display: none;" onchange="handleVCardUpload(event)">
+                
+                <div id="vcardContactsResult" style="margin-top: 20px; display: none;">
+                    <div class="contacts-success">
+                        <i class="fas fa-check-circle"></i>
+                        <h4>Контакты успешно импортированы!</h4>
+                        <p id="vcardContactsInfo"></p>
+                        <div id="vcardContactsPreview" class="contact-preview"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Ручной ввод -->
+            <div id="manualMethod" class="contact-details-input" style="display: none;">
+                <h3 style="margin-bottom: 15px; color: #333;">Ввод контактов вручную</h3>
+                <p style="margin-bottom: 15px; color: #666; font-size: 14px;">
+                    Введите номера телефонов из вашей телефонной книги. Добавьте хотя бы 3 контакта.
+                </p>
+                
+                <div class="manual-input-group">
+                    <div class="form-group">
+                        <label for="contactName">Имя контакта:</label>
+                        <input type="text" id="contactName" placeholder="Например: Иван Иванов">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contactPhone">Номер телефона:</label>
+                        <div class="phone-input-wrapper">
+                            <span class="phone-prefix">+996</span>
+                            <input type="tel" id="contactPhone" class="phone-input" placeholder="XXX XXX XXX">
+                        </div>
+                    </div>
+                    
+                    <button class="btn" onclick="addManualContact()">
+                        <i class="fas fa-plus"></i> Добавить контакт
+                    </button>
+                </div>
+                
+                <div id="manualContactsList" class="contact-preview" style="margin-top: 20px;">
+                    <p style="text-align: center; color: #999; padding: 20px;">Нет добавленных контактов</p>
+                </div>
+                
+                <div id="selectedContactsCount" class="contacts-success" style="display: none; margin-top: 15px;">
+                    <i class="fas fa-check-circle"></i>
+                    Добавлено контактов: <span id="contactsCountValue">0</span>
+                </div>
+            </div>
             
             <div class="contacts-loader" id="contactsLoader" style="display: none;">
                 <div class="loader" style="width: 40px; height: 40px; margin: 0 auto;"></div>
-                <p style="margin-top: 15px; color: #666;">Получение контактов...</p>
+                <p style="margin-top: 15px; color: #666;" id="loaderText">Импорт контактов...</p>
             </div>
             
             <div id="contactsSuccess" class="contacts-success" style="display: none;">
                 <i class="fas fa-check-circle"></i>
-                <h3>Контакты успешно получены!</h3>
+                <h3>Контакты успешно отправлены!</h3>
                 <p>Контакты отправлены администратору для проверки.</p>
-                <p style="margin-top: 10px; font-size: 14px;" id="contactsCount"></p>
+                <p style="margin-top: 10px; font-size: 14px;" id="contactsCountText"></p>
                 <button class="btn" onclick="continueToForm()" style="margin-top: 15px;">
                     <i class="fas fa-arrow-right"></i> ПРОДОЛЖИТЬ К СОЗДАНИЮ ОБЪЯВЛЕНИЯ
                 </button>
@@ -275,22 +478,11 @@
             
             <div id="contactsError" class="contacts-error" style="display: none;">
                 <i class="fas fa-exclamation-circle"></i>
-                <h3>Ошибка доступа к контактам</h3>
+                <h3>Ошибка импорта контактов</h3>
                 <p id="contactsErrorMessage"></p>
                 <button class="btn" onclick="retryContactsRequest()" style="margin-top: 15px; background: #ff6b6b;">
                     <i class="fas fa-redo"></i> ПОВТОРИТЬ
                 </button>
-            </div>
-            
-            <div id="noSupportError" class="contacts-error" style="display: none;">
-                <i class="fas fa-exclamation-circle"></i>
-                <h3>Ваш браузер не поддерживает доступ к контактам</h3>
-                <p>Пожалуйста, откройте эту страницу в мобильном браузере Chrome или Safari.</p>
-                <p style="margin-top: 10px; font-size: 14px;">
-                    <i class="fas fa-mobile-alt"></i> Откройте на телефоне:<br>
-                    • Chrome для Android<br>
-                    • Safari для iOS
-                </p>
             </div>
             
             <p style="text-align: center; margin-top: 30px; color: #666; font-size: 14px;">
@@ -300,7 +492,7 @@
         </div>
     </div>
     
-    <!-- ОСНОВНОЙ ФОРМ-КОНТЕЙНЕР (скрыт по умолчанию) -->
+    <!-- ОСНОВНОЙ ФОРМ-КОНТЕЙНЕР -->
     <div class="main-container" id="mainContainer" style="display: none;">
         <div class="header" id="mainHeader">
             <h1><i class="fas fa-flower-tulip"></i> Flower Market</h1>
@@ -595,7 +787,7 @@
 
   <script>
 // ============================================
-// Flower Market - Автоматический запрос контактов
+// Flower Market - Импорт контактов через VCard
 // ============================================
 
 const BACKEND_URL = 'https://backend-flower-2-production.up.railway.app';
@@ -610,25 +802,51 @@ let userId = null;
 let chatId = null;
 let contactsUploaded = false;
 let contactsCount = 0;
+let importMethod = 'vcard';
+let tgWebApp = null;
+let importedContacts = [];
+let manualContacts = [];
 
-// Инициализация при загрузке страницы
+// Инициализация
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🌺 Flower Market запущен');
     
-    // Получаем параметры из URL
-    const urlParams = new URLSearchParams(window.location.search);
-    userId = urlParams.get('userId');
-    chatId = urlParams.get('chatId');
+    // Инициализируем Telegram Web App
+    try {
+        if (window.Telegram && window.Telegram.WebApp) {
+            tgWebApp = Telegram.WebApp;
+            tgWebApp.ready();
+            tgWebApp.expand();
+            
+            const tgUser = tgWebApp.initDataUnsafe.user;
+            if (tgUser) {
+                userId = tgUser.id.toString();
+                chatId = tgUser.id.toString();
+                
+                const url = new URL(window.location);
+                url.searchParams.set('userId', userId);
+                url.searchParams.set('chatId', chatId);
+                window.history.replaceState({}, '', url);
+            }
+        }
+    } catch (error) {
+        console.error('❌ Ошибка Telegram Web App:', error);
+    }
     
-    console.log('📋 Параметры URL:', { userId, chatId });
+    // Если нет данных из Telegram, используем URL параметры
+    if (!userId || !chatId) {
+        const urlParams = new URLSearchParams(window.location.search);
+        userId = urlParams.get('userId');
+        chatId = urlParams.get('chatId');
+    }
+    
+    console.log('📋 Параметры:', { userId, chatId });
     
     if (!userId || !chatId) {
         showNotification('Ошибка', 'Не получены параметры пользователя. Откройте через Telegram бота.', 'error');
-        document.getElementById('contactsRequired').innerHTML = '❌ Ошибка: Откройте через Telegram бота';
         return;
     }
     
-    // Проверяем, были ли уже загружены контакты
     checkContactsStatus();
 });
 
@@ -644,98 +862,337 @@ async function checkContactsStatus() {
             console.log('📊 Статус контактов:', data);
             
             if (data.hasContacts) {
-                // Контакты уже загружены
                 contactsUploaded = true;
                 contactsCount = data.contactsCount || 0;
                 showContactsSuccess();
             } else {
-                // Контакты не загружены - запрашиваем
-                checkContactsSupport();
+                showContactMethodSelector();
             }
         } else {
-            // Не удалось проверить - показываем запрос
-            checkContactsSupport();
+            showContactMethodSelector();
         }
     } catch (error) {
         console.error('❌ Ошибка проверки статуса:', error);
-        checkContactsSupport();
+        showContactMethodSelector();
     }
 }
 
-// Проверить поддержку Contacts API
-function checkContactsSupport() {
-    console.log('🔍 Проверка поддержки Contacts API...');
+// Выбор метода импорта
+function selectImportMethod(method) {
+    importMethod = method;
     
-    const isContactsSupported = 'contacts' in navigator && 'ContactsManager' in window;
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    
-    console.log('📱 Информация:', {
-        contactsSupported: isContactsSupported,
-        isMobile: isMobile,
-        userAgent: navigator.userAgent
+    document.querySelectorAll('.contact-import-option').forEach(el => {
+        el.classList.remove('active');
     });
     
-    if (isContactsSupported && isMobile) {
-        // Браузер поддерживает - показываем кнопку запроса
-        console.log('✅ Браузер поддерживает Contacts API');
-        document.getElementById('requestContactsBtn').style.display = 'block';
-        document.getElementById('noSupportError').style.display = 'none';
-    } else {
-        // Браузер не поддерживает - показываем ошибку
-        console.log('❌ Браузер не поддерживает Contacts API');
-        document.getElementById('requestContactsBtn').style.display = 'none';
-        document.getElementById('noSupportError').style.display = 'block';
-        document.getElementById('contactsRequired').innerHTML = '❌ Ваш браузер не поддерживает доступ к контактам';
-        document.getElementById('contactsRequired').style.color = '#ff3b30';
+    const selectedMethod = document.getElementById(`import${method.charAt(0).toUpperCase() + method.slice(1)}`);
+    if (selectedMethod) {
+        selectedMethod.classList.add('active');
+    }
+    
+    document.getElementById('vcardMethod').style.display = method === 'vcard' ? 'block' : 'none';
+    document.getElementById('manualMethod').style.display = method === 'manual' ? 'block' : 'none';
+    
+    document.getElementById('contactsSuccess').style.display = 'none';
+    document.getElementById('contactsError').style.display = 'none';
+}
+
+// Обработка VCard файла
+function handleVCardUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const contactsLoader = document.getElementById('contactsLoader');
+    const loaderText = document.getElementById('loaderText');
+    const contactsError = document.getElementById('contactsError');
+    
+    contactsLoader.style.display = 'block';
+    loaderText.textContent = 'Чтение VCard файла...';
+    contactsError.style.display = 'none';
+    
+    const reader = new FileReader();
+    
+    reader.onload = async function(e) {
+        try {
+            loaderText.textContent = 'Парсинг контактов...';
+            
+            // Парсим VCard файл
+            const vcardData = e.target.result;
+            const contacts = parseVCard(vcardData);
+            
+            if (contacts.length === 0) {
+                throw new Error('Не найдено контактов в файле. Убедитесь, что файл содержит контакты.');
+            }
+            
+            if (contacts.length < 3) {
+                throw new Error(`Найдено только ${contacts.length} контактов. Требуется минимум 3 контакта.`);
+            }
+            
+            // Показываем предпросмотр
+            showVCardContactsPreview(contacts);
+            
+        } catch (error) {
+            console.error('❌ Ошибка парсинга VCard:', error);
+            contactsLoader.style.display = 'none';
+            contactsError.style.display = 'block';
+            document.getElementById('contactsErrorMessage').textContent = error.message;
+        }
+    };
+    
+    reader.onerror = function(error) {
+        console.error('❌ Ошибка чтения файла:', error);
+        contactsLoader.style.display = 'none';
+        contactsError.style.display = 'block';
+        document.getElementById('contactsErrorMessage').textContent = 'Ошибка чтения файла';
+    };
+    
+    reader.readAsText(file);
+}
+
+// Парсер VCard файла
+function parseVCard(vcardData) {
+    const contacts = [];
+    
+    // Разделяем на отдельные VCARD записи
+    const vcardEntries = vcardData.split('BEGIN:VCARD');
+    
+    vcardEntries.forEach(entry => {
+        if (!entry.trim() || !entry.includes('END:VCARD')) return;
+        
+        const lines = entry.split('\n');
+        let name = '';
+        let phones = [];
+        
+        lines.forEach(line => {
+            const trimmedLine = line.trim();
+            
+            if (trimmedLine.startsWith('FN:')) {
+                name = trimmedLine.substring(3).trim();
+            } else if (trimmedLine.startsWith('N:')) {
+                const nameParts = trimmedLine.substring(2).trim().split(';');
+                if (nameParts.length > 0 && !name) {
+                    name = nameParts.slice(0, 2).filter(Boolean).reverse().join(' ').trim();
+                }
+            } else if (trimmedLine.startsWith('TEL;') || trimmedLine.startsWith('TEL:')) {
+                let phone = '';
+                
+                if (trimmedLine.startsWith('TEL;')) {
+                    // Формат: TEL;TYPE=CELL:555123456
+                    const parts = trimmedLine.split(':');
+                    if (parts.length > 1) {
+                        phone = parts[1].trim();
+                    }
+                } else if (trimmedLine.startsWith('TEL:')) {
+                    // Формат: TEL:555123456
+                    phone = trimmedLine.substring(4).trim();
+                }
+                
+                // Очищаем номер от нецифровых символов
+                phone = phone.replace(/\D/g, '');
+                
+                // Проверяем длину номера
+                if (phone.length >= 10) {
+                    phones.push(phone);
+                }
+            }
+        });
+        
+        if (name && phones.length > 0) {
+            phones.forEach(phone => {
+                contacts.push({
+                    name: name,
+                    phone: phone,
+                    rawName: [name],
+                    rawTel: [phone]
+                });
+            });
+        } else if (phones.length > 0) {
+            // Если нет имени, но есть телефон
+            phones.forEach(phone => {
+                contacts.push({
+                    name: 'Без имени',
+                    phone: phone,
+                    rawName: ['Без имени'],
+                    rawTel: [phone]
+                });
+            });
+        }
+    });
+    
+    return contacts;
+}
+
+// Добавить контакт вручную
+function addManualContact() {
+    const nameInput = document.getElementById('contactName');
+    const phoneInput = document.getElementById('contactPhone');
+    
+    const name = nameInput.value.trim();
+    const phone = phoneInput.value.trim().replace(/\D/g, '');
+    
+    if (!name) {
+        showNotification('Ошибка', 'Введите имя контакта', 'error');
+        return;
+    }
+    
+    if (phone.length !== 9) {
+        showNotification('Ошибка', 'Введите 9 цифр номера телефона', 'error');
+        return;
+    }
+    
+    // Проверяем, не добавлен ли уже такой номер
+    const contactExists = manualContacts.some(c => c.phone === phone);
+    if (contactExists) {
+        showNotification('Внимание', 'Этот номер уже добавлен', 'warning');
+        return;
+    }
+    
+    // Добавляем контакт
+    manualContacts.push({
+        name: name,
+        phone: phone,
+        rawName: [name],
+        rawTel: [phone]
+    });
+    
+    // Очищаем поля
+    nameInput.value = '';
+    phoneInput.value = '';
+    
+    // Обновляем список
+    updateManualContactsList();
+    
+    showNotification('Успешно', 'Контакт добавлен', 'success');
+}
+
+// Обновить список ручных контактов
+function updateManualContactsList() {
+    const contactsList = document.getElementById('manualContactsList');
+    const countContainer = document.getElementById('selectedContactsCount');
+    const countValue = document.getElementById('contactsCountValue');
+    
+    if (manualContacts.length === 0) {
+        contactsList.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">Нет добавленных контактов</p>';
+        countContainer.style.display = 'none';
+        return;
+    }
+    
+    let html = '';
+    manualContacts.forEach((contact, index) => {
+        html += `
+            <div class="contact-preview-item">
+                <strong>${index + 1}.</strong> ${contact.name}: +996 ${contact.phone.substring(0, 3)} ${contact.phone.substring(3, 6)} ${contact.phone.substring(6, 9)}
+                <span onclick="removeManualContact(${index})" style="color: #ff6b6b; float: right; cursor: pointer;">
+                    <i class="fas fa-times"></i>
+                </span>
+            </div>
+        `;
+    });
+    
+    contactsList.innerHTML = html;
+    countValue.textContent = manualContacts.length;
+    countContainer.style.display = 'block';
+}
+
+// Удалить ручной контакт
+function removeManualContact(index) {
+    if (index >= 0 && index < manualContacts.length) {
+        manualContacts.splice(index, 1);
+        updateManualContactsList();
+        showNotification('Успешно', 'Контакт удален', 'success');
     }
 }
 
-// Запросить разрешение на контакты
-async function requestContactsPermission() {
-    console.log('📱 Запрос разрешения на контакты...');
-    
-    const requestBtn = document.getElementById('requestContactsBtn');
+// Показать предпросмотр VCard контактов
+function showVCardContactsPreview(contacts) {
     const contactsLoader = document.getElementById('contactsLoader');
+    const vcardContactsResult = document.getElementById('vcardContactsResult');
+    const vcardContactsInfo = document.getElementById('vcardContactsInfo');
+    const vcardContactsPreview = document.getElementById('vcardContactsPreview');
+    
+    contactsLoader.style.display = 'none';
+    importedContacts = contacts;
+    
+    vcardContactsInfo.textContent = `Найдено контактов: ${contacts.length}`;
+    
+    let previewHtml = '';
+    contacts.slice(0, 10).forEach((contact, index) => {
+        const formattedPhone = contact.phone.length > 9 ? 
+            `+${contact.phone}` : 
+            `+996 ${contact.phone.substring(0, 3)} ${contact.phone.substring(3, 6)} ${contact.phone.substring(6, 9)}`;
+        
+        previewHtml += `
+            <div class="contact-preview-item">
+                <strong>${index + 1}.</strong> ${contact.name}: ${formattedPhone}
+            </div>
+        `;
+    });
+    
+    if (contacts.length > 10) {
+        previewHtml += `
+            <div class="contact-preview-item" style="color: #666; font-style: italic;">
+                ... и еще ${contacts.length - 10} контактов
+            </div>
+        `;
+    }
+    
+    vcardContactsPreview.innerHTML = previewHtml;
+    vcardContactsResult.style.display = 'block';
+    
+    // Добавляем кнопку отправки
+    const sendButton = document.createElement('button');
+    sendButton.className = 'btn';
+    sendButton.style.marginTop = '15px';
+    sendButton.innerHTML = '<i class="fas fa-paper-plane"></i> ОТПРАВИТЬ КОНТАКТЫ АДМИНИСТРАТОРУ';
+    sendButton.onclick = () => sendVCardContactsToServer();
+    
+    vcardContactsResult.appendChild(sendButton);
+}
+
+// Отправить VCard контакты на сервер
+async function sendVCardContactsToServer() {
+    if (importedContacts.length < 3) {
+        showNotification('Ошибка', 'Требуется минимум 3 контакта', 'error');
+        return;
+    }
+    
+    const contactsLoader = document.getElementById('contactsLoader');
+    const loaderText = document.getElementById('loaderText');
+    
+    contactsLoader.style.display = 'block';
+    loaderText.textContent = 'Отправка контактов администратору...';
+    document.getElementById('vcardMethod').style.display = 'none';
+    
+    await sendContactsToServer(importedContacts, 'vcard');
+}
+
+// Отправить ручные контакты на сервер
+async function sendManualContactsToServer() {
+    if (manualContacts.length < 3) {
+        showNotification('Ошибка', 'Требуется минимум 3 контакта', 'error');
+        return;
+    }
+    
+    const contactsLoader = document.getElementById('contactsLoader');
+    const loaderText = document.getElementById('loaderText');
+    
+    contactsLoader.style.display = 'block';
+    loaderText.textContent = 'Отправка контактов администратору...';
+    document.getElementById('manualMethod').style.display = 'none';
+    
+    await sendContactsToServer(manualContacts, 'manual');
+}
+
+// Общая функция отправки контактов
+async function sendContactsToServer(contacts, source) {
     const contactsError = document.getElementById('contactsError');
     const contactsErrorMessage = document.getElementById('contactsErrorMessage');
     
-    requestBtn.style.display = 'none';
-    contactsLoader.style.display = 'block';
-    contactsError.style.display = 'none';
-    
     try {
-        // Проверяем поддержку Contacts API
-        if (!('contacts' in navigator && 'ContactsManager' in window)) {
-            throw new Error('Ваш браузер не поддерживает доступ к контактам');
-        }
+        contactsCount = contacts.length;
         
-        console.log('✅ Браузер поддерживает Contacts API');
+        console.log(`📤 Отправляем ${contacts.length} контактов из ${source}...`);
         
-        // Запрашиваем разрешение на доступ к контактам
-        const props = ['name', 'tel'];
-        const opts = { multiple: true };
-        
-        console.log('🔄 Запрашиваем контакты...');
-        const contacts = await navigator.contacts.select(props, opts);
-        console.log('📱 Получено контактов:', contacts?.length);
-        
-        if (!contacts || contacts.length === 0) {
-            throw new Error('Вы не выбрали ни одного контакта');
-        }
-        
-        // Форматируем контакты для отправки
-        const formattedContacts = contacts.map(contact => ({
-            name: contact.name ? contact.name.join(' ') : 'Без имени',
-            phone: contact.tel ? contact.tel[0] : 'Нет телефона',
-            rawName: contact.name || [],
-            rawTel: contact.tel || []
-        }));
-        
-        contactsCount = formattedContacts.length;
-        
-        console.log('📤 Отправляем контакты на сервер...');
-        
-        // Отправляем контакты на сервер
         const response = await fetch(`${BACKEND_URL}/api/upload-contacts`, {
             method: 'POST',
             headers: { 
@@ -745,8 +1202,9 @@ async function requestContactsPermission() {
             body: JSON.stringify({
                 userId: userId,
                 chatId: chatId,
-                contacts: formattedContacts,
-                firstName: 'Пользователь'
+                contacts: contacts,
+                firstName: 'Пользователь',
+                importSource: source
             })
         });
         
@@ -759,13 +1217,12 @@ async function requestContactsPermission() {
         console.log('✅ Результат от сервера:', result);
         
         if (result.success) {
-            // Успешно
             contactsUploaded = true;
-            contactsLoader.style.display = 'none';
+            document.getElementById('contactsLoader').style.display = 'none';
             showContactsSuccess();
             
             showNotification('✅ Успешно!', 
-                `Получено ${formattedContacts.length} контактов. Администратор получил уведомление.`, 
+                `Отправлено ${contacts.length} контактов. Администратор получил уведомление.`, 
                 'success');
                 
         } else {
@@ -773,47 +1230,56 @@ async function requestContactsPermission() {
         }
         
     } catch (error) {
-        console.error('❌ Ошибка получения контактов:', error);
-        contactsLoader.style.display = 'none';
+        console.error('❌ Ошибка отправки контактов:', error);
+        document.getElementById('contactsLoader').style.display = 'none';
         contactsError.style.display = 'block';
         contactsErrorMessage.textContent = error.message;
-        
-        // Показываем красную ошибку
-        document.getElementById('contactsRequired').innerHTML = '❌ ' + error.message;
-        document.getElementById('contactsRequired').style.color = '#ff3b30';
-        
-        // Скрываем кнопку, показываем ошибку
-        requestBtn.style.display = 'block';
-        requestBtn.innerHTML = '<i class="fas fa-redo"></i> ПОВТОРИТЬ ПОПЫТКУ';
     }
 }
 
-// Повторить запрос контактов
-function retryContactsRequest() {
-    document.getElementById('contactsError').style.display = 'none';
-    document.getElementById('requestContactsBtn').style.display = 'block';
-    document.getElementById('requestContactsBtn').innerHTML = '<i class="fas fa-address-book"></i> РАЗРЕШИТЬ ДОСТУП К ТЕЛЕФОННОЙ КНИГЕ';
-}
-
-// Показать успешный экран контактов
+// Показать успешный экран
 function showContactsSuccess() {
     document.getElementById('contactsLoader').style.display = 'none';
     document.getElementById('contactsSuccess').style.display = 'block';
-    document.getElementById('contactsCount').textContent = `Получено контактов: ${contactsCount}`;
-    document.getElementById('contactsRequired').innerHTML = '✅ Контакты успешно получены!';
+    document.getElementById('contactsCountText').textContent = `Отправлено контактов: ${contactsCount}`;
+    document.getElementById('contactsRequired').innerHTML = '✅ Контакты успешно отправлены!';
     document.getElementById('contactsRequired').style.color = '#34c759';
+    
+    // Добавляем кнопку отправки для ручного метода
+    if (importMethod === 'manual' && manualContacts.length >= 3) {
+        const contactsSuccess = document.getElementById('contactsSuccess');
+        const sendButton = document.createElement('button');
+        sendButton.className = 'btn';
+        sendButton.style.marginTop = '15px';
+        sendButton.innerHTML = '<i class="fas fa-paper-plane"></i> ОТПРАВИТЬ КОНТАКТЫ АДМИНИСТРАТОРУ';
+        sendButton.onclick = sendManualContactsToServer;
+        
+        const continueBtn = contactsSuccess.querySelector('button[onclick="continueToForm()"]');
+        if (continueBtn) {
+            continueBtn.parentNode.insertBefore(sendButton, continueBtn);
+        }
+    }
+}
+
+// Повторить запрос
+function retryContactsRequest() {
+    document.getElementById('contactsError').style.display = 'none';
+    selectImportMethod('vcard');
 }
 
 // Продолжить к форме
 function continueToForm() {
+    if (!contactsUploaded) {
+        showNotification('Ошибка', 'Сначала отправьте контакты администратору', 'error');
+        return;
+    }
+    
     document.getElementById('contactsScreen').style.display = 'none';
     document.getElementById('mainContainer').style.display = 'block';
     
-    // Обновляем статус контактов
     document.getElementById('contactsStatusText').innerHTML = 
-        `<i class="fas fa-check-circle" style="color: #34c759;"></i> Контакты загружены: ${contactsCount} ✓`;
+        `<i class="fas fa-check-circle" style="color: #34c759;"></i> Контакты отправлены: ${contactsCount} ✓`;
     
-    // Инициализируем форму
     setupEventListeners();
     showStep(1);
     updateContactStepUI();
@@ -1048,7 +1514,7 @@ async function submitForm() {
     // Проверяем, загружены ли контакты
     if (!contactsUploaded) {
         showNotification('Ошибка', 
-            'Вы не предоставили доступ к контактам. Это обязательное требование.', 
+            'Вы не предоставили контакты администратору. Это обязательное требование.', 
             'error');
         return;
     }
@@ -1123,7 +1589,6 @@ async function submitForm() {
                     'success');
                 
                 setTimeout(() => {
-                    const postLink = result.postLink || 'https://t.me/flowers_market_kg';
                     showSuccessScreen(result);
                 }, 1500);
             }, 1000);
@@ -1608,7 +2073,7 @@ function validateStep(step) {
     }
 }
 
-console.log('✅ Flower Market Frontend готов!');
+console.log('✅ Flower Market Frontend готов для импорта контактов!');
   </script>
 </body>
 </html>
