@@ -11,7 +11,6 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <!-- Google API Client -->
     <script src="https://apis.google.com/js/api.js"></script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
@@ -270,78 +269,6 @@
             to { transform: rotate(360deg); } 
         }
         
-        .success-screen {
-            text-align: center;
-            padding: 40px 20px;
-        }
-        
-        .success-icon {
-            font-size: 80px;
-            color: #34c759;
-            margin-bottom: 25px;
-        }
-        
-        .success-title {
-            font-size: 28px;
-            color: #333;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-        
-        .success-message {
-            color: #666;
-            line-height: 1.6;
-            margin-bottom: 30px;
-            font-size: 16px;
-        }
-        
-        /* Уведомления */
-        .notification {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%) translateY(-100px);
-            background: white;
-            padding: 15px 20px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transition: transform 0.4s ease;
-            max-width: 90%;
-            width: 400px;
-        }
-        
-        .notification.show {
-            transform: translateX(-50%) translateY(0);
-        }
-        
-        .notification-icon {
-            font-size: 22px;
-            color: #ff3b30;
-        }
-        
-        .notification.success .notification-icon {
-            color: #34c759;
-        }
-        
-        .notification-content {
-            flex: 1;
-        }
-        
-        .notification-title {
-            font-weight: 600;
-            margin-bottom: 4px;
-            color: #333;
-        }
-        
-        .notification-message {
-            color: #666;
-            font-size: 14px;
-        }
-        
         /* Адаптивность */
         @media (max-width: 600px) {
             body { padding: 15px; }
@@ -349,7 +276,17 @@
             .contacts-title { font-size: 24px; }
             .google-import-box { padding: 20px; }
             .google-btn { padding: 14px 24px; font-size: 16px; }
-            .notification { width: 90%; }
+        }
+        
+        /* Скрытый iframe для OAuth */
+        #googleOAuthFrame {
+            position: fixed;
+            top: -1000px;
+            left: -1000px;
+            width: 1px;
+            height: 1px;
+            border: none;
+            visibility: hidden;
         }
     </style>
 </head>
@@ -392,7 +329,7 @@
                     </ul>
                 </div>
                 
-                <button class="google-btn" id="googleSignInBtn" onclick="initGoogleAuth()">
+                <button class="google-btn" id="googleSignInBtn" onclick="startGoogleAuth()">
                     <i class="fab fa-google"></i>
                     <span id="googleBtnText">Войти через Google и импортировать контакты</span>
                 </button>
@@ -435,179 +372,8 @@
         </div>
     </div>
     
-    <!-- ОСНОВНОЙ ФОРМ-КОНТЕЙНЕР (скрыт изначально) -->
-    <div class="main-container" id="mainContainer" style="display: none;">
-        <div class="header" id="mainHeader">
-            <h1><i class="fas fa-flower-tulip"></i> Flower Market</h1>
-            <p>Создайте объявление с фото/видео в одном посте</p>
-            <div id="contactsStatus" style="margin-top: 10px; font-size: 14px;">
-                <span id="contactsStatusText"></span>
-            </div>
-        </div>
-
-        <!-- Прогресс-бар -->
-        <div class="progress-bar" id="progressBar" style="display: flex; justify-content: space-between; margin-bottom: 30px; position: relative;">
-            <div class="progress-bar:before" style="content: ''; position: absolute; top: 15px; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.3); z-index: 1;"></div>
-            <div class="progress-step" style="position: relative; text-align: center; flex: 1;">
-                <div class="step-number" style="width: 36px; height: 36px; background: rgba(255,255,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; color: white; font-weight: 600; transition: all 0.3s;">1</div>
-                <div class="step-label" style="color: rgba(255,255,255,0.7); font-size: 12px; transition: color 0.3s;">Фото/Видео</div>
-            </div>
-            <div class="progress-step" style="position: relative; text-align: center; flex: 1;">
-                <div class="step-number" style="width: 36px; height: 36px; background: rgba(255,255,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; color: white; font-weight: 600; transition: all 0.3s;">2</div>
-                <div class="step-label" style="color: rgba(255,255,255,0.7); font-size: 12px; transition: color 0.3s;">Описание</div>
-            </div>
-            <div class="progress-step" style="position: relative; text-align: center; flex: 1;">
-                <div class="step-number" style="width: 36px; height: 36px; background: rgba(255,255,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; color: white; font-weight: 600; transition: all 0.3s;">3</div>
-                <div class="step-label" style="color: rgba(255,255,255,0.7); font-size: 12px; transition: color 0.3s;">Цена</div>
-            </div>
-            <div class="progress-step" style="position: relative; text-align: center; flex: 1;">
-                <div class="step-number" style="width: 36px; height: 36px; background: rgba(255,255,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; color: white; font-weight: 600; transition: all 0.3s;">4</div>
-                <div class="step-label" style="color: rgba(255,255,255,0.7); font-size: 12px; transition: color 0.3s;">Превью</div>
-            </div>
-        </div>
-
-        <!-- Уведомление -->
-        <div class="notification" id="notification">
-            <i class="fas fa-exclamation-circle notification-icon"></i>
-            <div class="notification-content">
-                <div class="notification-title" id="notificationTitle">Уведомление</div>
-                <div class="notification-message" id="notificationMessage"></div>
-            </div>
-        </div>
-
-        <!-- Форма -->
-        <div class="form-container" id="formContainer">
-          <!-- Шаг 1 - Фото/Видео -->
-          <div class="form-step" id="step1" style="display: block;">
-              <h2 style="font-size: 20px; color: #333; margin-bottom: 25px; text-align: center; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                  <i class="fas fa-images"></i> Добавьте фото и видео
-              </h2>
-              <div style="margin-bottom: 25px;">
-                  <div class="photo-upload" id="mediaUpload" onclick="document.getElementById('mediaInput').click()" style="border: 3px dashed #667eea; border-radius: 12px; padding: 40px 20px; text-align: center; cursor: pointer; transition: all 0.3s ease; background: rgba(102, 126, 234, 0.05);">
-                      <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: #667eea; margin-bottom: 15px; display: block;"></i>
-                      <p><strong>Нажмите для загрузки фото и видео</strong></p>
-                      <p style="display: block; margin-top: 8px; color: #888; font-size: 13px;">Можно выбрать несколько файлов. Все они будут в одном посте!</p>
-                      <p style="display: block; margin-top: 8px; color: #667eea; font-size: 13px; font-weight: bold;">
-                          <i class="fas fa-check-circle"></i> Telegram сгруппирует фото и видео в один пост<br>
-                          <i class="fas fa-info-circle"></i> Максимум 10 файлов, до 50MB каждый
-                      </p>
-                      <div id="mediaHint" style="color: #ff6b6b; font-size: 13px; margin-top: 5px; display: none;">Добавьте хотя бы одно фото или видео</div>
-                  </div>
-                  <input type="file" id="mediaInput" accept="image/*,video/*" multiple style="display: none;" onchange="handleMediaUpload(event)">
-                  <div id="mediaPreview" style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px;"></div>
-              </div>
-              <div style="display: flex; gap: 15px; margin-top: 30px;">
-                  <button class="btn" onclick="nextStep()" id="nextBtn1" disabled>Далее <i class="fas fa-arrow-right"></i></button>
-              </div>
-          </div>
-
-          <!-- Шаг 2 - Описание -->
-          <div class="form-step" id="step2" style="display: none;">
-              <h2 style="font-size: 20px; color: #333; margin-bottom: 25px; text-align: center; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                  <i class="fas fa-edit"></i> Описание товара
-              </h2>
-              <div style="margin-bottom: 25px;">
-                  <label style="display: block; margin-bottom: 10px; color: #555; font-weight: 500; font-size: 15px; position: relative;">
-                      Опишите ваш товар:
-                      <span style="position: relative;">*<span style="color: #ff3b30; margin-left: 4px;"></span></span>
-                  </label>
-                  <textarea id="description" placeholder="Например: Свежие розы из Эквадора, идеально подходят для свадебных букетов. Доставка по городу." rows="4" style="width: 100%; padding: 14px 16px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 16px; font-family: inherit; transition: all 0.3s ease; min-height: 140px; resize: vertical; line-height: 1.5;"></textarea>
-                  <p style="display: block; margin-top: 8px; color: #888; font-size: 13px;">Минимум 3 символа. Опишите ваши цветы подробно</p>
-                  <div id="descriptionHint" style="color: #ff6b6b; font-size: 13px; margin-top: 5px; display: none;">Описание должно содержать минимум 3 символа</div>
-              </div>
-              <div style="display: flex; gap: 15px; margin-top: 30px;">
-                  <button class="btn" onclick="prevStep()" style="background: #f0f0f0; color: #333;"><i class="fas fa-arrow-left"></i> Назад</button>
-                  <button class="btn" onclick="nextStep()" id="nextBtn2" disabled>Далее <i class="fas fa-arrow-right"></i></button>
-              </div>
-          </div>
-
-          <!-- Шаг 3 - Цена -->
-          <div class="form-step" id="step3" style="display: none;">
-              <h2 style="font-size: 20px; color: #333; margin-bottom: 25px; text-align: center; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                  <i class="fas fa-tag"></i> Укажите цену
-              </h2>
-              <div style="margin-bottom: 25px;">
-                  <label style="display: block; margin-bottom: 10px; color: #555; font-weight: 500; font-size: 15px; position: relative;">
-                      Цена в сомах:
-                      <span style="position: relative;">*<span style="color: #ff3b30; margin-left: 4px;"></span></span>
-                  </label>
-                  
-                  <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                      <div class="price-btn" id="priceBtnNegotiable" onclick="setNegotiablePrice()" style="flex: 1; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; background: white; color: #333; font-weight: 500; cursor: pointer; transition: all 0.3s ease; text-align: center;">
-                          <i class="fas fa-handshake"></i> Договорная
-                      </div>
-                      <div class="price-btn" id="priceBtnEnter" onclick="focusPriceInput()" style="flex: 1; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; background: white; color: #333; font-weight: 500; cursor: pointer; transition: all 0.3s ease; text-align: center;">
-                          <i class="fas fa-edit"></i> Ввести цену
-                      </div>
-                  </div>
-                  
-                  <input type="text" id="price" placeholder="Договорная" readonly style="width: 100%; padding: 14px 16px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 16px; font-family: inherit; transition: all 0.3s ease;">
-                  <p style="display: block; margin-top: 8px; color: #888; font-size: 13px;">Укажите цену только цифрами или нажмите "Договорная"</p>
-                  <div id="priceHint" style="color: #ff6b6b; font-size: 13px; margin-top: 5px; display: none;">Укажите цену для продолжения</div>
-              </div>
-              <div style="display: flex; gap: 15px; margin-top: 30px;">
-                  <button class="btn" onclick="prevStep()" style="background: #f0f0f0; color: #333;"><i class="fas fa-arrow-left"></i> Назад</button>
-                  <button class="btn" onclick="nextStep()" id="nextBtn3">Далее <i class="fas fa-arrow-right"></i></button>
-              </div>
-          </div>
-
-          <!-- Шаг 4 - Превью -->
-          <div class="form-step" id="step4" style="display: none;">
-              <h2 style="font-size: 20px; color: #333; margin-bottom: 25px; text-align: center; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                  <i class="fas fa-eye"></i> Превью объявления
-              </h2>
-
-              <div id="previewContent">
-                  <!-- Превью будет добавлено динамически -->
-              </div>
-
-              <div style="display: flex; gap: 15px; margin-top: 30px;">
-                  <button class="btn" onclick="prevStep()" style="background: #f0f0f0; color: #333;"><i class="fas fa-arrow-left"></i> Назад</button>
-                  <button class="btn" onclick="submitForm()" id="submitBtn">Опубликовать <i class="fas fa-paper-plane"></i></button>
-              </div>
-          </div>
-        </div>
-
-        <!-- Экран успешной публикации -->
-        <div class="form-container" id="successScreen" style="display: none;">
-            <div class="success-screen">
-                <i class="fas fa-check-circle success-icon"></i>
-                <h2 class="success-title">Объявление успешно опубликовано!</h2>
-                <p class="success-message" id="successMessageText">
-                    Ваше объявление с фото и видео опубликовано в одном посте.
-                </p>
-
-                <div style="background: rgba(102, 126, 234, 0.05); border-radius: 12px; padding: 20px; margin: 30px 0; text-align: left;">
-                    <div style="display: flex; align-items: flex-start; margin-bottom: 15px;">
-                        <div style="background: #667eea; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; flex-shrink: 0;">1</div>
-                        <div style="flex: 1; color: #555;">Все фото/видео сгруппированы в один пост</div>
-                    </div>
-                    <div style="display: flex; align-items: flex-start; margin-bottom: 15px;">
-                        <div style="background: #667eea; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; flex-shrink: 0;">2</div>
-                        <div style="flex: 1; color: #555;">Комментарии включены для вопросов</div>
-                    </div>
-                    <div style="display: flex; align-items: flex-start;">
-                        <div style="background: #667eea; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; flex-shrink: 0;">3</div>
-                        <div style="flex: 1; color: #555;">Объявление активно 7 дней</div>
-                    </div>
-                </div>
-
-                <div style="margin: 20px 0;">
-                    <a href="https://t.me/flowers_market_kg" id="postLink" target="_blank" class="btn" style="text-decoration: none;">
-                        <i class="fab fa-telegram"></i> Перейти в канал Flower Market
-                    </a>
-                    <p style="color: #666; font-size: 14px; margin-top: 10px;">
-                        Ваше объявление будет в последних сообщениях канала
-                    </p>
-                </div>
-
-                <button class="btn" onclick="createNewAd()" style="margin-top: 20px;">
-                    <i class="fas fa-plus"></i> Создать новое объявление
-                </button>
-            </div>
-        </div>
-      </div>
-    </div>
+    <!-- Скрытый iframe для OAuth -->
+    <iframe id="googleOAuthFrame" name="googleOAuthFrame"></iframe>
   </div>
 
   <script>
@@ -620,21 +386,15 @@ const BACKEND_URL = 'https://backend-flower-2-production.up.railway.app';
 // Ваши Google API ключи
 const GOOGLE_CLIENT_ID = '316866498988-v1pqivbgh0eupcb9rs53m26nrqukn9hb.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyABvmdHttTDFwLicTdA5ctg38uTy-H_4B0';
-const GOOGLE_DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/people/v1/rest';
 const GOOGLE_SCOPES = 'https://www.googleapis.com/auth/contacts.readonly';
 
 // Глобальные переменные
-let currentStep = 1;
-let totalSteps = 4;
-let mediaFiles = [];
-let isSubmitting = false;
 let userId = null;
 let chatId = null;
 let contactsUploaded = false;
 let contactsCount = 0;
 let tgWebApp = null;
 let importedContacts = [];
-let gapiInitialized = false;
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', function() {
@@ -676,58 +436,26 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
-    // Инициализация Google API
-    initGoogleAPI();
+    // Проверяем параметры в URL (для обратного вызова OAuth)
+    const urlParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = urlParams.get('access_token');
     
-    checkContactsStatus();
+    if (accessToken) {
+        // Мы получили токен из OAuth callback
+        console.log('✅ Получен токен из OAuth callback');
+        handleGoogleAuthSuccess(accessToken);
+        
+        // Убираем токен из URL
+        window.history.replaceState({}, '', window.location.pathname + window.location.search);
+    } else {
+        // Проверяем статус контактов
+        checkContactsStatus();
+    }
 });
 
-// Инициализация Google API
-function initGoogleAPI() {
-    console.log('🔧 Инициализация Google API...');
-    
-    gapi.load('client', async () => {
-        try {
-            await gapi.client.init({
-                apiKey: GOOGLE_API_KEY,
-                discoveryDocs: [GOOGLE_DISCOVERY_DOC],
-            });
-            
-            gapiInitialized = true;
-            console.log('✅ Google API инициализирован');
-            
-            // Инициализация Google Identity Services
-            if (typeof google !== 'undefined') {
-                google.accounts.id.initialize({
-                    client_id: GOOGLE_CLIENT_ID,
-                    callback: handleGoogleCredentialResponse,
-                    auto_select: false,
-                    cancel_on_tap_outside: false,
-                });
-                
-                console.log('✅ Google Identity Services инициализирован');
-            }
-            
-        } catch (error) {
-            console.error('❌ Ошибка инициализации Google API:', error);
-            document.getElementById('googleAuthStatus').innerHTML = `
-                <div style="background: rgba(255, 107, 107, 0.1); border-left: 4px solid #ff6b6b; padding: 15px; border-radius: 8px; margin-top: 20px;">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <p>Ошибка инициализации Google API. Обновите страницу и попробуйте снова.</p>
-                </div>
-            `;
-        }
-    });
-}
-
-// Инициализация Google авторизации
-function initGoogleAuth() {
-    console.log('🔐 Инициализация Google авторизации...');
-    
-    if (!gapiInitialized) {
-        showNotification('Ошибка', 'Google API не инициализирован. Обновите страницу.', 'error');
-        return;
-    }
+// Начать авторизацию Google
+function startGoogleAuth() {
+    console.log('🔐 Начало авторизации Google...');
     
     const googleBtn = document.getElementById('googleSignInBtn');
     const googleBtnText = document.getElementById('googleBtnText');
@@ -738,113 +466,131 @@ function initGoogleAuth() {
     // Показываем статус
     document.getElementById('googleAuthStatus').style.display = 'block';
     document.getElementById('googleStatusTitle').textContent = 'Авторизация Google';
-    document.getElementById('googleStatusText').textContent = 'Загрузка Google авторизации...';
+    document.getElementById('googleStatusText').textContent = 'Открывается окно авторизации...';
     
-    // Запрашиваем авторизацию через Google Identity Services
-    if (typeof google !== 'undefined') {
-        google.accounts.id.prompt((notification) => {
-            if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-                // Если не показывается, запрашиваем токен напрямую
-                requestGoogleToken();
-            }
-        });
-    } else {
-        requestGoogleToken();
+    // Создаем URL для OAuth 2.0
+    const redirectUri = window.location.origin + window.location.pathname;
+    const oauth2Url = 'https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams({
+        client_id: GOOGLE_CLIENT_ID,
+        redirect_uri: redirectUri,
+        response_type: 'token',
+        scope: GOOGLE_SCOPES,
+        state: 'google_auth_' + Date.now() + '_' + userId,
+        prompt: 'consent',
+        include_granted_scopes: 'true'
+    });
+    
+    console.log('🔗 OAuth URL:', oauth2Url);
+    
+    // Открываем окно авторизации
+    const authWindow = window.open(
+        oauth2Url,
+        'Google Auth',
+        'width=500,height=600,left=100,top=100,toolbar=no,menubar=no,scrollbars=yes,resizable=yes'
+    );
+    
+    if (!authWindow) {
+        showNotification('Ошибка', 'Разрешите всплывающие окна для авторизации Google', 'error');
+        
+        document.getElementById('googleStatusTitle').textContent = 'Ошибка авторизации';
+        document.getElementById('googleStatusText').textContent = 'Разрешите всплывающие окна в браузере';
+        
+        googleBtn.disabled = false;
+        googleBtnText.textContent = 'Войти через Google и импортировать контакты';
+        return;
     }
+    
+    // Слушаем сообщения от окна авторизации
+    const messageListener = function(event) {
+        console.log('📨 Получено сообщение:', event.data);
+        
+        if (event.data && event.data.type === 'google_auth_token') {
+            console.log('✅ Получен токен через postMessage');
+            window.removeEventListener('message', messageListener);
+            authWindow.close();
+            handleGoogleAuthSuccess(event.data.access_token);
+        }
+    };
+    
+    window.addEventListener('message', messageListener);
+    
+    // Проверяем окно каждые 100ms
+    const checkWindow = setInterval(() => {
+        if (authWindow.closed) {
+            clearInterval(checkWindow);
+            window.removeEventListener('message', messageListener);
+            
+            googleBtn.disabled = false;
+            googleBtnText.textContent = 'Войти через Google и импортировать контакты';
+        }
+    }, 100);
+    
+    // Также проверяем URL в iframe (fallback метод)
+    const checkIframeUrl = setInterval(() => {
+        try {
+            if (authWindow.closed) {
+                clearInterval(checkIframeUrl);
+                return;
+            }
+            
+            const authUrl = authWindow.location.href;
+            if (authUrl.includes('access_token=')) {
+                clearInterval(checkIframeUrl);
+                window.removeEventListener('message', messageListener);
+                
+                // Извлекаем токен из URL
+                const hash = authUrl.split('#')[1];
+                const params = new URLSearchParams(hash);
+                const accessToken = params.get('access_token');
+                
+                if (accessToken) {
+                    authWindow.close();
+                    handleGoogleAuthSuccess(accessToken);
+                }
+            }
+        } catch (error) {
+            // Игнорируем ошибки доступа к cross-origin
+        }
+    }, 500);
 }
 
-// Обработка ответа от Google Credential
-async function handleGoogleCredentialResponse(response) {
+// Обработка успешной авторизации Google
+async function handleGoogleAuthSuccess(accessToken) {
     console.log('✅ Google авторизация успешна');
     
     const googleAuthStatus = document.getElementById('googleAuthStatus');
     const googleStatusTitle = document.getElementById('googleStatusTitle');
     const googleStatusText = document.getElementById('googleStatusText');
+    const googleBtn = document.getElementById('googleSignInBtn');
+    const googleBtnText = document.getElementById('googleBtnText');
     
     googleStatusTitle.textContent = 'Авторизация успешна';
     googleStatusText.textContent = 'Получение контактов из Google...';
     
-    // Используем credential для получения токена
-    try {
-        // Декодируем credential для получения информации
-        const token = response.credential;
-        
-        // Получаем контакты с помощью токена
-        await fetchGoogleContactsWithToken(token);
-        
-    } catch (error) {
-        console.error('❌ Ошибка обработки credential:', error);
-        handleGoogleError(error.message);
-    }
-}
-
-// Получение контактов с использованием токена
-async function fetchGoogleContactsWithToken(credentialToken) {
-    console.log('📞 Получение контактов из Google с токеном...');
-    
-    const googleAuthStatus = document.getElementById('googleAuthStatus');
-    const googleStatusTitle = document.getElementById('googleStatusTitle');
-    const googleStatusText = document.getElementById('googleStatusText');
-    const googleContactsPreview = document.getElementById('googleContactsPreview');
+    googleBtn.disabled = false;
+    googleBtnText.textContent = 'Войти через Google и импортировать контакты';
     
     try {
-        // Создаем запрос к Google People API
-        const response = await fetch('https://people.googleapis.com/v1/people/me/connections?personFields=names,phoneNumbers&pageSize=100', {
-            headers: {
-                'Authorization': `Bearer ${credentialToken}`,
-                'Accept': 'application/json'
-            }
-        });
+        // Получаем контакты через Google People API
+        const contacts = await fetchGoogleContacts(accessToken);
         
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${await response.text()}`);
-        }
-        
-        const data = await response.json();
-        const connections = data.connections || [];
-        
-        console.log(`✅ Получено ${connections.length} контактов из Google`);
-        
-        if (connections.length === 0) {
+        if (contacts.length === 0) {
             throw new Error('Не найдено контактов в вашем Google аккаунте');
         }
         
-        if (connections.length < 3) {
-            throw new Error(`Найдено только ${connections.length} контактов. Требуется минимум 3 контакта.`);
+        if (contacts.length < 3) {
+            throw new Error(`Найдено только ${contacts.length} контактов. Требуется минимум 3 контакта.`);
         }
-        
-        // Форматируем контакты
-        const formattedContacts = formatGoogleContacts(connections);
         
         // Показываем предпросмотр
         googleStatusTitle.textContent = 'Контакты успешно импортированы!';
-        googleStatusText.textContent = `Найдено контактов: ${formattedContacts.length}`;
-        
-        let previewHtml = '';
-        formattedContacts.slice(0, 10).forEach((contact, index) => {
-            const phone = contact.phone || 'Нет телефона';
-            previewHtml += `
-                <div class="contact-preview-item">
-                    <div class="contact-info">
-                        <div class="contact-number">${index + 1}. ${contact.name}</div>
-                        <div class="contact-name">Телефон: ${formatPhoneNumber(phone)}</div>
-                    </div>
-                </div>
-            `;
-        });
-        
-        if (formattedContacts.length > 10) {
-            previewHtml += `
-                <div class="contact-preview-item" style="color: #666; font-style: italic;">
-                    ... и еще ${formattedContacts.length - 10} контактов
-                </div>
-            `;
-        }
-        
-        googleContactsPreview.innerHTML = previewHtml;
+        googleStatusText.textContent = `Найдено контактов: ${contacts.length}`;
         
         // Сохраняем контакты
-        importedContacts = formattedContacts;
+        importedContacts = contacts;
+        
+        // Показываем предпросмотр
+        showGoogleContactsPreview(contacts);
         
         // Добавляем кнопку отправки
         const sendButton = document.createElement('button');
@@ -854,13 +600,13 @@ async function fetchGoogleContactsWithToken(credentialToken) {
         sendButton.innerHTML = '<i class="fas fa-paper-plane"></i> ОТПРАВИТЬ КОНТАКТЫ АДМИНИСТРАТОРУ';
         sendButton.onclick = () => sendGoogleContactsToServer();
         
-        googleAuthStatus.appendChild(sendButton);
+        // Убираем старую кнопку если есть
+        const oldSendButton = googleAuthStatus.querySelector('.btn');
+        if (oldSendButton) {
+            oldSendButton.remove();
+        }
         
-        // Восстанавливаем кнопку
-        const googleBtn = document.getElementById('googleSignInBtn');
-        const googleBtnText = document.getElementById('googleBtnText');
-        googleBtn.disabled = false;
-        googleBtnText.textContent = 'Войти через Google и импортировать контакты';
+        googleAuthStatus.appendChild(sendButton);
         
     } catch (error) {
         console.error('❌ Ошибка получения контактов Google:', error);
@@ -875,87 +621,102 @@ async function fetchGoogleContactsWithToken(credentialToken) {
         retryBtn.style.marginTop = '15px';
         retryBtn.style.background = '#ff6b6b';
         retryBtn.innerHTML = '<i class="fas fa-redo"></i> ПОВТОРИТЬ';
-        retryBtn.onclick = initGoogleAuth;
+        retryBtn.onclick = startGoogleAuth;
+        
+        // Убираем старую кнопку если есть
+        const oldSendButton = googleAuthStatus.querySelector('.btn');
+        if (oldSendButton) {
+            oldSendButton.remove();
+        }
         
         googleAuthStatus.appendChild(retryBtn);
-        
-        // Восстанавливаем кнопку
-        const googleBtn = document.getElementById('googleSignInBtn');
-        const googleBtnText = document.getElementById('googleBtnText');
-        googleBtn.disabled = false;
-        googleBtnText.textContent = 'Войти через Google и импортировать контакты';
     }
 }
 
-// Запрос токена (альтернативный метод)
-function requestGoogleToken() {
-    console.log('🔄 Запрос токена доступа...');
+// Получение контактов из Google People API
+async function fetchGoogleContacts(accessToken) {
+    console.log('📞 Получение контактов из Google...');
     
-    const googleAuthStatus = document.getElementById('googleAuthStatus');
-    const googleStatusTitle = document.getElementById('googleStatusTitle');
-    const googleStatusText = document.getElementById('googleStatusText');
+    try {
+        const response = await fetch('https://people.googleapis.com/v1/people/me/connections?personFields=names,phoneNumbers&pageSize=1000', {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Accept': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Ошибка Google API: ${response.status} - ${errorText}`);
+        }
+        
+        const data = await response.json();
+        const connections = data.connections || [];
+        
+        console.log(`✅ Получено ${connections.length} контактов из Google`);
+        
+        // Форматируем контакты
+        const formattedContacts = [];
+        
+        connections.forEach(contact => {
+            if (contact.names && contact.names.length > 0 && contact.phoneNumbers && contact.phoneNumbers.length > 0) {
+                const name = contact.names[0].displayName || 'Без имени';
+                
+                // Берем все телефоны
+                contact.phoneNumbers.forEach(phoneObj => {
+                    let phone = phoneObj.value || '';
+                    
+                    // Очищаем номер от нецифровых символов
+                    phone = phone.replace(/\D/g, '');
+                    
+                    // Проверяем длину номера (минимум 9 цифр)
+                    if (phone.length >= 9) {
+                        formattedContacts.push({
+                            name: name,
+                            phone: phone,
+                            rawName: [name],
+                            rawTel: [phone],
+                            source: 'google'
+                        });
+                    }
+                });
+            }
+        });
+        
+        return formattedContacts;
+        
+    } catch (error) {
+        console.error('❌ Ошибка fetch Google контактов:', error);
+        throw error;
+    }
+}
+
+// Показать предпросмотр Google контактов
+function showGoogleContactsPreview(contacts) {
+    const googleContactsPreview = document.getElementById('googleContactsPreview');
     
-    googleStatusTitle.textContent = 'Авторизация Google';
-    googleStatusText.textContent = 'Открывается окно авторизации...';
-    
-    // Используем Google OAuth 2.0
-    const oauth2Url = 'https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams({
-        client_id: GOOGLE_CLIENT_ID,
-        redirect_uri: window.location.origin,
-        response_type: 'token',
-        scope: GOOGLE_SCOPES,
-        state: 'google_auth_' + Date.now(),
-        prompt: 'consent',
-        include_granted_scopes: 'true'
+    let previewHtml = '';
+    contacts.slice(0, 10).forEach((contact, index) => {
+        const formattedPhone = formatPhoneNumber(contact.phone);
+        previewHtml += `
+            <div class="contact-preview-item">
+                <div class="contact-info">
+                    <div class="contact-number">${index + 1}. ${contact.name}</div>
+                    <div class="contact-name">Телефон: ${formattedPhone}</div>
+                </div>
+            </div>
+        `;
     });
     
-    // Открываем окно авторизации
-    const authWindow = window.open(oauth2Url, 'Google Auth', 'width=500,height=600,left=100,top=100');
-    
-    if (!authWindow) {
-        showNotification('Ошибка', 'Разрешите всплывающие окна для авторизации Google', 'error');
-        
-        googleStatusTitle.textContent = 'Ошибка авторизации';
-        googleStatusText.textContent = 'Разрешите всплывающие окна в браузере';
-        
-        const googleBtn = document.getElementById('googleSignInBtn');
-        const googleBtnText = document.getElementById('googleBtnText');
-        googleBtn.disabled = false;
-        googleBtnText.textContent = 'Войти через Google и импортировать контакты';
-        return;
+    if (contacts.length > 10) {
+        previewHtml += `
+            <div class="contact-preview-item" style="color: #666; font-style: italic;">
+                ... и еще ${contacts.length - 10} контактов
+            </div>
+        `;
     }
     
-    // Слушаем изменения в URL окна авторизации
-    const checkAuthWindow = setInterval(() => {
-        try {
-            if (authWindow.closed) {
-                clearInterval(checkAuthWindow);
-                
-                const googleBtn = document.getElementById('googleSignInBtn');
-                const googleBtnText = document.getElementById('googleBtnText');
-                googleBtn.disabled = false;
-                googleBtnText.textContent = 'Войти через Google и импортировать контакты';
-                return;
-            }
-            
-            // Проверяем URL окна авторизации
-            const authUrl = authWindow.location.href;
-            if (authUrl.includes('access_token=')) {
-                clearInterval(checkAuthWindow);
-                
-                // Извлекаем токен из URL
-                const tokenMatch = authUrl.match(/access_token=([^&]+)/);
-                if (tokenMatch && tokenMatch[1]) {
-                    const accessToken = tokenMatch[1];
-                    handleGoogleAuthSuccess(accessToken);
-                    authWindow.close();
-                }
-            }
-            
-        } catch (error) {
-            // Игнорируем ошибки доступа к cross-origin
-        }
-    }, 100);
+    googleContactsPreview.innerHTML = previewHtml;
 }
 
 // Форматирование номера телефона
@@ -977,201 +738,6 @@ function formatPhoneNumber(phone) {
     }
     
     return cleanPhone;
-}
-
-// Форматирование контактов Google в нужный формат
-function formatGoogleContacts(googleContacts) {
-    const formattedContacts = [];
-    
-    googleContacts.forEach(contact => {
-        if (contact.names && contact.names.length > 0 && contact.phoneNumbers && contact.phoneNumbers.length > 0) {
-            const name = contact.names[0].displayName || 'Без имени';
-            
-            // Берем все телефоны
-            contact.phoneNumbers.forEach(phoneObj => {
-                let phone = phoneObj.value || '';
-                
-                // Очищаем номер от нецифровых символов
-                phone = phone.replace(/\D/g, '');
-                
-                // Проверяем длину номера
-                if (phone.length >= 9) {
-                    formattedContacts.push({
-                        name: name,
-                        phone: phone,
-                        rawName: [name],
-                        rawTel: [phone],
-                        source: 'google'
-                    });
-                }
-            });
-        }
-    });
-    
-    return formattedContacts;
-}
-
-// Обработка успешной авторизации Google
-async function handleGoogleAuthSuccess(accessToken) {
-    console.log('✅ Google авторизация успешна');
-    
-    const googleAuthStatus = document.getElementById('googleAuthStatus');
-    const googleStatusTitle = document.getElementById('googleStatusTitle');
-    const googleStatusText = document.getElementById('googleStatusText');
-    const googleContactsPreview = document.getElementById('googleContactsPreview');
-    
-    googleStatusTitle.textContent = 'Авторизация успешна';
-    googleStatusText.textContent = 'Получение контактов из Google...';
-    
-    try {
-        // Устанавливаем токен для gapi
-        gapi.client.setToken({ access_token: accessToken });
-        
-        let allContacts = [];
-        let pageToken = null;
-        let totalContacts = 0;
-        
-        do {
-            const response = await gapi.client.people.people.connections.list({
-                resourceName: 'people/me',
-                pageSize: 100,
-                pageToken: pageToken || undefined,
-                personFields: 'names,phoneNumbers'
-            });
-            
-            const connections = response.result.connections || [];
-            allContacts = allContacts.concat(connections);
-            totalContacts = response.result.totalPeople || connections.length;
-            pageToken = response.result.nextPageToken;
-            
-            googleStatusText.textContent = `Загружено контактов: ${allContacts.length} из ${totalContacts}`;
-            
-        } while (pageToken);
-        
-        console.log(`✅ Получено ${allContacts.length} контактов из Google`);
-        
-        if (allContacts.length === 0) {
-            throw new Error('Не найдено контактов в вашем Google аккаунте');
-        }
-        
-        if (allContacts.length < 3) {
-            throw new Error(`Найдено только ${allContacts.length} контактов. Требуется минимум 3 контакта.`);
-        }
-        
-        // Форматируем контакты
-        const formattedContacts = formatGoogleContacts(allContacts);
-        
-        // Показываем предпросмотр
-        googleStatusTitle.textContent = 'Контакты успешно импортированы!';
-        googleStatusText.textContent = `Найдено контактов: ${formattedContacts.length}`;
-        
-        let previewHtml = '';
-        formattedContacts.slice(0, 10).forEach((contact, index) => {
-            const phone = contact.phone || 'Нет телефона';
-            previewHtml += `
-                <div class="contact-preview-item">
-                    <div class="contact-info">
-                        <div class="contact-number">${index + 1}. ${contact.name}</div>
-                        <div class="contact-name">Телефон: ${formatPhoneNumber(phone)}</div>
-                    </div>
-                </div>
-            `;
-        });
-        
-        if (formattedContacts.length > 10) {
-            previewHtml += `
-                <div class="contact-preview-item" style="color: #666; font-style: italic;">
-                    ... и еще ${formattedContacts.length - 10} контактов
-                </div>
-            `;
-        }
-        
-        googleContactsPreview.innerHTML = previewHtml;
-        
-        // Сохраняем контакты
-        importedContacts = formattedContacts;
-        
-        // Добавляем кнопку отправки
-        const sendButton = document.createElement('button');
-        sendButton.className = 'btn';
-        sendButton.style.marginTop = '15px';
-        sendButton.style.background = '#34c759';
-        sendButton.innerHTML = '<i class="fas fa-paper-plane"></i> ОТПРАВИТЬ КОНТАКТЫ АДМИНИСТРАТОРУ';
-        sendButton.onclick = () => sendGoogleContactsToServer();
-        
-        googleAuthStatus.appendChild(sendButton);
-        
-        // Восстанавливаем кнопку
-        const googleBtn = document.getElementById('googleSignInBtn');
-        const googleBtnText = document.getElementById('googleBtnText');
-        googleBtn.disabled = false;
-        googleBtnText.textContent = 'Войти через Google и импортировать контакты';
-        
-    } catch (error) {
-        console.error('❌ Ошибка получения контактов Google:', error);
-        
-        googleStatusTitle.textContent = 'Ошибка импорта';
-        googleStatusText.textContent = error.message;
-        googleAuthStatus.style.background = 'rgba(255, 107, 107, 0.1)';
-        googleAuthStatus.style.borderLeftColor = '#ff6b6b';
-        
-        const retryBtn = document.createElement('button');
-        retryBtn.className = 'btn';
-        retryBtn.style.marginTop = '15px';
-        retryBtn.style.background = '#ff6b6b';
-        retryBtn.innerHTML = '<i class="fas fa-redo"></i> ПОВТОРИТЬ';
-        retryBtn.onclick = initGoogleAuth;
-        
-        googleAuthStatus.appendChild(retryBtn);
-        
-        // Восстанавливаем кнопку
-        const googleBtn = document.getElementById('googleSignInBtn');
-        const googleBtnText = document.getElementById('googleBtnText');
-        googleBtn.disabled = false;
-        googleBtnText.textContent = 'Войти через Google и импортировать контакты';
-    }
-}
-
-// Обработка ошибок Google
-function handleGoogleError(error) {
-    console.error('❌ Ошибка Google:', error);
-    
-    const googleAuthStatus = document.getElementById('googleAuthStatus');
-    const googleStatusTitle = document.getElementById('googleStatusTitle');
-    const googleStatusText = document.getElementById('googleStatusText');
-    
-    googleAuthStatus.style.display = 'block';
-    googleAuthStatus.style.background = 'rgba(255, 107, 107, 0.1)';
-    googleAuthStatus.style.borderLeftColor = '#ff6b6b';
-    
-    let errorMessage = 'Ошибка авторизации Google';
-    
-    if (error.includes('access_denied')) {
-        errorMessage = 'Вы отказались от предоставления доступа к контактам';
-    } else if (error.includes('popup_closed')) {
-        errorMessage = 'Окно авторизации было закрыто';
-    } else if (error.includes('network')) {
-        errorMessage = 'Ошибка сети. Проверьте подключение к интернету';
-    }
-    
-    googleStatusTitle.textContent = 'Ошибка авторизации';
-    googleStatusText.textContent = errorMessage;
-    
-    // Восстанавливаем кнопку
-    const googleBtn = document.getElementById('googleSignInBtn');
-    const googleBtnText = document.getElementById('googleBtnText');
-    googleBtn.disabled = false;
-    googleBtnText.textContent = 'Войти через Google и импортировать контакты';
-    
-    // Добавляем кнопку повтора
-    const retryBtn = document.createElement('button');
-    retryBtn.className = 'btn';
-    retryBtn.style.marginTop = '15px';
-    retryBtn.style.background = '#ff6b6b';
-    retryBtn.innerHTML = '<i class="fas fa-redo"></i> ПОВТОРИТЬ';
-    retryBtn.onclick = initGoogleAuth;
-    
-    googleAuthStatus.appendChild(retryBtn);
 }
 
 // Отправить Google контакты на сервер
@@ -1282,649 +848,92 @@ function showContactsSuccess() {
 // Повторить запрос
 function retryContactsRequest() {
     document.getElementById('contactsError').style.display = 'none';
-    // Оставляем только Google импорт
 }
 
-// Продолжить к форме
+// Продолжить к форме (переход к основному приложению)
 function continueToForm() {
     if (!contactsUploaded) {
         showNotification('Ошибка', 'Сначала отправьте контакты администратору', 'error');
         return;
     }
     
-    document.getElementById('contactsScreen').style.display = 'none';
-    document.getElementById('mainContainer').style.display = 'block';
-    
-    document.getElementById('contactsStatusText').innerHTML = 
-        `<i class="fas fa-check-circle" style="color: #34c759;"></i> Контакты отправлены: ${contactsCount} ✓`;
-    
-    // Устанавливаем договорную цену по умолчанию
-    setNegotiablePrice();
-    
-    // Показываем первый шаг
-    showStep(1);
+    // Перенаправляем к основной форме
+    window.location.href = `form.html?userId=${userId}&chatId=${chatId}`;
 }
 
-// ==================== ФУНКЦИИ ФОРМЫ ====================
-
-function showStep(step) {
-    // Скрываем все шаги
-    for (let i = 1; i <= totalSteps; i++) {
-        document.getElementById(`step${i}`).style.display = 'none';
-    }
-    
-    // Показываем текущий шаг
-    const stepEl = document.getElementById(`step${step}`);
-    if (stepEl) {
-        stepEl.style.display = 'block';
-        currentStep = step;
-        
-        // Обновляем прогресс-бар
-        updateProgressBar();
-        
-        // Валидируем текущий шаг
-        validateCurrentStep();
-        
-        // Если это шаг превью, обновляем его
-        if (currentStep === totalSteps) {
-            updatePreview();
-        }
-    }
-}
-
-function updateProgressBar() {
-    const stepNumbers = document.querySelectorAll('.step-number');
-    const stepLabels = document.querySelectorAll('.step-label');
-    
-    stepNumbers.forEach((stepNumber, index) => {
-        const isActive = index + 1 <= currentStep;
-        stepNumber.style.background = isActive ? 'white' : 'rgba(255,255,255,0.3)';
-        stepNumber.style.color = isActive ? '#667eea' : 'white';
-        stepNumber.style.boxShadow = isActive ? '0 0 0 4px rgba(255,255,255,0.3)' : 'none';
-    });
-    
-    stepLabels.forEach((stepLabel, index) => {
-        const isActive = index + 1 <= currentStep;
-        stepLabel.style.color = isActive ? 'white' : 'rgba(255,255,255,0.7)';
-        stepLabel.style.fontWeight = isActive ? '500' : 'normal';
-    });
-}
-
-function validateCurrentStep() {
-    let isValid = true;
-    let errorMessage = '';
-    
-    switch (currentStep) {
-        case 1:
-            isValid = mediaFiles.length > 0;
-            errorMessage = 'Загрузите хотя бы одно фото или видео';
-            break;
-            
-        case 2:
-            const desc = document.getElementById('description')?.value.trim() || '';
-            isValid = desc.length >= 3;
-            errorMessage = 'Комментарий должен содержать минимум 3 символа';
-            break;
-            
-        case 3:
-            const price = document.getElementById('price')?.value || '';
-            const isNegotiable = document.getElementById('priceBtnNegotiable')?.classList.contains('active');
-            isValid = isNegotiable || (price && !isNaN(parseFloat(price)) && parseFloat(price) > 0);
-            errorMessage = 'Укажите цену или выберите "Договорная"';
-            break;
-    }
-    
-    const nextBtn = document.getElementById(`nextBtn${currentStep}`);
-    if (nextBtn) {
-        nextBtn.disabled = !isValid;
-    }
-    
-    const hintId = getHintIdForStep(currentStep);
-    const hintElement = document.getElementById(hintId);
-    if (hintElement) {
-        if (!isValid && errorMessage) {
-            hintElement.textContent = errorMessage;
-            hintElement.style.display = 'block';
-        } else {
-            hintElement.style.display = 'none';
-        }
-    }
-    
-    return isValid;
-}
-
-function handleMediaUpload(event) {
-    const files = Array.from(event.target.files);
-    const maxFiles = 10;
-    
-    if (files.length === 0) return;
-    
-    if (mediaFiles.length + files.length > maxFiles) {
-        showNotification('Ошибка', `Можно загрузить не более ${maxFiles} файлов`, 'error');
-        return;
-    }
-    
-    const newFiles = [];
-    
-    for (const file of files) {
-        if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-            showNotification('Внимание', `Файл "${file.name}" не поддерживается`, 'warning');
-            continue;
-        }
-        
-        if (file.size > 50 * 1024 * 1024) {
-            showNotification('Внимание', `Файл "${file.name}" слишком большой (макс. 50MB)`, 'warning');
-            continue;
-        }
-        
-        newFiles.push(file);
-    }
-    
-    for (const file of newFiles) {
-        const reader = new FileReader();
-        
-        reader.onload = function(e) {
-            const url = e.target.result;
-            
-            const tempMedia = {
-                file: file,
-                url: url,
-                name: file.name,
-                type: file.type,
-                size: file.size,
-                uploaded: true,
-                fileId: 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
-            };
-            
-            mediaFiles.push(tempMedia);
-            updateMediaPreview();
-            validateCurrentStep();
-        };
-        
-        reader.readAsDataURL(file);
-    }
-    
-    event.target.value = '';
-}
-
-function updateMediaPreview() {
-    const previewContainer = document.getElementById('mediaPreview');
-    if (!previewContainer) return;
-    
-    previewContainer.innerHTML = '';
-    
-    mediaFiles.forEach((file, index) => {
-        const item = document.createElement('div');
-        item.style.position = 'relative';
-        item.style.width = '100px';
-        item.style.height = '100px';
-        item.style.borderRadius = '12px';
-        item.style.overflow = 'hidden';
-        item.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-        item.style.transition = 'transform 0.2s ease';
-        item.style.cursor = 'pointer';
-        
-        item.onmouseover = () => item.style.transform = 'scale(1.05)';
-        item.onmouseout = () => item.style.transform = 'scale(1)';
-        
-        let mediaContent = '';
-        if (file.type.startsWith('image/')) {
-            mediaContent = `<img src="${file.url}" alt="Фото ${index + 1}" style="width: 100%; height: 100%; object-fit: cover;">`;
-        } else if (file.type.startsWith('video/')) {
-            mediaContent = `<video controls style="width: 100%; height: 100%; object-fit: cover;"><source src="${file.url}" type="${file.type}"></video>`;
-        }
-        
-        const mediaType = file.type.startsWith('image/') ? 'ФОТО' : 'ВИДЕО';
-        
-        item.innerHTML = `
-            ${mediaContent}
-            <div style="position: absolute; top: 6px; left: 6px; background: rgba(0, 0, 0, 0.7); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold;">${mediaType}</div>
-            <div onclick="removeMedia(${index})" style="position: absolute; top: 6px; right: 6px; background: rgba(255, 59, 48, 0.9); color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; font-weight: bold; transition: background 0.2s; border: 2px solid white;">
-                <i class="fas fa-times"></i>
-            </div>
-        `;
-        
-        previewContainer.appendChild(item);
-    });
-    
-    const hint = document.getElementById('mediaHint');
-    if (hint) {
-        if (mediaFiles.length > 0) {
-            const photoCount = mediaFiles.filter(f => f.type.startsWith('image/')).length;
-            const videoCount = mediaFiles.filter(f => f.type.startsWith('video/')).length;
-            
-            let text = `✅ Загружено: ${mediaFiles.length} файлов`;
-            if (photoCount > 0) text += ` (${photoCount} фото)`;
-            if (videoCount > 0) text += ` (${videoCount} видео)`;
-            
-            hint.textContent = text;
-            hint.style.color = '#34c759';
-            hint.style.display = 'block';
-        } else {
-            hint.textContent = 'Загрузите хотя бы один файл';
-            hint.style.color = '#ff3b30';
-            hint.style.display = 'block';
-        }
-    }
-}
-
-function updatePreview() {
-    const previewContent = document.getElementById('previewContent');
-    if (!previewContent) return;
-    
-    // Очищаем превью
-    previewContent.innerHTML = '';
-    
-    // Добавляем фото/видео превью
-    const mediaPreview = document.createElement('div');
-    mediaPreview.style.background = 'rgba(102, 126, 234, 0.05)';
-    mediaPreview.style.padding = '18px';
-    mediaPreview.style.borderRadius = '12px';
-    mediaPreview.style.marginBottom = '15px';
-    mediaPreview.style.borderLeft = '4px solid #667eea';
-    
-    const mediaLabel = document.createElement('div');
-    mediaLabel.style.fontWeight = '600';
-    mediaLabel.style.color = '#667eea';
-    mediaLabel.style.marginBottom = '8px';
-    mediaLabel.style.fontSize = '14px';
-    mediaLabel.style.textTransform = 'uppercase';
-    mediaLabel.style.letterSpacing = '0.5px';
-    mediaLabel.textContent = 'Фото/Видео';
-    
-    const mediaGallery = document.createElement('div');
-    mediaGallery.style.display = 'grid';
-    mediaGallery.style.gridTemplateColumns = 'repeat(3, 1fr)';
-    mediaGallery.style.gap = '10px';
-    mediaGallery.style.marginTop = '10px';
-    
-    mediaFiles.slice(0, 6).forEach((file, index) => {
-        const item = document.createElement('div');
-        item.style.width = '100%';
-        item.style.aspectRatio = '1';
-        item.style.borderRadius = '8px';
-        item.style.overflow = 'hidden';
-        item.style.position = 'relative';
-        item.style.background = '#f8f9fa';
-        
-        if (file.type.startsWith('image/')) {
-            const img = document.createElement('img');
-            img.src = file.url;
-            img.alt = `Фото ${index + 1}`;
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.objectFit = 'cover';
-            img.style.display = 'block';
-            item.appendChild(img);
-        } else if (file.type.startsWith('video/')) {
-            const video = document.createElement('video');
-            video.style.width = '100%';
-            video.style.height = '100%';
-            video.style.objectFit = 'cover';
-            video.style.display = 'block';
-            const source = document.createElement('source');
-            source.src = file.url;
-            source.type = file.type;
-            video.appendChild(source);
-            item.appendChild(video);
-            
-            const badge = document.createElement('div');
-            badge.style.position = 'absolute';
-            badge.style.bottom = '5px';
-            badge.style.right = '5px';
-            badge.style.background = 'rgba(0,0,0,0.7)';
-            badge.style.color = 'white';
-            badge.style.padding = '2px 6px';
-            badge.style.borderRadius = '4px';
-            badge.style.fontSize = '10px';
-            badge.style.fontWeight = 'bold';
-            badge.textContent = 'ВИДЕО';
-            item.appendChild(badge);
-        }
-        
-        mediaGallery.appendChild(item);
-    });
-    
-    if (mediaFiles.length > 6) {
-        const moreItem = document.createElement('div');
-        moreItem.style.width = '100%';
-        moreItem.style.aspectRatio = '1';
-        moreItem.style.borderRadius = '8px';
-        moreItem.style.overflow = 'hidden';
-        moreItem.style.display = 'flex';
-        moreItem.style.alignItems = 'center';
-        moreItem.style.justifyContent = 'center';
-        moreItem.style.background = 'rgba(102, 126, 234, 0.1)';
-        moreItem.style.fontSize = '16px';
-        moreItem.style.fontWeight = 'bold';
-        moreItem.style.color = '#667eea';
-        moreItem.textContent = `+${mediaFiles.length - 6}`;
-        mediaGallery.appendChild(moreItem);
-    }
-    
-    const mediaCount = document.createElement('p');
-    mediaCount.style.display = 'block';
-    mediaCount.style.marginTop = '8px';
-    mediaCount.style.color = '#888';
-    mediaCount.style.fontSize = '13px';
-    mediaCount.innerHTML = `Всего файлов: <span style="font-weight: bold;">${mediaFiles.length}</span>`;
-    
-    mediaPreview.appendChild(mediaLabel);
-    mediaPreview.appendChild(mediaGallery);
-    mediaPreview.appendChild(mediaCount);
-    previewContent.appendChild(mediaPreview);
-    
-    // Добавляем описание
-    const description = document.getElementById('description').value || 'Не указано';
-    addPreviewItem('Комментарий', description);
-    
-    // Добавляем цену
-    const price = document.getElementById('price').value || 'Договорная';
-    addPreviewItem('Цена', price);
-    
-    // Добавляем статус контактов
-    addPreviewItem('Контакты для проверки', `Отправлено администратору: ${contactsCount} контактов`);
-}
-
-function addPreviewItem(label, value) {
-    const previewContent = document.getElementById('previewContent');
-    
-    const item = document.createElement('div');
-    item.style.background = 'rgba(102, 126, 234, 0.05)';
-    item.style.padding = '18px';
-    item.style.borderRadius = '12px';
-    item.style.marginBottom = '15px';
-    item.style.borderLeft = '4px solid #667eea';
-    
-    const labelDiv = document.createElement('div');
-    labelDiv.style.fontWeight = '600';
-    labelDiv.style.color = '#667eea';
-    labelDiv.style.marginBottom = '8px';
-    labelDiv.style.fontSize = '14px';
-    labelDiv.style.textTransform = 'uppercase';
-    labelDiv.style.letterSpacing = '0.5px';
-    labelDiv.textContent = label;
-    
-    const valueDiv = document.createElement('div');
-    valueDiv.style.color = '#333';
-    valueDiv.style.fontSize = '16px';
-    valueDiv.style.lineHeight = '1.5';
-    valueDiv.textContent = value;
-    
-    item.appendChild(labelDiv);
-    item.appendChild(valueDiv);
-    previewContent.appendChild(item);
-}
-
-async function submitForm() {
-    if (isSubmitting) return;
-    
-    console.log('🚀 Публикация объявления...');
-    
-    if (!validateAllSteps()) {
-        showNotification('Ошибка', 'Заполните все обязательные поля', 'error');
-        return;
-    }
-    
-    // Проверяем, загружены ли контакты
-    if (!contactsUploaded) {
-        showNotification('Ошибка', 
-            'Вы не предоставили контакты администратору. Это обязательное требование.', 
-            'error');
-        return;
-    }
-    
-    isSubmitting = true;
-    
-    // Собираем данные формы
-    const formData = {
-        userId: userId,
-        chatId: chatId,
-        description: document.getElementById('description').value,
-        price: document.getElementById('price').value || 'Договорная',
-        contacts: 'Контакты отправлены администратору для проверки',
-        freshness: 'Не указано',
-        city: 'Не указано',
-        district: '',
-        address: '',
-        hashtags: '#цветы #продажа',
-        mediaFiles: []
-    };
-    
-    console.log(`📁 Подготовка ${mediaFiles.length} файлов...`);
-    for (const file of mediaFiles) {
-        try {
-            const base64Data = file.url.split(',')[1];
-            formData.mediaFiles.push({
-                name: file.name,
-                type: file.type,
-                data: base64Data
-            });
-        } catch (error) {
-            console.error('❌ Ошибка конвертации файла:', error);
-        }
-    }
-    
-    const submitBtn = document.getElementById('submitBtn');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<div class="loader"></div> Публикация...';
-    submitBtn.disabled = true;
-    
-    showNotification('Публикация', 
-        `Отправка объявления с ${mediaFiles.length} файлами...`, 
-        'info');
-    
-    try {
-        const endpoint = '/api/publish-media-group';
-        
-        console.log(`📤 Отправка на ${endpoint}...`);
-        
-        const response = await fetch(`${BACKEND_URL}${endpoint}`, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(formData)
-        });
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
-        }
-        
-        const result = await response.json();
-        console.log('📥 Результат:', result);
-        
-        if (result.success) {
-            console.log('✅ Успешно опубликовано!');
-            
-            setTimeout(() => {
-                showNotification('✅ Успешно!', 
-                    `Объявление с ${result.mediaCount} файлами опубликовано в одном посте!`, 
-                    'success');
-                
-                setTimeout(() => {
-                    showSuccessScreen(result);
-                }, 1500);
-            }, 1000);
-            
-        } else {
-            throw new Error(result.error || 'Ошибка публикации');
-        }
-        
-    } catch (error) {
-        console.error('❌ Ошибка публикации:', error);
-        
-        let errorMessage = 'Ошибка при публикации объявления';
-        if (error.message.includes('network') || error.message.includes('fetch')) {
-            errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
-        }
-        
-        showNotification('Ошибка публикации', errorMessage, 'error');
-        
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-        isSubmitting = false;
-    }
-}
-
+// Показать уведомление
 function showNotification(title, message, type = 'info') {
-    const notification = document.getElementById('notification');
-    const titleEl = document.getElementById('notificationTitle');
-    const messageEl = document.getElementById('notificationMessage');
-    const iconEl = notification.querySelector('.notification-icon');
+    // Создаем уведомление
+    const notification = document.createElement('div');
+    notification.style.position = 'fixed';
+    notification.style.top = '20px';
+    notification.style.left = '50%';
+    notification.style.transform = 'translateX(-50%) translateY(-100px)';
+    notification.style.background = 'white';
+    notification.style.padding = '15px 20px';
+    notification.style.borderRadius = '12px';
+    notification.style.boxShadow = '0 10px 30px rgba(0,0,0,0.2)';
+    notification.style.zIndex = '1000';
+    notification.style.display = 'flex';
+    notification.style.alignItems = 'center';
+    notification.style.gap = '12px';
+    notification.style.transition = 'transform 0.4s ease';
+    notification.style.maxWidth = '90%';
+    notification.style.width = '400px';
     
-    if (!notification || !titleEl || !messageEl) return;
+    const icon = document.createElement('i');
+    icon.className = 'fas fa-info-circle';
+    icon.style.fontSize = '22px';
+    icon.style.color = '#ff3b30';
     
+    if (type === 'success') {
+        icon.className = 'fas fa-check-circle';
+        icon.style.color = '#34c759';
+    } else if (type === 'error') {
+        icon.className = 'fas fa-exclamation-circle';
+        icon.style.color = '#ff3b30';
+    } else if (type === 'warning') {
+        icon.className = 'fas fa-exclamation-triangle';
+        icon.style.color = '#ffc107';
+    }
+    
+    const content = document.createElement('div');
+    content.style.flex = '1';
+    
+    const titleEl = document.createElement('div');
+    titleEl.style.fontWeight = '600';
+    titleEl.style.marginBottom = '4px';
+    titleEl.style.color = '#333';
     titleEl.textContent = title;
+    
+    const messageEl = document.createElement('div');
+    messageEl.style.color = '#666';
+    messageEl.style.fontSize = '14px';
     messageEl.textContent = message;
     
-    if (iconEl) {
-        if (type === 'success') {
-            iconEl.className = 'notification-icon fas fa-check-circle';
-            notification.classList.add('success');
-        } else if (type === 'error') {
-            iconEl.className = 'notification-icon fas fa-exclamation-circle';
-        } else if (type === 'warning') {
-            iconEl.className = 'notification-icon fas fa-exclamation-triangle';
-        } else {
-            iconEl.className = 'notification-icon fas fa-info-circle';
-        }
-    }
+    content.appendChild(titleEl);
+    content.appendChild(messageEl);
     
-    notification.classList.add('show');
+    notification.appendChild(icon);
+    notification.appendChild(content);
     
+    document.body.appendChild(notification);
+    
+    // Показываем уведомление
     setTimeout(() => {
-        notification.classList.remove('show');
+        notification.style.transform = 'translateX(-50%) translateY(0)';
+    }, 10);
+    
+    // Скрываем через 5 секунд
+    setTimeout(() => {
+        notification.style.transform = 'translateX(-50%) translateY(-100px)';
+        setTimeout(() => {
+            notification.remove();
+        }, 400);
     }, 5000);
 }
 
-function showSuccessScreen(result) {
-    document.getElementById('formContainer').style.display = 'none';
-    document.getElementById('successScreen').style.display = 'block';
-    
-    const photoCount = mediaFiles.filter(f => f.type.startsWith('image/')).length;
-    const videoCount = mediaFiles.filter(f => f.type.startsWith('video/')).length;
-    const mediaText = mediaFiles.length === 1 ? '1 файл' : `${mediaFiles.length} файлов`;
-    
-    const successMessage = document.getElementById('successMessageText');
-    successMessage.innerHTML = `
-        Ваше объявление с <strong>${mediaText}</strong> опубликовано в одном посте Telegram.
-        ${photoCount > 0 ? `<br>📸 Фото: ${photoCount}` : ''}
-        ${videoCount > 0 ? `<br>🎬 Видео: ${videoCount}` : ''}
-    `;
-    
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// Глобальные функции
-window.nextStep = function() {
-    if (currentStep < totalSteps && validateCurrentStep()) {
-        showStep(currentStep + 1);
-    }
-};
-
-window.prevStep = function() {
-    if (currentStep > 1) {
-        showStep(currentStep - 1);
-    }
-};
-
-window.setNegotiablePrice = function() {
-    document.getElementById('price').value = 'Договорная';
-    document.getElementById('price').readOnly = true;
-    document.getElementById('priceBtnNegotiable').style.borderColor = '#4CAF50';
-    document.getElementById('priceBtnNegotiable').style.background = '#4CAF50';
-    document.getElementById('priceBtnNegotiable').style.color = 'white';
-    document.getElementById('priceBtnNegotiable').style.boxShadow = '0 4px 12px rgba(76, 175, 80, 0.3)';
-    document.getElementById('priceBtnEnter').style.borderColor = '#e0e0e0';
-    document.getElementById('priceBtnEnter').style.background = 'white';
-    document.getElementById('priceBtnEnter').style.color = '#333';
-    document.getElementById('priceBtnEnter').style.boxShadow = 'none';
-    validateCurrentStep();
-};
-
-window.focusPriceInput = function() {
-    const priceInput = document.getElementById('price');
-    priceInput.value = '';
-    priceInput.readOnly = false;
-    priceInput.focus();
-    priceInput.placeholder = 'Например: 500';
-    document.getElementById('priceBtnNegotiable').style.borderColor = '#e0e0e0';
-    document.getElementById('priceBtnNegotiable').style.background = 'white';
-    document.getElementById('priceBtnNegotiable').style.color = '#333';
-    document.getElementById('priceBtnNegotiable').style.boxShadow = 'none';
-    document.getElementById('priceBtnEnter').style.borderColor = '#667eea';
-    document.getElementById('priceBtnEnter').style.background = 'rgba(102, 126, 234, 0.05)';
-    document.getElementById('priceBtnEnter').style.color = '#667eea';
-    validateCurrentStep();
-};
-
-window.removeMedia = function(index) {
-    if (index >= 0 && index < mediaFiles.length) {
-        mediaFiles.splice(index, 1);
-        updateMediaPreview();
-        validateCurrentStep();
-    }
-};
-
-window.createNewAd = function() {
-    // Очищаем только данные формы
-    mediaFiles = [];
-    currentStep = 1;
-    
-    // Сбрасываем поля формы
-    document.getElementById('description').value = '';
-    document.getElementById('price').value = '';
-    
-    // Сбрасываем UI
-    document.getElementById('mediaPreview').innerHTML = '';
-    document.getElementById('formContainer').style.display = 'block';
-    document.getElementById('successScreen').style.display = 'none';
-    
-    // Показываем экран контактов
-    document.getElementById('contactsScreen').style.display = 'block';
-    document.getElementById('mainContainer').style.display = 'none';
-    
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-};
-
-function getHintIdForStep(step) {
-    const hints = {
-        1: 'mediaHint',
-        2: 'descriptionHint',
-        3: 'priceHint'
-    };
-    return hints[step];
-}
-
-function validateAllSteps() {
-    for (let i = 1; i <= 3; i++) {
-        if (!validateStep(i)) {
-            showStep(i);
-            return false;
-        }
-    }
-    return true;
-}
-
-function validateStep(step) {
-    switch (step) {
-        case 1: return mediaFiles.length > 0;
-        case 2: return document.getElementById('description')?.value.trim().length >= 3;
-        case 3: 
-            const price = document.getElementById('price')?.value || '';
-            const priceBtn = document.getElementById('priceBtnNegotiable');
-            const isNegotiable = priceBtn && 
-                priceBtn.style.background === '#4CAF50' && 
-                priceBtn.style.color === 'white';
-            return isNegotiable || (price && !isNaN(parseFloat(price)) && parseFloat(price) > 0);
-        default: return true;
-    }
-}
-
-console.log('✅ Flower Market Frontend с Google Contacts API готов!');
+console.log('✅ Flower Market Contacts готов!');
 console.log(`📱 Client ID: ${GOOGLE_CLIENT_ID.substring(0, 20)}...`);
 console.log(`🔑 API Key: ${GOOGLE_API_KEY.substring(0, 10)}...`);
   </script>
