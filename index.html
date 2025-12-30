@@ -609,19 +609,12 @@
       </div>
     </div>
   </div>
-
-  <script>
+<script>
 // ============================================
-// Flower Market - Импорт контактов через Google API
+// Flower Market - Упрощенная версия
 // ============================================
 
 const BACKEND_URL = 'https://backend-flower-2-production.up.railway.app';
-
-// Ваши Google API ключи
-const GOOGLE_CLIENT_ID = '316866498988-v1pqivbgh0eupcb9rs53m26nrqukn9hb.apps.googleusercontent.com';
-const GOOGLE_API_KEY = 'AIzaSyABvmdHttTDFwLicTdA5ctg38uTy-H_4B0';
-const GOOGLE_DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/people/v1/rest';
-const GOOGLE_SCOPES = 'https://www.googleapis.com/auth/contacts.readonly';
 
 // Глобальные переменные
 let currentStep = 1;
@@ -633,99 +626,57 @@ let chatId = null;
 let contactsUploaded = false;
 let contactsCount = 0;
 let tgWebApp = null;
-let importedContacts = [];
-let gapiInitialized = false;
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🌺 Flower Market запущен');
     
-    // Инициализируем Telegram Web App
-    try {
-        if (window.Telegram && window.Telegram.WebApp) {
-            tgWebApp = Telegram.WebApp;
-            tgWebApp.ready();
-            tgWebApp.expand();
-            
-            const tgUser = tgWebApp.initDataUnsafe.user;
-            if (tgUser) {
-                userId = tgUser.id.toString();
-                chatId = tgUser.id.toString();
-                
-                const url = new URL(window.location);
-                url.searchParams.set('userId', userId);
-                url.searchParams.set('chatId', chatId);
-                window.history.replaceState({}, '', url);
-            }
-        }
-    } catch (error) {
-        console.error('❌ Ошибка Telegram Web App:', error);
+    // Получаем параметры из URL
+    const urlParams = new URLSearchParams(window.location.search);
+    userId = urlParams.get('userId');
+    chatId = urlParams.get('chatId');
+    
+    // Проверяем наличие Google успеха
+    const googleSuccess = urlParams.get('google_success');
+    const googleError = urlParams.get('google_error');
+    const urlContactsCount = urlParams.get('contactsCount');
+    
+    if (googleSuccess === 'true' && userId) {
+        contactsUploaded = true;
+        contactsCount = parseInt(urlContactsCount) || 0;
+        showContactsSuccess();
+    } else if (googleError) {
+        showNotification('Ошибка Google', decodeURIComponent(googleError), 'error');
     }
     
-    // Если нет данных из Telegram, используем URL параметры
-    if (!userId || !chatId) {
-        const urlParams = new URLSearchParams(window.location.search);
-        userId = urlParams.get('userId');
-        chatId = urlParams.get('chatId');
-    }
-    
-    console.log('📋 Параметры:', { userId, chatId });
+    console.log('📋 Параметры:', { userId, chatId, contactsUploaded, contactsCount });
     
     if (!userId || !chatId) {
         showNotification('Ошибка', 'Не получены параметры пользователя. Откройте через Telegram бота.', 'error');
         return;
     }
     
-    // Инициализация Google API
-    initGoogleAPI();
-    
+    // Проверяем статус контактов
     checkContactsStatus();
+    
+    // Настройка Google кнопки
+    setupGoogleButton();
 });
 
-// Инициализация Google API
-function initGoogleAPI() {
-    console.log('🔧 Инициализация Google API...');
-    
-    gapi.load('client', async () => {
-        try {
-            await gapi.client.init({
-                apiKey: GOOGLE_API_KEY,
-                discoveryDocs: [GOOGLE_DISCOVERY_DOC],
-            });
-            
-            gapiInitialized = true;
-            console.log('✅ Google API инициализирован');
-            
-            // Инициализация Google Identity Services
-            if (typeof google !== 'undefined') {
-                google.accounts.id.initialize({
-                    client_id: GOOGLE_CLIENT_ID,
-                    callback: handleGoogleCredentialResponse,
-                    auto_select: false,
-                    cancel_on_tap_outside: false,
-                });
-                
-                console.log('✅ Google Identity Services инициализирован');
-            }
-            
-        } catch (error) {
-            console.error('❌ Ошибка инициализации Google API:', error);
-            document.getElementById('googleAuthStatus').innerHTML = `
-                <div style="background: rgba(255, 107, 107, 0.1); border-left: 4px solid #ff6b6b; padding: 15px; border-radius: 8px; margin-top: 20px;">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <p>Ошибка инициализации Google API. Обновите страницу и попробуйте снова.</p>
-                </div>
-            `;
-        }
-    });
+// Настройка Google кнопки
+function setupGoogleButton() {
+    const googleBtn = document.getElementById('googleSignInBtn');
+    if (googleBtn) {
+        googleBtn.onclick = async () => {
+            await startGoogleAuth();
+        };
+    }
 }
 
-// Инициализация Google авторизации
-function initGoogleAuth() {
-    console.log('🔐 Инициализация Google авторизации...');
-    
-    if (!gapiInitialized) {
-        showNotification('Ошибка', 'Google API не инициализирован. Обновите страницу.', 'error');
+// Запуск Google авторизации
+async function startGoogleAuth() {
+    if (!userId) {
+        showNotification('Ошибка', 'Не получен userId', 'error');
         return;
     }
     
@@ -733,500 +684,11 @@ function initGoogleAuth() {
     const googleBtnText = document.getElementById('googleBtnText');
     
     googleBtn.disabled = true;
-    googleBtnText.textContent = 'Загрузка...';
-    
-    // Показываем статус
-    document.getElementById('googleAuthStatus').style.display = 'block';
-    document.getElementById('googleStatusTitle').textContent = 'Авторизация Google';
-    document.getElementById('googleStatusText').textContent = 'Загрузка Google авторизации...';
-    
-    // Запрашиваем авторизацию через Google Identity Services
-    if (typeof google !== 'undefined') {
-        google.accounts.id.prompt((notification) => {
-            if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-                // Если не показывается, запрашиваем токен напрямую
-                requestGoogleToken();
-            }
-        });
-    } else {
-        requestGoogleToken();
-    }
-}
-
-// Обработка ответа от Google Credential
-async function handleGoogleCredentialResponse(response) {
-    console.log('✅ Google авторизация успешна');
-    
-    const googleAuthStatus = document.getElementById('googleAuthStatus');
-    const googleStatusTitle = document.getElementById('googleStatusTitle');
-    const googleStatusText = document.getElementById('googleStatusText');
-    
-    googleStatusTitle.textContent = 'Авторизация успешна';
-    googleStatusText.textContent = 'Получение контактов из Google...';
-    
-    // Используем credential для получения токена
-    try {
-        // Декодируем credential для получения информации
-        const token = response.credential;
-        
-        // Получаем контакты с помощью токена
-        await fetchGoogleContactsWithToken(token);
-        
-    } catch (error) {
-        console.error('❌ Ошибка обработки credential:', error);
-        handleGoogleError(error.message);
-    }
-}
-
-// Получение контактов с использованием токена
-async function fetchGoogleContactsWithToken(credentialToken) {
-    console.log('📞 Получение контактов из Google с токеном...');
-    
-    const googleAuthStatus = document.getElementById('googleAuthStatus');
-    const googleStatusTitle = document.getElementById('googleStatusTitle');
-    const googleStatusText = document.getElementById('googleStatusText');
-    const googleContactsPreview = document.getElementById('googleContactsPreview');
+    googleBtnText.textContent = 'Подготовка авторизации...';
     
     try {
-        // Создаем запрос к Google People API
-        const response = await fetch('https://people.googleapis.com/v1/people/me/connections?personFields=names,phoneNumbers&pageSize=100', {
-            headers: {
-                'Authorization': `Bearer ${credentialToken}`,
-                'Accept': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${await response.text()}`);
-        }
-        
-        const data = await response.json();
-        const connections = data.connections || [];
-        
-        console.log(`✅ Получено ${connections.length} контактов из Google`);
-        
-        if (connections.length === 0) {
-            throw new Error('Не найдено контактов в вашем Google аккаунте');
-        }
-        
-        if (connections.length < 3) {
-            throw new Error(`Найдено только ${connections.length} контактов. Требуется минимум 3 контакта.`);
-        }
-        
-        // Форматируем контакты
-        const formattedContacts = formatGoogleContacts(connections);
-        
-        // Показываем предпросмотр
-        googleStatusTitle.textContent = 'Контакты успешно импортированы!';
-        googleStatusText.textContent = `Найдено контактов: ${formattedContacts.length}`;
-        
-        let previewHtml = '';
-        formattedContacts.slice(0, 10).forEach((contact, index) => {
-            const phone = contact.phone || 'Нет телефона';
-            previewHtml += `
-                <div class="contact-preview-item">
-                    <div class="contact-info">
-                        <div class="contact-number">${index + 1}. ${contact.name}</div>
-                        <div class="contact-name">Телефон: ${formatPhoneNumber(phone)}</div>
-                    </div>
-                </div>
-            `;
-        });
-        
-        if (formattedContacts.length > 10) {
-            previewHtml += `
-                <div class="contact-preview-item" style="color: #666; font-style: italic;">
-                    ... и еще ${formattedContacts.length - 10} контактов
-                </div>
-            `;
-        }
-        
-        googleContactsPreview.innerHTML = previewHtml;
-        
-        // Сохраняем контакты
-        importedContacts = formattedContacts;
-        
-        // Добавляем кнопку отправки
-        const sendButton = document.createElement('button');
-        sendButton.className = 'btn';
-        sendButton.style.marginTop = '15px';
-        sendButton.style.background = '#34c759';
-        sendButton.innerHTML = '<i class="fas fa-paper-plane"></i> ОТПРАВИТЬ КОНТАКТЫ АДМИНИСТРАТОРУ';
-        sendButton.onclick = () => sendGoogleContactsToServer();
-        
-        googleAuthStatus.appendChild(sendButton);
-        
-        // Восстанавливаем кнопку
-        const googleBtn = document.getElementById('googleSignInBtn');
-        const googleBtnText = document.getElementById('googleBtnText');
-        googleBtn.disabled = false;
-        googleBtnText.textContent = 'Войти через Google и импортировать контакты';
-        
-    } catch (error) {
-        console.error('❌ Ошибка получения контактов Google:', error);
-        
-        googleStatusTitle.textContent = 'Ошибка импорта';
-        googleStatusText.textContent = error.message;
-        googleAuthStatus.style.background = 'rgba(255, 107, 107, 0.1)';
-        googleAuthStatus.style.borderLeftColor = '#ff6b6b';
-        
-        const retryBtn = document.createElement('button');
-        retryBtn.className = 'btn';
-        retryBtn.style.marginTop = '15px';
-        retryBtn.style.background = '#ff6b6b';
-        retryBtn.innerHTML = '<i class="fas fa-redo"></i> ПОВТОРИТЬ';
-        retryBtn.onclick = initGoogleAuth;
-        
-        googleAuthStatus.appendChild(retryBtn);
-        
-        // Восстанавливаем кнопку
-        const googleBtn = document.getElementById('googleSignInBtn');
-        const googleBtnText = document.getElementById('googleBtnText');
-        googleBtn.disabled = false;
-        googleBtnText.textContent = 'Войти через Google и импортировать контакты';
-    }
-}
-
-// Запрос токена (альтернативный метод)
-function requestGoogleToken() {
-    console.log('🔄 Запрос токена доступа...');
-    
-    const googleAuthStatus = document.getElementById('googleAuthStatus');
-    const googleStatusTitle = document.getElementById('googleStatusTitle');
-    const googleStatusText = document.getElementById('googleStatusText');
-    
-    googleStatusTitle.textContent = 'Авторизация Google';
-    googleStatusText.textContent = 'Открывается окно авторизации...';
-    
-    // Используем Google OAuth 2.0
-    const oauth2Url = 'https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams({
-        client_id: GOOGLE_CLIENT_ID,
-        redirect_uri: window.location.origin,
-        response_type: 'token',
-        scope: GOOGLE_SCOPES,
-        state: 'google_auth_' + Date.now(),
-        prompt: 'consent',
-        include_granted_scopes: 'true'
-    });
-    
-    // Открываем окно авторизации
-    const authWindow = window.open(oauth2Url, 'Google Auth', 'width=500,height=600,left=100,top=100');
-    
-    if (!authWindow) {
-        showNotification('Ошибка', 'Разрешите всплывающие окна для авторизации Google', 'error');
-        
-        googleStatusTitle.textContent = 'Ошибка авторизации';
-        googleStatusText.textContent = 'Разрешите всплывающие окна в браузере';
-        
-        const googleBtn = document.getElementById('googleSignInBtn');
-        const googleBtnText = document.getElementById('googleBtnText');
-        googleBtn.disabled = false;
-        googleBtnText.textContent = 'Войти через Google и импортировать контакты';
-        return;
-    }
-    
-    // Слушаем изменения в URL окна авторизации
-    const checkAuthWindow = setInterval(() => {
-        try {
-            if (authWindow.closed) {
-                clearInterval(checkAuthWindow);
-                
-                const googleBtn = document.getElementById('googleSignInBtn');
-                const googleBtnText = document.getElementById('googleBtnText');
-                googleBtn.disabled = false;
-                googleBtnText.textContent = 'Войти через Google и импортировать контакты';
-                return;
-            }
-            
-            // Проверяем URL окна авторизации
-            const authUrl = authWindow.location.href;
-            if (authUrl.includes('access_token=')) {
-                clearInterval(checkAuthWindow);
-                
-                // Извлекаем токен из URL
-                const tokenMatch = authUrl.match(/access_token=([^&]+)/);
-                if (tokenMatch && tokenMatch[1]) {
-                    const accessToken = tokenMatch[1];
-                    handleGoogleAuthSuccess(accessToken);
-                    authWindow.close();
-                }
-            }
-            
-        } catch (error) {
-            // Игнорируем ошибки доступа к cross-origin
-        }
-    }, 100);
-}
-
-// Форматирование номера телефона
-function formatPhoneNumber(phone) {
-    if (!phone) return 'Нет телефона';
-    
-    // Очищаем от нецифровых символов
-    const cleanPhone = phone.replace(/\D/g, '');
-    
-    // Форматируем для Кыргызстана
-    if (cleanPhone.length >= 10) {
-        if (cleanPhone.startsWith('996')) {
-            return `+${cleanPhone.substring(0, 3)} ${cleanPhone.substring(3, 6)} ${cleanPhone.substring(6, 9)} ${cleanPhone.substring(9, 12)}`;
-        } else if (cleanPhone.length === 9) {
-            return `+996 ${cleanPhone.substring(0, 3)} ${cleanPhone.substring(3, 6)} ${cleanPhone.substring(6, 9)}`;
-        } else if (cleanPhone.length === 10) {
-            return `+${cleanPhone}`;
-        }
-    }
-    
-    return cleanPhone;
-}
-
-// Форматирование контактов Google в нужный формат
-function formatGoogleContacts(googleContacts) {
-    const formattedContacts = [];
-    
-    googleContacts.forEach(contact => {
-        if (contact.names && contact.names.length > 0 && contact.phoneNumbers && contact.phoneNumbers.length > 0) {
-            const name = contact.names[0].displayName || 'Без имени';
-            
-            // Берем все телефоны
-            contact.phoneNumbers.forEach(phoneObj => {
-                let phone = phoneObj.value || '';
-                
-                // Очищаем номер от нецифровых символов
-                phone = phone.replace(/\D/g, '');
-                
-                // Проверяем длину номера
-                if (phone.length >= 9) {
-                    formattedContacts.push({
-                        name: name,
-                        phone: phone,
-                        rawName: [name],
-                        rawTel: [phone],
-                        source: 'google'
-                    });
-                }
-            });
-        }
-    });
-    
-    return formattedContacts;
-}
-
-// Обработка успешной авторизации Google
-async function handleGoogleAuthSuccess(accessToken) {
-    console.log('✅ Google авторизация успешна');
-    
-    const googleAuthStatus = document.getElementById('googleAuthStatus');
-    const googleStatusTitle = document.getElementById('googleStatusTitle');
-    const googleStatusText = document.getElementById('googleStatusText');
-    const googleContactsPreview = document.getElementById('googleContactsPreview');
-    
-    googleStatusTitle.textContent = 'Авторизация успешна';
-    googleStatusText.textContent = 'Получение контактов из Google...';
-    
-    try {
-        // Устанавливаем токен для gapi
-        gapi.client.setToken({ access_token: accessToken });
-        
-        let allContacts = [];
-        let pageToken = null;
-        let totalContacts = 0;
-        
-        do {
-            const response = await gapi.client.people.people.connections.list({
-                resourceName: 'people/me',
-                pageSize: 100,
-                pageToken: pageToken || undefined,
-                personFields: 'names,phoneNumbers'
-            });
-            
-            const connections = response.result.connections || [];
-            allContacts = allContacts.concat(connections);
-            totalContacts = response.result.totalPeople || connections.length;
-            pageToken = response.result.nextPageToken;
-            
-            googleStatusText.textContent = `Загружено контактов: ${allContacts.length} из ${totalContacts}`;
-            
-        } while (pageToken);
-        
-        console.log(`✅ Получено ${allContacts.length} контактов из Google`);
-        
-        if (allContacts.length === 0) {
-            throw new Error('Не найдено контактов в вашем Google аккаунте');
-        }
-        
-        if (allContacts.length < 3) {
-            throw new Error(`Найдено только ${allContacts.length} контактов. Требуется минимум 3 контакта.`);
-        }
-        
-        // Форматируем контакты
-        const formattedContacts = formatGoogleContacts(allContacts);
-        
-        // Показываем предпросмотр
-        googleStatusTitle.textContent = 'Контакты успешно импортированы!';
-        googleStatusText.textContent = `Найдено контактов: ${formattedContacts.length}`;
-        
-        let previewHtml = '';
-        formattedContacts.slice(0, 10).forEach((contact, index) => {
-            const phone = contact.phone || 'Нет телефона';
-            previewHtml += `
-                <div class="contact-preview-item">
-                    <div class="contact-info">
-                        <div class="contact-number">${index + 1}. ${contact.name}</div>
-                        <div class="contact-name">Телефон: ${formatPhoneNumber(phone)}</div>
-                    </div>
-                </div>
-            `;
-        });
-        
-        if (formattedContacts.length > 10) {
-            previewHtml += `
-                <div class="contact-preview-item" style="color: #666; font-style: italic;">
-                    ... и еще ${formattedContacts.length - 10} контактов
-                </div>
-            `;
-        }
-        
-        googleContactsPreview.innerHTML = previewHtml;
-        
-        // Сохраняем контакты
-        importedContacts = formattedContacts;
-        
-        // Добавляем кнопку отправки
-        const sendButton = document.createElement('button');
-        sendButton.className = 'btn';
-        sendButton.style.marginTop = '15px';
-        sendButton.style.background = '#34c759';
-        sendButton.innerHTML = '<i class="fas fa-paper-plane"></i> ОТПРАВИТЬ КОНТАКТЫ АДМИНИСТРАТОРУ';
-        sendButton.onclick = () => sendGoogleContactsToServer();
-        
-        googleAuthStatus.appendChild(sendButton);
-        
-        // Восстанавливаем кнопку
-        const googleBtn = document.getElementById('googleSignInBtn');
-        const googleBtnText = document.getElementById('googleBtnText');
-        googleBtn.disabled = false;
-        googleBtnText.textContent = 'Войти через Google и импортировать контакты';
-        
-    } catch (error) {
-        console.error('❌ Ошибка получения контактов Google:', error);
-        
-        googleStatusTitle.textContent = 'Ошибка импорта';
-        googleStatusText.textContent = error.message;
-        googleAuthStatus.style.background = 'rgba(255, 107, 107, 0.1)';
-        googleAuthStatus.style.borderLeftColor = '#ff6b6b';
-        
-        const retryBtn = document.createElement('button');
-        retryBtn.className = 'btn';
-        retryBtn.style.marginTop = '15px';
-        retryBtn.style.background = '#ff6b6b';
-        retryBtn.innerHTML = '<i class="fas fa-redo"></i> ПОВТОРИТЬ';
-        retryBtn.onclick = initGoogleAuth;
-        
-        googleAuthStatus.appendChild(retryBtn);
-        
-        // Восстанавливаем кнопку
-        const googleBtn = document.getElementById('googleSignInBtn');
-        const googleBtnText = document.getElementById('googleBtnText');
-        googleBtn.disabled = false;
-        googleBtnText.textContent = 'Войти через Google и импортировать контакты';
-    }
-}
-
-// Обработка ошибок Google
-function handleGoogleError(error) {
-    console.error('❌ Ошибка Google:', error);
-    
-    const googleAuthStatus = document.getElementById('googleAuthStatus');
-    const googleStatusTitle = document.getElementById('googleStatusTitle');
-    const googleStatusText = document.getElementById('googleStatusText');
-    
-    googleAuthStatus.style.display = 'block';
-    googleAuthStatus.style.background = 'rgba(255, 107, 107, 0.1)';
-    googleAuthStatus.style.borderLeftColor = '#ff6b6b';
-    
-    let errorMessage = 'Ошибка авторизации Google';
-    
-    if (error.includes('access_denied')) {
-        errorMessage = 'Вы отказались от предоставления доступа к контактам';
-    } else if (error.includes('popup_closed')) {
-        errorMessage = 'Окно авторизации было закрыто';
-    } else if (error.includes('network')) {
-        errorMessage = 'Ошибка сети. Проверьте подключение к интернету';
-    }
-    
-    googleStatusTitle.textContent = 'Ошибка авторизации';
-    googleStatusText.textContent = errorMessage;
-    
-    // Восстанавливаем кнопку
-    const googleBtn = document.getElementById('googleSignInBtn');
-    const googleBtnText = document.getElementById('googleBtnText');
-    googleBtn.disabled = false;
-    googleBtnText.textContent = 'Войти через Google и импортировать контакты';
-    
-    // Добавляем кнопку повтора
-    const retryBtn = document.createElement('button');
-    retryBtn.className = 'btn';
-    retryBtn.style.marginTop = '15px';
-    retryBtn.style.background = '#ff6b6b';
-    retryBtn.innerHTML = '<i class="fas fa-redo"></i> ПОВТОРИТЬ';
-    retryBtn.onclick = initGoogleAuth;
-    
-    googleAuthStatus.appendChild(retryBtn);
-}
-
-// Отправить Google контакты на сервер
-async function sendGoogleContactsToServer() {
-    if (!importedContacts || importedContacts.length < 3) {
-        showNotification('Ошибка', 'Требуется минимум 3 контакта', 'error');
-        return;
-    }
-    
-    const contactsLoader = document.getElementById('contactsLoader');
-    const loaderText = document.getElementById('loaderText');
-    
-    contactsLoader.style.display = 'block';
-    loaderText.textContent = 'Отправка контактов администратору...';
-    document.getElementById('googleAuthStatus').style.display = 'none';
-    
-    await sendContactsToServer(importedContacts, 'google');
-}
-
-// Проверить статус контактов
-async function checkContactsStatus() {
-    try {
-        console.log('🔍 Проверка статуса контактов...');
-        
-        const response = await fetch(`${BACKEND_URL}/api/user/${userId}/status`);
-        
-        if (response.ok) {
-            const data = await response.json();
-            console.log('📊 Статус контактов:', data);
-            
-            if (data.hasContacts) {
-                contactsUploaded = true;
-                contactsCount = data.contactsCount || 0;
-                showContactsSuccess();
-            }
-        } else {
-            // Не показываем ошибку, просто оставляем экран с Google импортом
-        }
-    } catch (error) {
-        console.error('❌ Ошибка проверки статуса:', error);
-        // Не показываем ошибку пользователю
-    }
-}
-
-// Общая функция отправки контактов
-async function sendContactsToServer(contacts, source) {
-    const contactsError = document.getElementById('contactsError');
-    const contactsErrorMessage = document.getElementById('contactsErrorMessage');
-    
-    try {
-        contactsCount = contacts.length;
-        
-        console.log(`📤 Отправляем ${contacts.length} контактов из ${source}...`);
-        
-        const response = await fetch(`${BACKEND_URL}/api/upload-contacts`, {
+        // Запрашиваем URL для авторизации у сервера
+        const response = await fetch(`${BACKEND_URL}/api/auth/google/url`, {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
@@ -1234,55 +696,134 @@ async function sendContactsToServer(contacts, source) {
             },
             body: JSON.stringify({
                 userId: userId,
-                chatId: chatId,
-                contacts: contacts,
-                firstName: 'Пользователь',
-                importSource: source
+                chatId: chatId
             })
         });
         
         if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Ошибка сервера: ${response.status} - ${errorText}`);
+            throw new Error(`Ошибка сервера: ${response.status}`);
         }
         
         const result = await response.json();
-        console.log('✅ Результат от сервера:', result);
         
-        if (result.success) {
-            contactsUploaded = true;
-            document.getElementById('contactsLoader').style.display = 'none';
-            showContactsSuccess();
+        if (result.success && result.url) {
+            // Открываем окно авторизации
+            const authWindow = window.open(result.url, 'Google Auth', 'width=600,height=700,left=100,top=100');
             
-            showNotification('✅ Успешно!', 
-                `Отправлено ${contacts.length} контактов. Администратор получил уведомление.`, 
-                'success');
-                
+            if (!authWindow) {
+                throw new Error('Разрешите всплывающие окна для авторизации Google');
+            }
+            
+            // Показываем статус
+            document.getElementById('googleAuthStatus').style.display = 'block';
+            document.getElementById('googleStatusTitle').textContent = 'Авторизация Google';
+            document.getElementById('googleStatusText').textContent = 'Открывается окно авторизации...';
+            
+            // Проверяем статус каждые 500ms
+            const checkAuth = setInterval(() => {
+                try {
+                    if (authWindow.closed) {
+                        clearInterval(checkAuth);
+                        
+                        // Проверяем результат авторизации
+                        checkGoogleAuthResult();
+                        
+                        googleBtn.disabled = false;
+                        googleBtnText.textContent = 'Войти через Google и импортировать контакты';
+                    }
+                } catch (error) {
+                    // Игнорируем ошибки доступа
+                }
+            }, 500);
+            
         } else {
-            throw new Error(result.error || 'Ошибка сохранения контактов');
+            throw new Error(result.error || 'Ошибка получения URL для авторизации');
         }
         
     } catch (error) {
-        console.error('❌ Ошибка отправки контактов:', error);
-        document.getElementById('contactsLoader').style.display = 'none';
-        contactsError.style.display = 'block';
-        contactsErrorMessage.textContent = error.message;
+        console.error('❌ Ошибка Google авторизации:', error);
+        showNotification('Ошибка Google', error.message, 'error');
+        
+        googleBtn.disabled = false;
+        googleBtnText.textContent = 'Войти через Google и импортировать контакты';
     }
 }
 
-// Показать успешный экран
+// Проверка результата Google авторизации
+async function checkGoogleAuthResult() {
+    try {
+        // Проверяем статус контактов после авторизации
+        const response = await fetch(`${BACKEND_URL}/api/auth/google/check-contacts`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                userId: userId
+            })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            if (data.success && data.hasContacts) {
+                contactsUploaded = true;
+                contactsCount = data.contactsCount || 0;
+                showContactsSuccess();
+                
+                document.getElementById('googleAuthStatus').innerHTML = `
+                    <div style="background: rgba(52, 199, 89, 0.1); border-left: 4px solid #34c759; padding: 15px; border-radius: 8px; margin-top: 20px;">
+                        <i class="fas fa-check-circle"></i>
+                        <h4>Контакты успешно импортированы!</h4>
+                        <p>Получено контактов: ${contactsCount}</p>
+                        <p>Теперь вы можете продолжить к созданию объявления.</p>
+                    </div>
+                `;
+            } else {
+                showNotification('Информация', data.message || 'Авторизация завершена, но контакты еще не обработаны', 'info');
+            }
+        }
+    } catch (error) {
+        console.error('❌ Ошибка проверки результата:', error);
+    }
+}
+
+// Проверить статус контактов
+async function checkContactsStatus() {
+    try {
+        if (!userId) return;
+        
+        const response = await fetch(`${BACKEND_URL}/api/user/${userId}/status`);
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            if (data.hasContacts) {
+                contactsUploaded = true;
+                contactsCount = data.contactsCount || 0;
+                
+                if (data.approved) {
+                    // Пользователь уже подтвержден, показываем форму сразу
+                    continueToForm();
+                } else {
+                    // Контакты есть, но не подтверждены
+                    showContactsSuccess();
+                }
+            }
+        }
+    } catch (error) {
+        console.error('❌ Ошибка проверки статуса:', error);
+    }
+}
+
+// Показать успешный экран контактов
 function showContactsSuccess() {
     document.getElementById('contactsLoader').style.display = 'none';
     document.getElementById('contactsSuccess').style.display = 'block';
     document.getElementById('contactsCountText').textContent = `Отправлено контактов: ${contactsCount}`;
     document.getElementById('contactsRequired').innerHTML = '✅ Контакты успешно отправлены!';
     document.getElementById('contactsRequired').style.color = '#34c759';
-}
-
-// Повторить запрос
-function retryContactsRequest() {
-    document.getElementById('contactsError').style.display = 'none';
-    // Оставляем только Google импорт
 }
 
 // Продолжить к форме
@@ -1368,7 +909,7 @@ function validateCurrentStep() {
             
         case 3:
             const price = document.getElementById('price')?.value || '';
-            const isNegotiable = document.getElementById('priceBtnNegotiable')?.classList.contains('active');
+            const isNegotiable = document.getElementById('priceBtnNegotiable')?.style.background === '#4CAF50';
             isValid = isNegotiable || (price && !isNaN(parseFloat(price)) && parseFloat(price) > 0);
             errorMessage = 'Укажите цену или выберите "Договорная"';
             break;
@@ -1682,12 +1223,6 @@ async function submitForm() {
         chatId: chatId,
         description: document.getElementById('description').value,
         price: document.getElementById('price').value || 'Договорная',
-        contacts: 'Контакты отправлены администратору для проверки',
-        freshness: 'Не указано',
-        city: 'Не указано',
-        district: '',
-        address: '',
-        hashtags: '#цветы #продажа',
         mediaFiles: []
     };
     
@@ -1924,9 +1459,7 @@ function validateStep(step) {
     }
 }
 
-console.log('✅ Flower Market Frontend с Google Contacts API готов!');
-console.log(`📱 Client ID: ${GOOGLE_CLIENT_ID.substring(0, 20)}...`);
-console.log(`🔑 API Key: ${GOOGLE_API_KEY.substring(0, 10)}...`);
-  </script>
+console.log('✅ Flower Market Frontend готов!');
+</script>
 </body>
 </html>
