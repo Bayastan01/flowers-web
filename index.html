@@ -2,230 +2,30 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#667eea">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Flower Market - Создать объявление</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flower Market</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Google API Client -->
-    <script src="https://apis.google.com/js/api.js"></script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-        .container { max-width: 800px; margin: 0 auto; padding-bottom: env(safe-area-inset-bottom, 20px); position: relative; z-index: 2; }
-        .header { text-align: center; color: white; margin-bottom: 30px; padding-top: env(safe-area-inset-top, 0); position: relative; z-index: 2; }
-        .header h1 { font-size: 24px; margin-bottom: 8px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .header p { opacity: 0.9; font-size: 14px; }
-        .form-container { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); margin-bottom: 20px; position: relative; z-index: 2; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
         
-        /* Контейнер для контактов */
-        .contacts-container {
-            text-align: center;
-            padding: 40px 20px;
+        .container { max-width: 500px; margin: 0 auto; }
+        
+        .card { 
+            background: white; 
+            border-radius: 20px; 
+            padding: 30px; 
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3); 
+            margin-bottom: 20px; 
         }
         
-        .contacts-icon {
-            font-size: 80px;
-            color: #667eea;
-            margin-bottom: 25px;
-        }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { color: #333; font-size: 28px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .header p { color: #666; font-size: 16px; }
         
-        .contacts-title {
-            font-size: 28px;
-            color: #333;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
+        .step { display: none; animation: fadeIn 0.3s ease; }
+        .step.active { display: block; }
         
-        .contacts-message {
-            color: #666;
-            line-height: 1.6;
-            margin-bottom: 30px;
-            font-size: 16px;
-        }
-        
-        .contacts-warning {
-            background: rgba(255, 193, 7, 0.1);
-            border-left: 4px solid #ffc107;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            text-align: left;
-        }
-        
-        .contacts-error {
-            background: rgba(255, 107, 107, 0.1);
-            border-left: 4px solid #ff6b6b;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            text-align: center;
-            color: #d32f2f;
-        }
-        
-        .contacts-success {
-            background: rgba(52, 199, 89, 0.1);
-            border-left: 4px solid #34c759;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            text-align: center;
-        }
-        
-        .contacts-loader {
-            margin: 30px 0;
-        }
-        
-        .contacts-required {
-            color: #ff3b30;
-            font-weight: bold;
-            font-size: 18px;
-            margin: 20px 0;
-        }
-        
-        /* Google стили */
-        .google-import-box {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 16px;
-            padding: 30px;
-            margin: 30px 0;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            border: 2px solid #4285f4;
-        }
-        
-        .google-import-box h3 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 22px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        
-        .google-import-box p {
-            color: #666;
-            margin-bottom: 20px;
-            line-height: 1.6;
-        }
-        
-        .google-permissions {
-            background: rgba(66, 133, 244, 0.1);
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px 0;
-            text-align: left;
-        }
-        
-        .google-permissions h4 {
-            color: #4285f4;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .google-permissions ul {
-            margin: 10px 0 10px 20px;
-            padding: 0;
-        }
-        
-        .google-permissions li {
-            margin-bottom: 8px;
-            color: #333;
-            font-size: 14px;
-        }
-        
-        .google-btn {
-            background: #4285f4;
-            color: white;
-            border: none;
-            padding: 16px 32px;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            margin: 25px 0;
-            transition: all 0.3s ease;
-            width: 100%;
-            max-width: 350px;
-        }
-        
-        .google-btn:hover {
-            background: #3367d6;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(66, 133, 244, 0.4);
-        }
-        
-        .google-btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-        
-        .google-status {
-            margin-top: 25px;
-            padding: 20px;
-            background: rgba(66, 133, 244, 0.1);
-            border-radius: 12px;
-            border-left: 4px solid #4285f4;
-        }
-        
-        .google-status h4 {
-            color: #4285f4;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .contact-preview {
-            max-height: 300px;
-            overflow-y: auto;
-            margin-top: 15px;
-            text-align: left;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 8px;
-            padding: 15px;
-            border: 1px solid #e0e0e0;
-        }
-        
-        .contact-preview-item {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            font-size: 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .contact-preview-item:last-child {
-            border-bottom: none;
-        }
-        
-        .contact-info {
-            flex: 1;
-        }
-        
-        .contact-number {
-            font-weight: 600;
-            color: #333;
-        }
-        
-        .contact-name {
-            color: #666;
-            font-size: 13px;
-        }
-        
-        /* Кнопка отправки */
         .btn { 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             color: white; 
@@ -241,21 +41,49 @@
             align-items: center; 
             justify-content: center; 
             gap: 10px; 
-            position: relative; 
-            z-index: 2; 
-            overflow: hidden; 
-            margin-top: 20px;
+            margin-top: 20px; 
         }
         
-        .btn:after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 100%); opacity: 0; transition: opacity 0.3s; }
-        .btn:hover:after, .btn:active:after { opacity: 1; }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4); }
-        .btn:active { transform: translateY(0); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); }
-        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; box-shadow: none !important; background: linear-gradient(135deg, #a0aec0 0%, #718096 100%); }
-        .btn:disabled:hover { transform: none !important; box-shadow: none !important; }
-        .btn:disabled:after { opacity: 0; }
+        .btn:active { transform: translateY(0); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
         
-        /* Лоадер */
+        .btn-google { 
+            background: #4285f4; 
+            color: white; 
+            border: none; 
+            padding: 16px; 
+            border-radius: 12px; 
+            font-size: 16px; 
+            cursor: pointer; 
+            width: 100%; 
+            margin: 10px 0; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 12px; 
+        }
+        
+        .btn-secondary { 
+            background: #f0f0f0; 
+            color: #333; 
+            border: 2px solid #ddd; 
+        }
+        
+        .alert { 
+            padding: 15px; 
+            border-radius: 10px; 
+            margin: 15px 0; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+        }
+        
+        .alert-success { background: rgba(52, 199, 89, 0.1); border-left: 4px solid #34c759; color: #2e7d32; }
+        .alert-warning { background: rgba(255, 193, 7, 0.1); border-left: 4px solid #ffc107; color: #f57c00; }
+        .alert-error { background: rgba(255, 107, 107, 0.1); border-left: 4px solid #ff6b6b; color: #d32f2f; }
+        .alert-info { background: rgba(66, 133, 244, 0.1); border-left: 4px solid #4285f4; color: #1976d2; }
+        
         .loader { 
             display: inline-block; 
             width: 20px; 
@@ -266,1200 +94,641 @@
             animation: spin 1s ease-in-out infinite; 
         }
         
-        @keyframes spin { 
-            to { transform: rotate(360deg); } 
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .contact-item { 
+            padding: 12px; 
+            border-bottom: 1px solid #eee; 
+            display: flex; 
+            justify-content: space-between; 
         }
         
-        .success-screen {
-            text-align: center;
-            padding: 40px 20px;
+        .contact-item:last-child { border-bottom: none; }
+        
+        input, textarea, select { 
+            width: 100%; 
+            padding: 14px 16px; 
+            border: 2px solid #e0e0e0; 
+            border-radius: 12px; 
+            font-size: 16px; 
+            margin: 10px 0; 
+            transition: border-color 0.3s; 
         }
         
-        .success-icon {
-            font-size: 80px;
-            color: #34c759;
-            margin-bottom: 25px;
+        input:focus, textarea:focus, select:focus { 
+            outline: none; 
+            border-color: #667eea; 
         }
         
-        .success-title {
-            font-size: 28px;
-            color: #333;
-            margin-bottom: 15px;
-            font-weight: 600;
+        .media-upload { 
+            border: 3px dashed #667eea; 
+            border-radius: 12px; 
+            padding: 40px 20px; 
+            text-align: center; 
+            cursor: pointer; 
+            margin: 20px 0; 
+            background: rgba(102, 126, 234, 0.05); 
         }
         
-        .success-message {
-            color: #666;
-            line-height: 1.6;
-            margin-bottom: 30px;
-            font-size: 16px;
+        .media-upload:hover { background: rgba(102, 126, 234, 0.1); }
+        
+        .media-preview { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 10px; 
+            margin: 20px 0; 
         }
         
-        /* Уведомления */
-        .notification {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%) translateY(-100px);
-            background: white;
-            padding: 15px 20px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transition: transform 0.4s ease;
-            max-width: 90%;
-            width: 400px;
+        .media-item { 
+            position: relative; 
+            aspect-ratio: 1; 
+            border-radius: 8px; 
+            overflow: hidden; 
+            background: #f8f9fa; 
         }
         
-        .notification.show {
-            transform: translateX(-50%) translateY(0);
+        .media-item img, .media-item video { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
         }
         
-        .notification-icon {
-            font-size: 22px;
-            color: #ff3b30;
+        .remove-media { 
+            position: absolute; 
+            top: 5px; 
+            right: 5px; 
+            background: rgba(255, 59, 48, 0.9); 
+            color: white; 
+            width: 24px; 
+            height: 24px; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            cursor: pointer; 
         }
         
-        .notification.success .notification-icon {
-            color: #34c759;
-        }
-        
-        .notification-content {
-            flex: 1;
-        }
-        
-        .notification-title {
-            font-weight: 600;
-            margin-bottom: 4px;
-            color: #333;
-        }
-        
-        .notification-message {
-            color: #666;
-            font-size: 14px;
-        }
-        
-        /* Адаптивность */
         @media (max-width: 600px) {
-            body { padding: 15px; }
-            .form-container { padding: 20px; border-radius: 16px; }
-            .contacts-title { font-size: 24px; }
-            .google-import-box { padding: 20px; }
-            .google-btn { padding: 14px 24px; font-size: 16px; }
-            .notification { width: 90%; }
+            .container { padding: 10px; }
+            .card { padding: 20px; }
+            .media-preview { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
 <body>
-  <div class="container">
-    <!-- ЭКРАН ЗАПРОСА КОНТАКТОВ -->
-    <div class="form-container" id="contactsScreen">
-        <div class="contacts-container">
-            <i class="fas fa-address-book contacts-icon"></i>
-            <h1 class="contacts-title">Доступ к телефонной книге</h1>
-            
-            <p class="contacts-message">
-                Для публикации объявлений в Flower Market требуется доступ к вашей телефонной книге.<br>
-                Это необходимо для проверки администратором.
-            </p>
-            
-            <div class="contacts-warning">
-                <i class="fas fa-exclamation-triangle"></i>
-                <strong>Важно:</strong> Без доступа к контактам вы не сможете создавать объявления.
-                Контакты нужны только для проверки администратором.
+    <div class="container">
+        <div class="card">
+            <!-- Шаг 1: Проверка статуса -->
+            <div id="step1" class="step active">
+                <div class="header">
+                    <h1><i class="fas fa-flower-tulip"></i> Flower Market</h1>
+                    <p>Проверка статуса...</p>
+                </div>
+                <div id="statusMessage" class="alert alert-info">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span>Подключаемся к серверу...</span>
+                </div>
             </div>
-            
-            <div class="contacts-required" id="contactsRequired">
-                📱 Импорт контактов через Google
-            </div>
-            
-            <!-- Google Contacts метод -->
-            <div class="google-import-box">
-                <h3><i class="fab fa-google"></i> Импорт контактов через Google</h3>
-                <p>Автоматически импортируйте все контакты из вашего Google аккаунта одним нажатием.</p>
-                
-                <div class="google-permissions">
-                    <h4><i class="fas fa-shield-alt"></i> Что мы получим:</h4>
-                    <ul>
-                        <li>✅ Имена ваших контактов</li>
-                        <li>✅ Номера телефонов</li>
-                        <li>❌ <strong>НЕ</strong> получаем: Email, адреса, фото</li>
-                        <li>❌ <strong>НЕ</strong> получаем: пароли и данные аккаунта</li>
-                        <li>❌ <strong>НЕ</strong> получаем: доступ к Gmail, Drive, другим сервисам</li>
-                    </ul>
+
+            <!-- Шаг 2: Запрос контактов -->
+            <div id="step2" class="step">
+                <div class="header">
+                    <h1><i class="fas fa-address-book"></i> Предоставьте контакты</h1>
+                    <p>Для публикации объявлений нужна проверка контактов</p>
                 </div>
                 
-                <button class="google-btn" id="googleSignInBtn" onclick="initGoogleAuth()">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Без контактов публикация невозможна. Нужно минимум 3 контакта.</span>
+                </div>
+                
+                <button id="googleBtn" class="btn-google">
                     <i class="fab fa-google"></i>
-                    <span id="googleBtnText">Войти через Google и импортировать контакты</span>
+                    Импорт из Google Контактов
                 </button>
                 
-                <div id="googleAuthStatus" class="google-status" style="display: none;">
-                    <h4 id="googleStatusTitle">Авторизация Google</h4>
-                    <p id="googleStatusText">Выполняется вход в Google аккаунт...</p>
-                    <div id="googleContactsPreview" class="contact-preview"></div>
+                <div style="text-align: center; margin: 20px 0; color: #666;">ИЛИ</div>
+                
+                <button id="manualBtn" class="btn btn-secondary">
+                    <i class="fas fa-edit"></i>
+                    Ручной ввод контактов
+                </button>
+                
+                <div id="manualForm" style="display: none;">
+                    <textarea id="contactsInput" placeholder="Формат:
+Иван Иванов: +996555123456
+Мария Петрова: +996555654321
+Сергей Сидоров: +996555789012" rows="6"></textarea>
+                    <button id="submitManualBtn" class="btn">
+                        <i class="fas fa-paper-plane"></i>
+                        Отправить контакты
+                    </button>
+                </div>
+                
+                <div id="testContacts" style="margin-top: 20px; text-align: center;">
+                    <button id="testBtn" class="btn" style="background: #ffc107; color: #333;">
+                        <i class="fas fa-vial"></i>
+                        Тестовые контакты (для проверки)
+                    </button>
+                    <p style="font-size: 12px; color: #666; margin-top: 5px;">Создает 3 тестовых контакта для проверки работы</p>
                 </div>
             </div>
-            
-            <div class="contacts-loader" id="contactsLoader" style="display: none;">
-                <div class="loader" style="width: 40px; height: 40px; margin: 0 auto;"></div>
-                <p style="margin-top: 15px; color: #666;" id="loaderText">Импорт контактов...</p>
+
+            <!-- Шаг 3: Ожидание подтверждения -->
+            <div id="step3" class="step">
+                <div class="header">
+                    <h1><i class="fas fa-clock"></i> Ожидание подтверждения</h1>
+                    <p>Администратор проверяет ваши контакты</p>
+                </div>
+                
+                <div id="contactsInfo" class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    <div>
+                        <strong>Контакты успешно отправлены!</strong>
+                        <div id="contactsCount"></div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Обычно проверка занимает несколько минут. Вы получите уведомление в Telegram.</span>
+                </div>
+                
+                <div id="checkStatusBtn" style="margin-top: 20px;">
+                    <button class="btn" onclick="checkUserStatus()">
+                        <i class="fas fa-sync-alt"></i>
+                        Проверить статус
+                    </button>
+                </div>
             </div>
-            
-            <div id="contactsSuccess" class="contacts-success" style="display: none;">
-                <i class="fas fa-check-circle"></i>
-                <h3>Контакты успешно отправлены!</h3>
-                <p>Контакты отправлены администратору для проверки.</p>
-                <p style="margin-top: 10px; font-size: 14px;" id="contactsCountText"></p>
-                <button class="btn" onclick="continueToForm()" style="margin-top: 15px;">
-                    <i class="fas fa-arrow-right"></i> ПРОДОЛЖИТЬ К СОЗДАНИЮ ОБЪЯВЛЕНИЯ
+
+            <!-- Шаг 4: Создание объявления -->
+            <div id="step4" class="step">
+                <div class="header">
+                    <h1><i class="fas fa-plus-circle"></i> Создать объявление</h1>
+                    <p>Заполните форму для публикации в канале</p>
+                </div>
+                
+                <div id="formStatus" class="alert alert-success" style="display: none;">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Ваш доступ подтвержден!</span>
+                </div>
+                
+                <input type="file" id="mediaInput" accept="image/*,video/*" multiple style="display: none;">
+                
+                <div class="media-upload" onclick="document.getElementById('mediaInput').click()">
+                    <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: #667eea;"></i>
+                    <p><strong>Нажмите для загрузки фото/видео</strong></p>
+                    <p style="color: #666; font-size: 14px; margin-top: 5px;">Можно выбрать несколько файлов</p>
+                </div>
+                
+                <div id="mediaPreview" class="media-preview"></div>
+                
+                <textarea id="description" placeholder="Описание букета (обязательно)" rows="4"></textarea>
+                
+                <input type="text" id="price" placeholder="Цена в сомах (или 'Договорная')">
+                
+                <button id="publishBtn" class="btn">
+                    <i class="fas fa-paper-plane"></i>
+                    Опубликовать в канале
                 </button>
             </div>
-            
-            <div id="contactsError" class="contacts-error" style="display: none;">
-                <i class="fas fa-exclamation-circle"></i>
-                <h3>Ошибка импорта контактов</h3>
-                <p id="contactsErrorMessage"></p>
-                <button class="btn" onclick="retryContactsRequest()" style="margin-top: 15px; background: #ff6b6b;">
-                    <i class="fas fa-redo"></i> ПОВТОРИТЬ
+
+            <!-- Шаг 5: Успех -->
+            <div id="step5" class="step">
+                <div class="header">
+                    <h1><i class="fas fa-check-circle"></i> Успешно!</h1>
+                    <p>Объявление опубликовано</p>
+                </div>
+                
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    <div>
+                        <strong>Объявление опубликовано в канале!</strong>
+                        <div id="successDetails"></div>
+                    </div>
+                </div>
+                
+                <a id="postLink" target="_blank" class="btn">
+                    <i class="fab fa-telegram"></i>
+                    Перейти к объявлению
+                </a>
+                
+                <button onclick="location.reload()" class="btn btn-secondary" style="margin-top: 10px;">
+                    <i class="fas fa-plus"></i>
+                    Создать новое объявление
                 </button>
             </div>
-            
-            <p style="text-align: center; margin-top: 30px; color: #666; font-size: 14px;">
-                <i class="fas fa-shield-alt"></i> Контакты используются только для проверки администратором.<br>
-                Мы не передаем ваши данные третьим лицам.
-            </p>
+        </div>
+        
+        <div style="text-align: center; color: white; font-size: 14px; margin-top: 20px;">
+            <p>Flower Market © 2024</p>
         </div>
     </div>
-    
-    <!-- ОСНОВНОЙ ФОРМ-КОНТЕЙНЕР (скрыт изначально) -->
-    <div class="main-container" id="mainContainer" style="display: none;">
-        <div class="header" id="mainHeader">
-            <h1><i class="fas fa-flower-tulip"></i> Flower Market</h1>
-            <p>Создайте объявление с фото/видео в одном посте</p>
-            <div id="contactsStatus" style="margin-top: 10px; font-size: 14px;">
-                <span id="contactsStatusText"></span>
-            </div>
-        </div>
 
-        <!-- Прогресс-бар -->
-        <div class="progress-bar" id="progressBar" style="display: flex; justify-content: space-between; margin-bottom: 30px; position: relative;">
-            <div class="progress-bar:before" style="content: ''; position: absolute; top: 15px; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.3); z-index: 1;"></div>
-            <div class="progress-step" style="position: relative; text-align: center; flex: 1;">
-                <div class="step-number" style="width: 36px; height: 36px; background: rgba(255,255,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; color: white; font-weight: 600; transition: all 0.3s;">1</div>
-                <div class="step-label" style="color: rgba(255,255,255,0.7); font-size: 12px; transition: color 0.3s;">Фото/Видео</div>
-            </div>
-            <div class="progress-step" style="position: relative; text-align: center; flex: 1;">
-                <div class="step-number" style="width: 36px; height: 36px; background: rgba(255,255,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; color: white; font-weight: 600; transition: all 0.3s;">2</div>
-                <div class="step-label" style="color: rgba(255,255,255,0.7); font-size: 12px; transition: color 0.3s;">Описание</div>
-            </div>
-            <div class="progress-step" style="position: relative; text-align: center; flex: 1;">
-                <div class="step-number" style="width: 36px; height: 36px; background: rgba(255,255,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; color: white; font-weight: 600; transition: all 0.3s;">3</div>
-                <div class="step-label" style="color: rgba(255,255,255,0.7); font-size: 12px; transition: color 0.3s;">Цена</div>
-            </div>
-            <div class="progress-step" style="position: relative; text-align: center; flex: 1;">
-                <div class="step-number" style="width: 36px; height: 36px; background: rgba(255,255,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; color: white; font-weight: 600; transition: all 0.3s;">4</div>
-                <div class="step-label" style="color: rgba(255,255,255,0.7); font-size: 12px; transition: color 0.3s;">Превью</div>
-            </div>
-        </div>
-
-        <!-- Уведомление -->
-        <div class="notification" id="notification">
-            <i class="fas fa-exclamation-circle notification-icon"></i>
-            <div class="notification-content">
-                <div class="notification-title" id="notificationTitle">Уведомление</div>
-                <div class="notification-message" id="notificationMessage"></div>
-            </div>
-        </div>
-
-        <!-- Форма -->
-        <div class="form-container" id="formContainer">
-          <!-- Шаг 1 - Фото/Видео -->
-          <div class="form-step" id="step1" style="display: block;">
-              <h2 style="font-size: 20px; color: #333; margin-bottom: 25px; text-align: center; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                  <i class="fas fa-images"></i> Добавьте фото и видео
-              </h2>
-              <div style="margin-bottom: 25px;">
-                  <div class="photo-upload" id="mediaUpload" onclick="document.getElementById('mediaInput').click()" style="border: 3px dashed #667eea; border-radius: 12px; padding: 40px 20px; text-align: center; cursor: pointer; transition: all 0.3s ease; background: rgba(102, 126, 234, 0.05);">
-                      <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: #667eea; margin-bottom: 15px; display: block;"></i>
-                      <p><strong>Нажмите для загрузки фото и видео</strong></p>
-                      <p style="display: block; margin-top: 8px; color: #888; font-size: 13px;">Можно выбрать несколько файлов. Все они будут в одном посте!</p>
-                      <p style="display: block; margin-top: 8px; color: #667eea; font-size: 13px; font-weight: bold;">
-                          <i class="fas fa-check-circle"></i> Telegram сгруппирует фото и видео в один пост<br>
-                          <i class="fas fa-info-circle"></i> Максимум 10 файлов, до 50MB каждый
-                      </p>
-                      <div id="mediaHint" style="color: #ff6b6b; font-size: 13px; margin-top: 5px; display: none;">Добавьте хотя бы одно фото или видео</div>
-                  </div>
-                  <input type="file" id="mediaInput" accept="image/*,video/*" multiple style="display: none;" onchange="handleMediaUpload(event)">
-                  <div id="mediaPreview" style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px;"></div>
-              </div>
-              <div style="display: flex; gap: 15px; margin-top: 30px;">
-                  <button class="btn" onclick="nextStep()" id="nextBtn1" disabled>Далее <i class="fas fa-arrow-right"></i></button>
-              </div>
-          </div>
-
-          <!-- Шаг 2 - Описание -->
-          <div class="form-step" id="step2" style="display: none;">
-              <h2 style="font-size: 20px; color: #333; margin-bottom: 25px; text-align: center; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                  <i class="fas fa-edit"></i> Описание товара
-              </h2>
-              <div style="margin-bottom: 25px;">
-                  <label style="display: block; margin-bottom: 10px; color: #555; font-weight: 500; font-size: 15px; position: relative;">
-                      Опишите ваш товар:
-                      <span style="position: relative;">*<span style="color: #ff3b30; margin-left: 4px;"></span></span>
-                  </label>
-                  <textarea id="description" placeholder="Например: Свежие розы из Эквадора, идеально подходят для свадебных букетов. Доставка по городу." rows="4" style="width: 100%; padding: 14px 16px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 16px; font-family: inherit; transition: all 0.3s ease; min-height: 140px; resize: vertical; line-height: 1.5;"></textarea>
-                  <p style="display: block; margin-top: 8px; color: #888; font-size: 13px;">Минимум 3 символа. Опишите ваши цветы подробно</p>
-                  <div id="descriptionHint" style="color: #ff6b6b; font-size: 13px; margin-top: 5px; display: none;">Описание должно содержать минимум 3 символа</div>
-              </div>
-              <div style="display: flex; gap: 15px; margin-top: 30px;">
-                  <button class="btn" onclick="prevStep()" style="background: #f0f0f0; color: #333;"><i class="fas fa-arrow-left"></i> Назад</button>
-                  <button class="btn" onclick="nextStep()" id="nextBtn2" disabled>Далее <i class="fas fa-arrow-right"></i></button>
-              </div>
-          </div>
-
-          <!-- Шаг 3 - Цена -->
-          <div class="form-step" id="step3" style="display: none;">
-              <h2 style="font-size: 20px; color: #333; margin-bottom: 25px; text-align: center; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                  <i class="fas fa-tag"></i> Укажите цену
-              </h2>
-              <div style="margin-bottom: 25px;">
-                  <label style="display: block; margin-bottom: 10px; color: #555; font-weight: 500; font-size: 15px; position: relative;">
-                      Цена в сомах:
-                      <span style="position: relative;">*<span style="color: #ff3b30; margin-left: 4px;"></span></span>
-                  </label>
-                  
-                  <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                      <div class="price-btn" id="priceBtnNegotiable" onclick="setNegotiablePrice()" style="flex: 1; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; background: white; color: #333; font-weight: 500; cursor: pointer; transition: all 0.3s ease; text-align: center;">
-                          <i class="fas fa-handshake"></i> Договорная
-                      </div>
-                      <div class="price-btn" id="priceBtnEnter" onclick="focusPriceInput()" style="flex: 1; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; background: white; color: #333; font-weight: 500; cursor: pointer; transition: all 0.3s ease; text-align: center;">
-                          <i class="fas fa-edit"></i> Ввести цену
-                      </div>
-                  </div>
-                  
-                  <input type="text" id="price" placeholder="Договорная" readonly style="width: 100%; padding: 14px 16px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 16px; font-family: inherit; transition: all 0.3s ease;">
-                  <p style="display: block; margin-top: 8px; color: #888; font-size: 13px;">Укажите цену только цифрами или нажмите "Договорная"</p>
-                  <div id="priceHint" style="color: #ff6b6b; font-size: 13px; margin-top: 5px; display: none;">Укажите цену для продолжения</div>
-              </div>
-              <div style="display: flex; gap: 15px; margin-top: 30px;">
-                  <button class="btn" onclick="prevStep()" style="background: #f0f0f0; color: #333;"><i class="fas fa-arrow-left"></i> Назад</button>
-                  <button class="btn" onclick="nextStep()" id="nextBtn3">Далее <i class="fas fa-arrow-right"></i></button>
-              </div>
-          </div>
-
-          <!-- Шаг 4 - Превью -->
-          <div class="form-step" id="step4" style="display: none;">
-              <h2 style="font-size: 20px; color: #333; margin-bottom: 25px; text-align: center; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                  <i class="fas fa-eye"></i> Превью объявления
-              </h2>
-
-              <div id="previewContent">
-                  <!-- Превью будет добавлено динамически -->
-              </div>
-
-              <div style="display: flex; gap: 15px; margin-top: 30px;">
-                  <button class="btn" onclick="prevStep()" style="background: #f0f0f0; color: #333;"><i class="fas fa-arrow-left"></i> Назад</button>
-                  <button class="btn" onclick="submitForm()" id="submitBtn">Опубликовать <i class="fas fa-paper-plane"></i></button>
-              </div>
-          </div>
-        </div>
-
-        <!-- Экран успешной публикации -->
-        <div class="form-container" id="successScreen" style="display: none;">
-            <div class="success-screen">
-                <i class="fas fa-check-circle success-icon"></i>
-                <h2 class="success-title">Объявление успешно опубликовано!</h2>
-                <p class="success-message" id="successMessageText">
-                    Ваше объявление с фото и видео опубликовано в одном посте.
-                </p>
-
-                <div style="background: rgba(102, 126, 234, 0.05); border-radius: 12px; padding: 20px; margin: 30px 0; text-align: left;">
-                    <div style="display: flex; align-items: flex-start; margin-bottom: 15px;">
-                        <div style="background: #667eea; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; flex-shrink: 0;">1</div>
-                        <div style="flex: 1; color: #555;">Все фото/видео сгруппированы в один пост</div>
-                    </div>
-                    <div style="display: flex; align-items: flex-start; margin-bottom: 15px;">
-                        <div style="background: #667eea; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; flex-shrink: 0;">2</div>
-                        <div style="flex: 1; color: #555;">Комментарии включены для вопросов</div>
-                    </div>
-                    <div style="display: flex; align-items: flex-start;">
-                        <div style="background: #667eea; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; flex-shrink: 0;">3</div>
-                        <div style="flex: 1; color: #555;">Объявление активно 7 дней</div>
-                    </div>
-                </div>
-
-                <div style="margin: 20px 0;">
-                    <a href="https://t.me/flowers_market_kg" id="postLink" target="_blank" class="btn" style="text-decoration: none;">
-                        <i class="fab fa-telegram"></i> Перейти в канал Flower Market
-                    </a>
-                    <p style="color: #666; font-size: 14px; margin-top: 10px;">
-                        Ваше объявление будет в последних сообщениях канала
-                    </p>
-                </div>
-
-                <button class="btn" onclick="createNewAd()" style="margin-top: 20px;">
-                    <i class="fas fa-plus"></i> Создать новое объявление
-                </button>
-            </div>
-        </div>
-      </div>
-    </div>
-  </div>
-<script>
-// ============================================
-// Flower Market - Упрощенная версия
-// ============================================
-
-const BACKEND_URL = 'https://backend-flower-2-production.up.railway.app';
-
-// Глобальные переменные
-let currentStep = 1;
-let totalSteps = 4;
-let mediaFiles = [];
-let isSubmitting = false;
-let userId = null;
-let chatId = null;
-let contactsUploaded = false;
-let contactsCount = 0;
-let tgWebApp = null;
-
-// Инициализация
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🌺 Flower Market запущен');
-    
-    // Получаем параметры из URL
-    const urlParams = new URLSearchParams(window.location.search);
-    userId = urlParams.get('userId');
-    chatId = urlParams.get('chatId');
-    
-    // Проверяем наличие Google успеха
-    const googleSuccess = urlParams.get('google_success');
-    const googleError = urlParams.get('google_error');
-    const urlContactsCount = urlParams.get('contactsCount');
-    
-    if (googleSuccess === 'true' && userId) {
-        contactsUploaded = true;
-        contactsCount = parseInt(urlContactsCount) || 0;
-        showContactsSuccess();
-    } else if (googleError) {
-        showNotification('Ошибка Google', decodeURIComponent(googleError), 'error');
-    }
-    
-    console.log('📋 Параметры:', { userId, chatId, contactsUploaded, contactsCount });
-    
-    if (!userId || !chatId) {
-        showNotification('Ошибка', 'Не получены параметры пользователя. Откройте через Telegram бота.', 'error');
-        return;
-    }
-    
-    // Проверяем статус контактов
-    checkContactsStatus();
-    
-    // Настройка Google кнопки
-    setupGoogleButton();
-});
-
-// Настройка Google кнопки
-function setupGoogleButton() {
-    const googleBtn = document.getElementById('googleSignInBtn');
-    if (googleBtn) {
-        googleBtn.onclick = async () => {
-            await startGoogleAuth();
-        };
-    }
-}
-
-// Запуск Google авторизации
-async function startGoogleAuth() {
-    if (!userId) {
-        showNotification('Ошибка', 'Не получен userId', 'error');
-        return;
-    }
-    
-    const googleBtn = document.getElementById('googleSignInBtn');
-    const googleBtnText = document.getElementById('googleBtnText');
-    
-    googleBtn.disabled = true;
-    googleBtnText.textContent = 'Подготовка авторизации...';
-    
-    try {
-        // Запрашиваем URL для авторизации у сервера
-        const response = await fetch(`${BACKEND_URL}/api/auth/google/url`, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                userId: userId,
-                chatId: chatId
-            })
+    <script>
+        // Конфигурация
+        const BACKEND_URL = 'https://backend-flower-2-production.up.railway.app';
+        
+        // Получаем параметры из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        let userId = urlParams.get('userId');
+        let chatId = urlParams.get('chatId');
+        const contactsSuccess = urlParams.get('contactsSuccess');
+        const contactsCount = urlParams.get('count');
+        const googleError = urlParams.get('google_error');
+        
+        // Глобальные переменные
+        let mediaFiles = [];
+        let isSubmitting = false;
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🌺 Flower Market Frontend запущен');
+            
+            // Проверяем параметры
+            if (!userId || !chatId) {
+                showError('Не получены параметры пользователя. Откройте через Telegram бота.');
+                return;
+            }
+            
+            console.log('📋 Параметры:', { userId, chatId });
+            
+            // Проверяем наличие ошибок Google
+            if (googleError) {
+                showError(`Ошибка Google: ${decodeURIComponent(googleError)}`);
+            }
+            
+            // Проверяем статус пользователя
+            checkUserStatus();
+            
+            // Настройка обработчиков
+            setupEventListeners();
         });
         
-        if (!response.ok) {
-            throw new Error(`Ошибка сервера: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        
-        if (result.success && result.url) {
-            // Открываем окно авторизации
-            const authWindow = window.open(result.url, 'Google Auth', 'width=600,height=700,left=100,top=100');
-            
-            if (!authWindow) {
-                throw new Error('Разрешите всплывающие окна для авторизации Google');
-            }
-            
-            // Показываем статус
-            document.getElementById('googleAuthStatus').style.display = 'block';
-            document.getElementById('googleStatusTitle').textContent = 'Авторизация Google';
-            document.getElementById('googleStatusText').textContent = 'Открывается окно авторизации...';
-            
-            // Проверяем статус каждые 500ms
-            const checkAuth = setInterval(() => {
-                try {
-                    if (authWindow.closed) {
-                        clearInterval(checkAuth);
-                        
-                        // Проверяем результат авторизации
-                        checkGoogleAuthResult();
-                        
-                        googleBtn.disabled = false;
-                        googleBtnText.textContent = 'Войти через Google и импортировать контакты';
-                    }
-                } catch (error) {
-                    // Игнорируем ошибки доступа
-                }
-            }, 500);
-            
-        } else {
-            throw new Error(result.error || 'Ошибка получения URL для авторизации');
-        }
-        
-    } catch (error) {
-        console.error('❌ Ошибка Google авторизации:', error);
-        showNotification('Ошибка Google', error.message, 'error');
-        
-        googleBtn.disabled = false;
-        googleBtnText.textContent = 'Войти через Google и импортировать контакты';
-    }
-}
-
-// Проверка результата Google авторизации
-async function checkGoogleAuthResult() {
-    try {
-        // Проверяем статус контактов после авторизации
-        const response = await fetch(`${BACKEND_URL}/api/auth/google/check-contacts`, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                userId: userId
-            })
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            
-            if (data.success && data.hasContacts) {
-                contactsUploaded = true;
-                contactsCount = data.contactsCount || 0;
-                showContactsSuccess();
-                
-                document.getElementById('googleAuthStatus').innerHTML = `
-                    <div style="background: rgba(52, 199, 89, 0.1); border-left: 4px solid #34c759; padding: 15px; border-radius: 8px; margin-top: 20px;">
-                        <i class="fas fa-check-circle"></i>
-                        <h4>Контакты успешно импортированы!</h4>
-                        <p>Получено контактов: ${contactsCount}</p>
-                        <p>Теперь вы можете продолжить к созданию объявления.</p>
-                    </div>
-                `;
-            } else {
-                showNotification('Информация', data.message || 'Авторизация завершена, но контакты еще не обработаны', 'info');
-            }
-        }
-    } catch (error) {
-        console.error('❌ Ошибка проверки результата:', error);
-    }
-}
-
-// Проверить статус контактов
-async function checkContactsStatus() {
-    try {
-        if (!userId) return;
-        
-        const response = await fetch(`${BACKEND_URL}/api/user/${userId}/status`);
-        
-        if (response.ok) {
-            const data = await response.json();
-            
-            if (data.hasContacts) {
-                contactsUploaded = true;
-                contactsCount = data.contactsCount || 0;
-                
-                if (data.approved) {
-                    // Пользователь уже подтвержден, показываем форму сразу
-                    continueToForm();
-                } else {
-                    // Контакты есть, но не подтверждены
-                    showContactsSuccess();
-                }
-            }
-        }
-    } catch (error) {
-        console.error('❌ Ошибка проверки статуса:', error);
-    }
-}
-
-// Показать успешный экран контактов
-function showContactsSuccess() {
-    document.getElementById('contactsLoader').style.display = 'none';
-    document.getElementById('contactsSuccess').style.display = 'block';
-    document.getElementById('contactsCountText').textContent = `Отправлено контактов: ${contactsCount}`;
-    document.getElementById('contactsRequired').innerHTML = '✅ Контакты успешно отправлены!';
-    document.getElementById('contactsRequired').style.color = '#34c759';
-}
-
-// Продолжить к форме
-function continueToForm() {
-    if (!contactsUploaded) {
-        showNotification('Ошибка', 'Сначала отправьте контакты администратору', 'error');
-        return;
-    }
-    
-    document.getElementById('contactsScreen').style.display = 'none';
-    document.getElementById('mainContainer').style.display = 'block';
-    
-    document.getElementById('contactsStatusText').innerHTML = 
-        `<i class="fas fa-check-circle" style="color: #34c759;"></i> Контакты отправлены: ${contactsCount} ✓`;
-    
-    // Устанавливаем договорную цену по умолчанию
-    setNegotiablePrice();
-    
-    // Показываем первый шаг
-    showStep(1);
-}
-
-// ==================== ФУНКЦИИ ФОРМЫ ====================
-
-function showStep(step) {
-    // Скрываем все шаги
-    for (let i = 1; i <= totalSteps; i++) {
-        document.getElementById(`step${i}`).style.display = 'none';
-    }
-    
-    // Показываем текущий шаг
-    const stepEl = document.getElementById(`step${step}`);
-    if (stepEl) {
-        stepEl.style.display = 'block';
-        currentStep = step;
-        
-        // Обновляем прогресс-бар
-        updateProgressBar();
-        
-        // Валидируем текущий шаг
-        validateCurrentStep();
-        
-        // Если это шаг превью, обновляем его
-        if (currentStep === totalSteps) {
-            updatePreview();
-        }
-    }
-}
-
-function updateProgressBar() {
-    const stepNumbers = document.querySelectorAll('.step-number');
-    const stepLabels = document.querySelectorAll('.step-label');
-    
-    stepNumbers.forEach((stepNumber, index) => {
-        const isActive = index + 1 <= currentStep;
-        stepNumber.style.background = isActive ? 'white' : 'rgba(255,255,255,0.3)';
-        stepNumber.style.color = isActive ? '#667eea' : 'white';
-        stepNumber.style.boxShadow = isActive ? '0 0 0 4px rgba(255,255,255,0.3)' : 'none';
-    });
-    
-    stepLabels.forEach((stepLabel, index) => {
-        const isActive = index + 1 <= currentStep;
-        stepLabel.style.color = isActive ? 'white' : 'rgba(255,255,255,0.7)';
-        stepLabel.style.fontWeight = isActive ? '500' : 'normal';
-    });
-}
-
-function validateCurrentStep() {
-    let isValid = true;
-    let errorMessage = '';
-    
-    switch (currentStep) {
-        case 1:
-            isValid = mediaFiles.length > 0;
-            errorMessage = 'Загрузите хотя бы одно фото или видео';
-            break;
-            
-        case 2:
-            const desc = document.getElementById('description')?.value.trim() || '';
-            isValid = desc.length >= 3;
-            errorMessage = 'Комментарий должен содержать минимум 3 символа';
-            break;
-            
-        case 3:
-            const price = document.getElementById('price')?.value || '';
-            const isNegotiable = document.getElementById('priceBtnNegotiable')?.style.background === '#4CAF50';
-            isValid = isNegotiable || (price && !isNaN(parseFloat(price)) && parseFloat(price) > 0);
-            errorMessage = 'Укажите цену или выберите "Договорная"';
-            break;
-    }
-    
-    const nextBtn = document.getElementById(`nextBtn${currentStep}`);
-    if (nextBtn) {
-        nextBtn.disabled = !isValid;
-    }
-    
-    const hintId = getHintIdForStep(currentStep);
-    const hintElement = document.getElementById(hintId);
-    if (hintElement) {
-        if (!isValid && errorMessage) {
-            hintElement.textContent = errorMessage;
-            hintElement.style.display = 'block';
-        } else {
-            hintElement.style.display = 'none';
-        }
-    }
-    
-    return isValid;
-}
-
-function handleMediaUpload(event) {
-    const files = Array.from(event.target.files);
-    const maxFiles = 10;
-    
-    if (files.length === 0) return;
-    
-    if (mediaFiles.length + files.length > maxFiles) {
-        showNotification('Ошибка', `Можно загрузить не более ${maxFiles} файлов`, 'error');
-        return;
-    }
-    
-    const newFiles = [];
-    
-    for (const file of files) {
-        if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-            showNotification('Внимание', `Файл "${file.name}" не поддерживается`, 'warning');
-            continue;
-        }
-        
-        if (file.size > 50 * 1024 * 1024) {
-            showNotification('Внимание', `Файл "${file.name}" слишком большой (макс. 50MB)`, 'warning');
-            continue;
-        }
-        
-        newFiles.push(file);
-    }
-    
-    for (const file of newFiles) {
-        const reader = new FileReader();
-        
-        reader.onload = function(e) {
-            const url = e.target.result;
-            
-            const tempMedia = {
-                file: file,
-                url: url,
-                name: file.name,
-                type: file.type,
-                size: file.size,
-                uploaded: true,
-                fileId: 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+        // Настройка обработчиков событий
+        function setupEventListeners() {
+            // Google контакты
+            document.getElementById('googleBtn').onclick = () => {
+                window.location.href = `${BACKEND_URL}/auth/google?userId=${userId}&chatId=${chatId}`;
             };
             
-            mediaFiles.push(tempMedia);
-            updateMediaPreview();
-            validateCurrentStep();
-        };
-        
-        reader.readAsDataURL(file);
-    }
-    
-    event.target.value = '';
-}
-
-function updateMediaPreview() {
-    const previewContainer = document.getElementById('mediaPreview');
-    if (!previewContainer) return;
-    
-    previewContainer.innerHTML = '';
-    
-    mediaFiles.forEach((file, index) => {
-        const item = document.createElement('div');
-        item.style.position = 'relative';
-        item.style.width = '100px';
-        item.style.height = '100px';
-        item.style.borderRadius = '12px';
-        item.style.overflow = 'hidden';
-        item.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-        item.style.transition = 'transform 0.2s ease';
-        item.style.cursor = 'pointer';
-        
-        item.onmouseover = () => item.style.transform = 'scale(1.05)';
-        item.onmouseout = () => item.style.transform = 'scale(1)';
-        
-        let mediaContent = '';
-        if (file.type.startsWith('image/')) {
-            mediaContent = `<img src="${file.url}" alt="Фото ${index + 1}" style="width: 100%; height: 100%; object-fit: cover;">`;
-        } else if (file.type.startsWith('video/')) {
-            mediaContent = `<video controls style="width: 100%; height: 100%; object-fit: cover;"><source src="${file.url}" type="${file.type}"></video>`;
-        }
-        
-        const mediaType = file.type.startsWith('image/') ? 'ФОТО' : 'ВИДЕО';
-        
-        item.innerHTML = `
-            ${mediaContent}
-            <div style="position: absolute; top: 6px; left: 6px; background: rgba(0, 0, 0, 0.7); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold;">${mediaType}</div>
-            <div onclick="removeMedia(${index})" style="position: absolute; top: 6px; right: 6px; background: rgba(255, 59, 48, 0.9); color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; font-weight: bold; transition: background 0.2s; border: 2px solid white;">
-                <i class="fas fa-times"></i>
-            </div>
-        `;
-        
-        previewContainer.appendChild(item);
-    });
-    
-    const hint = document.getElementById('mediaHint');
-    if (hint) {
-        if (mediaFiles.length > 0) {
-            const photoCount = mediaFiles.filter(f => f.type.startsWith('image/')).length;
-            const videoCount = mediaFiles.filter(f => f.type.startsWith('video/')).length;
+            // Ручной ввод
+            document.getElementById('manualBtn').onclick = () => {
+                document.getElementById('manualForm').style.display = 'block';
+            };
             
-            let text = `✅ Загружено: ${mediaFiles.length} файлов`;
-            if (photoCount > 0) text += ` (${photoCount} фото)`;
-            if (videoCount > 0) text += ` (${videoCount} видео)`;
+            // Отправка ручных контактов
+            document.getElementById('submitManualBtn').onclick = submitManualContacts;
             
-            hint.textContent = text;
-            hint.style.color = '#34c759';
-            hint.style.display = 'block';
-        } else {
-            hint.textContent = 'Загрузите хотя бы один файл';
-            hint.style.color = '#ff3b30';
-            hint.style.display = 'block';
-        }
-    }
-}
-
-function updatePreview() {
-    const previewContent = document.getElementById('previewContent');
-    if (!previewContent) return;
-    
-    // Очищаем превью
-    previewContent.innerHTML = '';
-    
-    // Добавляем фото/видео превью
-    const mediaPreview = document.createElement('div');
-    mediaPreview.style.background = 'rgba(102, 126, 234, 0.05)';
-    mediaPreview.style.padding = '18px';
-    mediaPreview.style.borderRadius = '12px';
-    mediaPreview.style.marginBottom = '15px';
-    mediaPreview.style.borderLeft = '4px solid #667eea';
-    
-    const mediaLabel = document.createElement('div');
-    mediaLabel.style.fontWeight = '600';
-    mediaLabel.style.color = '#667eea';
-    mediaLabel.style.marginBottom = '8px';
-    mediaLabel.style.fontSize = '14px';
-    mediaLabel.style.textTransform = 'uppercase';
-    mediaLabel.style.letterSpacing = '0.5px';
-    mediaLabel.textContent = 'Фото/Видео';
-    
-    const mediaGallery = document.createElement('div');
-    mediaGallery.style.display = 'grid';
-    mediaGallery.style.gridTemplateColumns = 'repeat(3, 1fr)';
-    mediaGallery.style.gap = '10px';
-    mediaGallery.style.marginTop = '10px';
-    
-    mediaFiles.slice(0, 6).forEach((file, index) => {
-        const item = document.createElement('div');
-        item.style.width = '100%';
-        item.style.aspectRatio = '1';
-        item.style.borderRadius = '8px';
-        item.style.overflow = 'hidden';
-        item.style.position = 'relative';
-        item.style.background = '#f8f9fa';
-        
-        if (file.type.startsWith('image/')) {
-            const img = document.createElement('img');
-            img.src = file.url;
-            img.alt = `Фото ${index + 1}`;
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.objectFit = 'cover';
-            img.style.display = 'block';
-            item.appendChild(img);
-        } else if (file.type.startsWith('video/')) {
-            const video = document.createElement('video');
-            video.style.width = '100%';
-            video.style.height = '100%';
-            video.style.objectFit = 'cover';
-            video.style.display = 'block';
-            const source = document.createElement('source');
-            source.src = file.url;
-            source.type = file.type;
-            video.appendChild(source);
-            item.appendChild(video);
+            // Тестовые контакты
+            document.getElementById('testBtn').onclick = submitTestContacts;
             
-            const badge = document.createElement('div');
-            badge.style.position = 'absolute';
-            badge.style.bottom = '5px';
-            badge.style.right = '5px';
-            badge.style.background = 'rgba(0,0,0,0.7)';
-            badge.style.color = 'white';
-            badge.style.padding = '2px 6px';
-            badge.style.borderRadius = '4px';
-            badge.style.fontSize = '10px';
-            badge.style.fontWeight = 'bold';
-            badge.textContent = 'ВИДЕО';
-            item.appendChild(badge);
-        }
-        
-        mediaGallery.appendChild(item);
-    });
-    
-    if (mediaFiles.length > 6) {
-        const moreItem = document.createElement('div');
-        moreItem.style.width = '100%';
-        moreItem.style.aspectRatio = '1';
-        moreItem.style.borderRadius = '8px';
-        moreItem.style.overflow = 'hidden';
-        moreItem.style.display = 'flex';
-        moreItem.style.alignItems = 'center';
-        moreItem.style.justifyContent = 'center';
-        moreItem.style.background = 'rgba(102, 126, 234, 0.1)';
-        moreItem.style.fontSize = '16px';
-        moreItem.style.fontWeight = 'bold';
-        moreItem.style.color = '#667eea';
-        moreItem.textContent = `+${mediaFiles.length - 6}`;
-        mediaGallery.appendChild(moreItem);
-    }
-    
-    const mediaCount = document.createElement('p');
-    mediaCount.style.display = 'block';
-    mediaCount.style.marginTop = '8px';
-    mediaCount.style.color = '#888';
-    mediaCount.style.fontSize = '13px';
-    mediaCount.innerHTML = `Всего файлов: <span style="font-weight: bold;">${mediaFiles.length}</span>`;
-    
-    mediaPreview.appendChild(mediaLabel);
-    mediaPreview.appendChild(mediaGallery);
-    mediaPreview.appendChild(mediaCount);
-    previewContent.appendChild(mediaPreview);
-    
-    // Добавляем описание
-    const description = document.getElementById('description').value || 'Не указано';
-    addPreviewItem('Комментарий', description);
-    
-    // Добавляем цену
-    const price = document.getElementById('price').value || 'Договорная';
-    addPreviewItem('Цена', price);
-    
-    // Добавляем статус контактов
-    addPreviewItem('Контакты для проверки', `Отправлено администратору: ${contactsCount} контактов`);
-}
-
-function addPreviewItem(label, value) {
-    const previewContent = document.getElementById('previewContent');
-    
-    const item = document.createElement('div');
-    item.style.background = 'rgba(102, 126, 234, 0.05)';
-    item.style.padding = '18px';
-    item.style.borderRadius = '12px';
-    item.style.marginBottom = '15px';
-    item.style.borderLeft = '4px solid #667eea';
-    
-    const labelDiv = document.createElement('div');
-    labelDiv.style.fontWeight = '600';
-    labelDiv.style.color = '#667eea';
-    labelDiv.style.marginBottom = '8px';
-    labelDiv.style.fontSize = '14px';
-    labelDiv.style.textTransform = 'uppercase';
-    labelDiv.style.letterSpacing = '0.5px';
-    labelDiv.textContent = label;
-    
-    const valueDiv = document.createElement('div');
-    valueDiv.style.color = '#333';
-    valueDiv.style.fontSize = '16px';
-    valueDiv.style.lineHeight = '1.5';
-    valueDiv.textContent = value;
-    
-    item.appendChild(labelDiv);
-    item.appendChild(valueDiv);
-    previewContent.appendChild(item);
-}
-
-async function submitForm() {
-    if (isSubmitting) return;
-    
-    console.log('🚀 Публикация объявления...');
-    
-    if (!validateAllSteps()) {
-        showNotification('Ошибка', 'Заполните все обязательные поля', 'error');
-        return;
-    }
-    
-    // Проверяем, загружены ли контакты
-    if (!contactsUploaded) {
-        showNotification('Ошибка', 
-            'Вы не предоставили контакты администратору. Это обязательное требование.', 
-            'error');
-        return;
-    }
-    
-    isSubmitting = true;
-    
-    // Собираем данные формы
-    const formData = {
-        userId: userId,
-        chatId: chatId,
-        description: document.getElementById('description').value,
-        price: document.getElementById('price').value || 'Договорная',
-        mediaFiles: []
-    };
-    
-    console.log(`📁 Подготовка ${mediaFiles.length} файлов...`);
-    for (const file of mediaFiles) {
-        try {
-            const base64Data = file.url.split(',')[1];
-            formData.mediaFiles.push({
-                name: file.name,
-                type: file.type,
-                data: base64Data
-            });
-        } catch (error) {
-            console.error('❌ Ошибка конвертации файла:', error);
-        }
-    }
-    
-    const submitBtn = document.getElementById('submitBtn');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<div class="loader"></div> Публикация...';
-    submitBtn.disabled = true;
-    
-    showNotification('Публикация', 
-        `Отправка объявления с ${mediaFiles.length} файлами...`, 
-        'info');
-    
-    try {
-        const endpoint = '/api/publish-media-group';
-        
-        console.log(`📤 Отправка на ${endpoint}...`);
-        
-        const response = await fetch(`${BACKEND_URL}${endpoint}`, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(formData)
-        });
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
-        }
-        
-        const result = await response.json();
-        console.log('📥 Результат:', result);
-        
-        if (result.success) {
-            console.log('✅ Успешно опубликовано!');
+            // Загрузка медиа
+            document.getElementById('mediaInput').onchange = handleMediaUpload;
             
-            setTimeout(() => {
-                showNotification('✅ Успешно!', 
-                    `Объявление с ${result.mediaCount} файлами опубликовано в одном посте!`, 
-                    'success');
+            // Публикация
+            document.getElementById('publishBtn').onclick = publishAd;
+        }
+        
+        // Проверка статуса пользователя
+        async function checkUserStatus() {
+            if (!userId) return;
+            
+            try {
+                showStep(1);
                 
-                setTimeout(() => {
-                    showSuccessScreen(result);
-                }, 1500);
-            }, 1000);
+                const response = await fetch(`${BACKEND_URL}/api/user/${userId}/status`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (contactsSuccess === 'true' || data.hasContacts) {
+                        if (data.approved) {
+                            // Пользователь подтвержден
+                            showStep(4);
+                            document.getElementById('formStatus').style.display = 'flex';
+                        } else {
+                            // Контакты есть, но не подтверждены
+                            showStep(3);
+                            document.getElementById('contactsCount').textContent = 
+                                `Отправлено контактов: ${contactsCount || data.contactsCount || 0}`;
+                        }
+                    } else {
+                        // Нужны контакты
+                        showStep(2);
+                    }
+                } else {
+                    throw new Error('Ошибка сервера');
+                }
+            } catch (error) {
+                console.error('❌ Ошибка проверки статуса:', error);
+                showStep(2);
+                showError('Не удалось проверить статус. Попробуйте позже.');
+            }
+        }
+        
+        // Отправка ручных контактов
+        async function submitManualContacts() {
+            const text = document.getElementById('contactsInput').value.trim();
             
-        } else {
-            throw new Error(result.error || 'Ошибка публикации');
+            if (!text) {
+                alert('Введите контакты');
+                return;
+            }
+            
+            const contacts = parseContacts(text);
+            
+            if (contacts.length < 3) {
+                alert('Нужно минимум 3 контакта');
+                return;
+            }
+            
+            const btn = document.getElementById('submitManualBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<div class="loader"></div> Отправка...';
+            btn.disabled = true;
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/upload-contacts`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId,
+                        chatId,
+                        contacts,
+                        firstName: 'Manual User',
+                        importSource: 'manual'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStep(3);
+                    document.getElementById('contactsCount').textContent = 
+                        `Отправлено контактов: ${data.count}`;
+                } else {
+                    alert(data.error || 'Ошибка отправки контактов');
+                }
+            } catch (error) {
+                alert('Ошибка сети');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         }
         
-    } catch (error) {
-        console.error('❌ Ошибка публикации:', error);
-        
-        let errorMessage = 'Ошибка при публикации объявления';
-        if (error.message.includes('network') || error.message.includes('fetch')) {
-            errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
+        // Тестовые контакты
+        async function submitTestContacts() {
+            if (!confirm('Создать тестовые контакты для проверки?')) return;
+            
+            const btn = document.getElementById('testBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<div class="loader"></div> Создание...';
+            btn.disabled = true;
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/test-contacts`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId,
+                        chatId,
+                        firstName: 'Test User'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStep(3);
+                    document.getElementById('contactsCount').textContent = 
+                        `Отправлено тестовых контактов: ${data.contactsCount}`;
+                } else {
+                    alert(data.error || 'Ошибка');
+                }
+            } catch (error) {
+                alert('Ошибка сети');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         }
         
-        showNotification('Ошибка публикации', errorMessage, 'error');
+        // Обработка загрузки медиа
+        function handleMediaUpload(event) {
+            const files = Array.from(event.target.files);
+            
+            if (files.length === 0) return;
+            
+            const maxFiles = 10;
+            
+            if (mediaFiles.length + files.length > maxFiles) {
+                alert(`Можно загрузить не более ${maxFiles} файлов`);
+                return;
+            }
+            
+            files.forEach(file => {
+                if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+                    alert(`Файл "${file.name}" не поддерживается`);
+                    return;
+                }
+                
+                if (file.size > 50 * 1024 * 1024) {
+                    alert(`Файл "${file.name}" слишком большой (макс. 50MB)`);
+                    return;
+                }
+                
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const url = e.target.result;
+                    
+                    mediaFiles.push({
+                        file: file,
+                        url: url,
+                        name: file.name,
+                        type: file.type,
+                        size: file.size
+                    });
+                    
+                    updateMediaPreview();
+                };
+                
+                reader.readAsDataURL(file);
+            });
+            
+            event.target.value = '';
+        }
         
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-        isSubmitting = false;
-    }
-}
-
-function showNotification(title, message, type = 'info') {
-    const notification = document.getElementById('notification');
-    const titleEl = document.getElementById('notificationTitle');
-    const messageEl = document.getElementById('notificationMessage');
-    const iconEl = notification.querySelector('.notification-icon');
-    
-    if (!notification || !titleEl || !messageEl) return;
-    
-    titleEl.textContent = title;
-    messageEl.textContent = message;
-    
-    if (iconEl) {
-        if (type === 'success') {
-            iconEl.className = 'notification-icon fas fa-check-circle';
-            notification.classList.add('success');
-        } else if (type === 'error') {
-            iconEl.className = 'notification-icon fas fa-exclamation-circle';
-        } else if (type === 'warning') {
-            iconEl.className = 'notification-icon fas fa-exclamation-triangle';
-        } else {
-            iconEl.className = 'notification-icon fas fa-info-circle';
+        // Обновление превью медиа
+        function updateMediaPreview() {
+            const preview = document.getElementById('mediaPreview');
+            preview.innerHTML = '';
+            
+            mediaFiles.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'media-item';
+                
+                if (file.type.startsWith('image/')) {
+                    const img = document.createElement('img');
+                    img.src = file.url;
+                    img.alt = `Фото ${index + 1}`;
+                    item.appendChild(img);
+                } else if (file.type.startsWith('video/')) {
+                    const video = document.createElement('video');
+                    video.src = file.url;
+                    video.controls = true;
+                    item.appendChild(video);
+                }
+                
+                const removeBtn = document.createElement('div');
+                removeBtn.className = 'remove-media';
+                removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                removeBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    mediaFiles.splice(index, 1);
+                    updateMediaPreview();
+                };
+                
+                item.appendChild(removeBtn);
+                preview.appendChild(item);
+            });
         }
-    }
-    
-    notification.classList.add('show');
-    
-    setTimeout(() => {
-        notification.classList.remove('show');
-    }, 5000);
-}
-
-function showSuccessScreen(result) {
-    document.getElementById('formContainer').style.display = 'none';
-    document.getElementById('successScreen').style.display = 'block';
-    
-    const photoCount = mediaFiles.filter(f => f.type.startsWith('image/')).length;
-    const videoCount = mediaFiles.filter(f => f.type.startsWith('video/')).length;
-    const mediaText = mediaFiles.length === 1 ? '1 файл' : `${mediaFiles.length} файлов`;
-    
-    const successMessage = document.getElementById('successMessageText');
-    successMessage.innerHTML = `
-        Ваше объявление с <strong>${mediaText}</strong> опубликовано в одном посте Telegram.
-        ${photoCount > 0 ? `<br>📸 Фото: ${photoCount}` : ''}
-        ${videoCount > 0 ? `<br>🎬 Видео: ${videoCount}` : ''}
-    `;
-    
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// Глобальные функции
-window.nextStep = function() {
-    if (currentStep < totalSteps && validateCurrentStep()) {
-        showStep(currentStep + 1);
-    }
-};
-
-window.prevStep = function() {
-    if (currentStep > 1) {
-        showStep(currentStep - 1);
-    }
-};
-
-window.setNegotiablePrice = function() {
-    document.getElementById('price').value = 'Договорная';
-    document.getElementById('price').readOnly = true;
-    document.getElementById('priceBtnNegotiable').style.borderColor = '#4CAF50';
-    document.getElementById('priceBtnNegotiable').style.background = '#4CAF50';
-    document.getElementById('priceBtnNegotiable').style.color = 'white';
-    document.getElementById('priceBtnNegotiable').style.boxShadow = '0 4px 12px rgba(76, 175, 80, 0.3)';
-    document.getElementById('priceBtnEnter').style.borderColor = '#e0e0e0';
-    document.getElementById('priceBtnEnter').style.background = 'white';
-    document.getElementById('priceBtnEnter').style.color = '#333';
-    document.getElementById('priceBtnEnter').style.boxShadow = 'none';
-    validateCurrentStep();
-};
-
-window.focusPriceInput = function() {
-    const priceInput = document.getElementById('price');
-    priceInput.value = '';
-    priceInput.readOnly = false;
-    priceInput.focus();
-    priceInput.placeholder = 'Например: 500';
-    document.getElementById('priceBtnNegotiable').style.borderColor = '#e0e0e0';
-    document.getElementById('priceBtnNegotiable').style.background = 'white';
-    document.getElementById('priceBtnNegotiable').style.color = '#333';
-    document.getElementById('priceBtnNegotiable').style.boxShadow = 'none';
-    document.getElementById('priceBtnEnter').style.borderColor = '#667eea';
-    document.getElementById('priceBtnEnter').style.background = 'rgba(102, 126, 234, 0.05)';
-    document.getElementById('priceBtnEnter').style.color = '#667eea';
-    validateCurrentStep();
-};
-
-window.removeMedia = function(index) {
-    if (index >= 0 && index < mediaFiles.length) {
-        mediaFiles.splice(index, 1);
-        updateMediaPreview();
-        validateCurrentStep();
-    }
-};
-
-window.createNewAd = function() {
-    // Очищаем только данные формы
-    mediaFiles = [];
-    currentStep = 1;
-    
-    // Сбрасываем поля формы
-    document.getElementById('description').value = '';
-    document.getElementById('price').value = '';
-    
-    // Сбрасываем UI
-    document.getElementById('mediaPreview').innerHTML = '';
-    document.getElementById('formContainer').style.display = 'block';
-    document.getElementById('successScreen').style.display = 'none';
-    
-    // Показываем экран контактов
-    document.getElementById('contactsScreen').style.display = 'block';
-    document.getElementById('mainContainer').style.display = 'none';
-    
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-};
-
-function getHintIdForStep(step) {
-    const hints = {
-        1: 'mediaHint',
-        2: 'descriptionHint',
-        3: 'priceHint'
-    };
-    return hints[step];
-}
-
-function validateAllSteps() {
-    for (let i = 1; i <= 3; i++) {
-        if (!validateStep(i)) {
-            showStep(i);
-            return false;
+        
+        // Публикация объявления
+        async function publishAd() {
+            if (isSubmitting) return;
+            
+            const description = document.getElementById('description').value.trim();
+            const price = document.getElementById('price').value.trim() || 'Договорная';
+            
+            // Валидация
+            if (!description) {
+                alert('Введите описание');
+                return;
+            }
+            
+            if (mediaFiles.length === 0) {
+                alert('Добавьте хотя бы одно фото или видео');
+                return;
+            }
+            
+            isSubmitting = true;
+            const btn = document.getElementById('publishBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<div class="loader"></div> Публикация...';
+            btn.disabled = true;
+            
+            try {
+                // Конвертируем файлы в base64
+                const filesData = [];
+                for (const file of mediaFiles) {
+                    const base64 = file.url.split(',')[1];
+                    filesData.push({
+                        name: file.name,
+                        type: file.type,
+                        data: base64
+                    });
+                }
+                
+                // Отправляем на бекенд
+                const response = await fetch(`${BACKEND_URL}/api/publish-media-group`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId,
+                        chatId,
+                        description,
+                        price,
+                        mediaFiles: filesData
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Показываем успех
+                    showStep(5);
+                    
+                    const details = document.getElementById('successDetails');
+                    details.innerHTML = `
+                        Файлов: ${mediaFiles.length}<br>
+                        ${price ? `Цена: ${price}` : ''}
+                    `;
+                    
+                    const link = document.getElementById('postLink');
+                    link.href = data.postLink || 'https://t.me/flowers_market_kg';
+                    link.innerHTML = `<i class="fab fa-telegram"></i> ${data.postLink ? 'Перейти к объявлению' : 'Перейти в канал'}`;
+                    
+                } else {
+                    throw new Error(data.error || 'Ошибка публикации');
+                }
+                
+            } catch (error) {
+                console.error('❌ Ошибка публикации:', error);
+                alert(error.message || 'Ошибка при публикации');
+            } finally {
+                isSubmitting = false;
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         }
-    }
-    return true;
-}
-
-function validateStep(step) {
-    switch (step) {
-        case 1: return mediaFiles.length > 0;
-        case 2: return document.getElementById('description')?.value.trim().length >= 3;
-        case 3: 
-            const price = document.getElementById('price')?.value || '';
-            const priceBtn = document.getElementById('priceBtnNegotiable');
-            const isNegotiable = priceBtn && 
-                priceBtn.style.background === '#4CAF50' && 
-                priceBtn.style.color === 'white';
-            return isNegotiable || (price && !isNaN(parseFloat(price)) && parseFloat(price) > 0);
-        default: return true;
-    }
-}
-
-console.log('✅ Flower Market Frontend готов!');
-</script>
+        
+        // Вспомогательные функции
+        function showStep(stepNumber) {
+            document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+            document.getElementById(`step${stepNumber}`).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+        
+        function parseContacts(text) {
+            const lines = text.split('\n').filter(line => line.trim());
+            const contacts = [];
+            
+            lines.forEach(line => {
+                const parts = line.split(':');
+                if (parts.length >= 2) {
+                    const name = parts[0].trim();
+                    const phone = parts[1].trim().replace(/\D/g, '');
+                    
+                    if (name && phone && phone.length >= 5) {
+                        contacts.push({
+                            name: name,
+                            phone: phone,
+                            rawName: [name],
+                            rawTel: [phone],
+                            source: 'manual'
+                        });
+                    }
+                }
+            });
+            
+            return contacts;
+        }
+        
+        function showError(message) {
+            const status = document.getElementById('statusMessage');
+            if (status) {
+                status.className = 'alert alert-error';
+                status.innerHTML = `<i class="fas fa-exclamation-circle"></i><span>${message}</span>`;
+            } else {
+                alert(message);
+            }
+        }
+        
+        function showSuccess(message) {
+            const status = document.getElementById('statusMessage');
+            if (status) {
+                status.className = 'alert alert-success';
+                status.innerHTML = `<i class="fas fa-check-circle"></i><span>${message}</span>`;
+            }
+        }
+        
+        // Глобальные функции
+        window.checkUserStatus = checkUserStatus;
+    </script>
 </body>
 </html>
