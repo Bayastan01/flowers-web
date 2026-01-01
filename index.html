@@ -87,6 +87,8 @@
             .user-avatar { width: 50px; height: 50px; font-size: 20px; }
         }
     </style>
+    <!-- Google Sign-In API -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
     <div class="container">
@@ -120,12 +122,24 @@
                     <p><i class="fas fa-info-circle"></i> Для создания объявлений нужно войти через Google</p>
                 </div>
                 
-                <!-- Кнопка Google Sign-In -->
+                <!-- Google Sign-In Button -->
                 <div class="google-signin-container">
-                    <button class="btn btn-google" onclick="signInWithGoogle()" id="googleSignInBtn">
-                        <i class="fab fa-google"></i>
-                        <span>Войти через Google</span>
-                    </button>
+                    <div id="g_id_onload"
+                         data-client_id="316866498988-v1pqivbgh0eupcb9rs53m26nrqukn9hb.apps.googleusercontent.com"
+                         data-context="signin"
+                         data-ux_mode="popup"
+                         data-callback="handleGoogleSignIn"
+                         data-auto_prompt="false">
+                    </div>
+                    
+                    <div class="g_id_signin"
+                         data-type="standard"
+                         data-shape="rectangular"
+                         data-theme="outline"
+                         data-text="signin_with"
+                         data-size="large"
+                         data-logo_alignment="left">
+                    </div>
                 </div>
                 
                 <div id="authLoader" style="display: none;">
@@ -332,7 +346,6 @@
     <script>
         // Конфигурация
         const BACKEND_URL = 'https://backend-flower2-production.up.railway.app';
-        const GOOGLE_CLIENT_ID = '316866498988-v1pqivbgh0eupcb9rs53m26nrqukn9hb.apps.googleusercontent.com';
         const TELEGRAM_BOT_URL = 'https://t.me/Flowers_free_bot';
         const TELEGRAM_CHANNEL_URL = 'https://t.me/flowers_market_kg';
         
@@ -342,7 +355,6 @@
         let telegramId = null;
         let uploadedPhotos = [];
         let autoSaveInterval = null;
-        let googleAuthWindow = null;
         
         // Инициализация при загрузке
         document.addEventListener('DOMContentLoaded', async function() {
@@ -370,7 +382,7 @@
                 // Только telegram_id - проверяем пользователя
                 await checkUser(telegramId);
             } else {
-                // Нет параметров - показываем ошибку
+                // Нет параметров - показываем шаг авторизации
                 setTimeout(() => {
                     showStep(2);
                 }, 1500);
@@ -397,7 +409,7 @@
                     // Проверяем, есть ли уже авторизованный пользователь
                     await checkUser(telegramId);
                 } else {
-                    showError('Ошибка Telegram', 'Не удалось получить данные Telegram');
+                    showStep(2);
                 }
             } catch (error) {
                 console.error('Ошибка получения Telegram данных:', error);
@@ -414,7 +426,7 @@
                 
                 if (result.success) {
                     if (result.exists && result.isLoggedIn) {
-                        // Пользователь уже авторизован - нужна сессия
+                        // Пользователь уже авторизован
                         showStep(2);
                     } else {
                         // Пользователь не авторизован
@@ -471,92 +483,45 @@
             }
         }
         
-        // Войти через Google
-        async function signInWithGoogle() {
-            const googleBtn = document.getElementById('googleSignInBtn');
+        // Обработка Google Sign-In
+        async function handleGoogleSignIn(response) {
+            console.log('🔐 Google Sign-In response received');
+            
             const authLoader = document.getElementById('authLoader');
             const authError = document.getElementById('authError');
             
-            googleBtn.style.display = 'none';
+            // Скрыть кнопку Google Sign-In
+            const googleSignInDiv = document.querySelector('.g_id_signin');
+            if (googleSignInDiv) googleSignInDiv.style.display = 'none';
+            
             authLoader.style.display = 'block';
             authError.style.display = 'none';
             
             try {
-                // Создаем Google OAuth URL
-                const redirectUri = encodeURIComponent(window.location.origin);
-                const scope = encodeURIComponent('email profile');
-                const googleAuthUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}&state=${telegramId}`;
+                // Получаем credential
+                const credential = response.credential;
+                console.log('Google credential received');
                 
-                // Открываем в новом окне
-                googleAuthWindow = window.open(googleAuthUrl, 'GoogleAuth', 'width=500,height=600,scrollbars=yes');
-                
-                if (!googleAuthWindow) {
-                    throw new Error('Разрешите всплывающие окна для авторизации');
+                if (!credential) {
+                    throw new Error('Не получены учетные данные Google');
                 }
                 
-                // Проверяем результат
-                const checkAuthResult = setInterval(() => {
-                    try {
-                        if (googleAuthWindow.closed) {
-                            clearInterval(checkAuthResult);
-                            authLoader.style.display = 'none';
-                            googleBtn.style.display = 'flex';
-                            showNotification('Информация', 'Окно авторизации закрыто', 'info');
-                        }
-                    } catch (e) {
-                        clearInterval(checkAuthResult);
-                        authLoader.style.display = 'none';
-                        googleBtn.style.display = 'flex';
-                    }
-                }, 1000);
-                
-                // Слушаем сообщения от окна авторизации
-                window.addEventListener('message', async function(event) {
-                    if (event.origin !== window.location.origin) return;
-                    
-                    if (event.data.type === 'GOOGLE_AUTH_SUCCESS') {
-                        clearInterval(checkAuthResult);
-                        await handleGoogleAuthToken(event.data.token);
-                        if (googleAuthWindow) {
-                            googleAuthWindow.close();
-                        }
-                    } else if (event.data.type === 'GOOGLE_AUTH_ERROR') {
-                        clearInterval(checkAuthResult);
-                        authLoader.style.display = 'none';
-                        googleBtn.style.display = 'flex';
-                        showAuthError(event.data.error);
-                    }
-                });
-                
-            } catch (error) {
-                console.error('❌ Ошибка авторизации:', error);
-                authLoader.style.display = 'none';
-                googleBtn.style.display = 'flex';
-                showAuthError(error.message);
-            }
-        }
-        
-        // Обработка Google токена
-        async function handleGoogleAuthToken(token) {
-            try {
-                console.log('🔐 Обрабатываем Google токен...');
-                
                 // Отправляем на бэкенд
-                const response = await fetch(`${BACKEND_URL}/api/auth/google`, {
+                const backendResponse = await fetch(`${BACKEND_URL}/api/auth/google`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
                     body: JSON.stringify({
-                        token: token,
+                        token: credential,
                         telegramId: telegramId
                     })
                 });
                 
-                const result = await response.json();
+                const result = await backendResponse.json();
                 
-                document.getElementById('authLoader').style.display = 'none';
+                authLoader.style.display = 'none';
                 
                 if (result.success) {
                     userSession = result.sessionToken;
@@ -590,19 +555,13 @@
                 
             } catch (error) {
                 console.error('❌ Ошибка авторизации:', error);
-                document.getElementById('authLoader').style.display = 'none';
-                document.getElementById('googleSignInBtn').style.display = 'flex';
-                showAuthError(error.message);
+                authLoader.style.display = 'none';
+                authError.style.display = 'block';
+                document.getElementById('authErrorMessage').textContent = error.message;
+                
+                // Показываем кнопку Google снова
+                if (googleSignInDiv) googleSignInDiv.style.display = 'block';
             }
-        }
-        
-        // Показать ошибку авторизации
-        function showAuthError(message) {
-            const authError = document.getElementById('authError');
-            const authErrorMessage = document.getElementById('authErrorMessage');
-            
-            authErrorMessage.textContent = message;
-            authError.style.display = 'block';
         }
         
         // Обновление информации о пользователе
@@ -974,36 +933,6 @@
             setTimeout(() => {
                 notification.style.display = 'none';
             }, 5000);
-        }
-        
-        // Авторизация через Google Popup (для iframe/popup)
-        function handleGooglePopupAuth() {
-            try {
-                // Получаем токен из URL hash
-                const hash = window.location.hash.substring(1);
-                const params = new URLSearchParams(hash);
-                const accessToken = params.get('access_token');
-                const error = params.get('error');
-                
-                if (error) {
-                    window.opener.postMessage({
-                        type: 'GOOGLE_AUTH_ERROR',
-                        error: error
-                    }, window.location.origin);
-                } else if (accessToken) {
-                    window.opener.postMessage({
-                        type: 'GOOGLE_AUTH_SUCCESS',
-                        token: accessToken
-                    }, window.location.origin);
-                }
-            } catch (e) {
-                console.error('Ошибка обработки Google auth:', e);
-            }
-        }
-        
-        // Проверяем, если это окно авторизации Google
-        if (window.location.hash.includes('access_token')) {
-            handleGooglePopupAuth();
         }
         
         console.log('✅ Flower Market готов к работе');
