@@ -3,52 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#667eea">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Flower Market - Создать объявление</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; -webkit-font-smoothing: antialiased; }
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --success: #34c759;
+            --warning: #ff9500;
+            --danger: #ff3b30;
+            --dark: #333;
+            --light: #f8f9fa;
+            --gray: #666;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); min-height: 100vh; padding: 20px; }
         .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); overflow: hidden; }
-        .screen { padding: 50px 30px; text-align: center; }
-        .icon { font-size: 80px; color: #667eea; margin-bottom: 25px; }
-        .title { font-size: 32px; color: #333; margin-bottom: 15px; font-weight: 600; }
-        .subtitle { font-size: 18px; color: #666; line-height: 1.5; margin-bottom: 40px; max-width: 500px; margin-left: auto; margin-right: auto; }
-        .btn { background: #4285f4; color: white; border: none; padding: 18px 30px; border-radius: 12px; font-size: 18px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 15px; margin: 20px 0; transition: all 0.3s ease; width: 100%; max-width: 350px; }
-        .btn:hover { background: #3367d6; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(66,133,244,0.3); }
+        .screen { padding: 40px 30px; text-align: center; display: none; }
+        .active { display: block; }
+        .icon { font-size: 80px; color: var(--primary); margin-bottom: 25px; }
+        .title { font-size: 32px; color: var(--dark); margin-bottom: 15px; font-weight: 600; }
+        .subtitle { font-size: 18px; color: var(--gray); line-height: 1.5; margin-bottom: 30px; max-width: 500px; margin-left: auto; margin-right: auto; }
+        .btn { background: var(--primary); color: white; border: none; padding: 18px 30px; border-radius: 12px; font-size: 18px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 15px; transition: all 0.3s ease; width: 100%; max-width: 350px; margin: 15px auto; }
+        .btn:hover { background: #5a6fd8; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,126,234,0.3); }
+        .btn-google { background: #4285f4; }
+        .btn-google:hover { background: #3367d6; }
+        .btn-success { background: var(--success); }
+        .btn-danger { background: var(--danger); }
         .btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none !important; }
+        
         .form-group { margin-bottom: 25px; text-align: left; }
-        .form-label { display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 16px; }
-        .form-input { width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; transition: border-color 0.3s ease; }
-        .form-input:focus { border-color: #667eea; outline: none; }
-        .form-textarea { min-height: 120px; resize: vertical; font-family: inherit; }
-        .photo-upload { border: 2px dashed #667eea; border-radius: 10px; padding: 40px 20px; text-align: center; cursor: pointer; transition: all 0.3s ease; background: #f8f9fa; }
-        .photo-upload:hover { background: rgba(102,126,234,0.05); border-color: #764ba2; }
-        .photo-icon { font-size: 48px; color: #667eea; margin-bottom: 15px; }
+        .form-label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--dark); }
+        .form-input, .form-textarea, .form-select { width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; transition: border-color 0.3s ease; }
+        .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--primary); outline: none; }
+        .form-textarea { min-height: 120px; resize: vertical; }
+        
+        .contacts-container { margin-top: 10px; }
+        .contact-item { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+        .contact-type { flex: 1; }
+        .contact-value { flex: 2; }
+        .add-contact-btn { background: var(--success); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; margin-top: 10px; }
+        
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .notification { position: fixed; top: 20px; right: 20px; background: white; border-left: 4px solid var(--primary); padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; max-width: 350px; animation: slideIn 0.3s ease; display: none; }
+        .notification.error { border-left-color: var(--danger); }
+        .notification.success { border-left-color: var(--success); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        
+        .user-info { background: var(--light); padding: 20px; border-radius: 12px; margin-bottom: 30px; display: flex; align-items: center; gap: 15px; }
+        .user-avatar { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold; }
+        .user-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        .user-details h3 { margin: 0; color: var(--dark); font-size: 18px; }
+        .user-details p { margin: 5px 0 0; color: var(--gray); font-size: 14px; }
+        
+        .alert { padding: 15px; border-radius: 10px; margin: 20px 0; text-align: left; }
+        .alert-info { background: #e7f3ff; border: 1px solid #b3d7ff; color: #0066cc; }
+        .alert-warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+        .alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        
         .photo-preview { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 20px; }
         .photo-item { position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 1; background: #f0f0f0; }
         .photo-item img { width: 100%; height: 100%; object-fit: cover; }
         .remove-photo { position: absolute; top: 5px; right: 5px; background: rgba(255,107,107,0.9); color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; border: none; }
-        .submit-btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 18px 30px; border-radius: 12px; font-size: 18px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: all 0.3s ease; width: 100%; margin-top: 30px; }
-        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,126,234,0.3); }
-        .submit-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none !important; }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .notification { position: fixed; top: 20px; right: 20px; background: white; border-left: 4px solid #667eea; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; max-width: 350px; animation: slideIn 0.3s ease; display: none; }
-        .notification.error { border-left-color: #ff3b30; }
-        .notification.success { border-left-color: #34c759; }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .warning-box { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 10px; padding: 15px; margin: 20px 0; color: #856404; }
-        .user-info { background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 30px; display: flex; align-items: center; gap: 15px; }
-        .user-avatar { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold; }
-        .user-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-        .user-details h3 { margin: 0; color: #333; font-size: 18px; }
-        .user-details p { margin: 5px 0 0; color: #666; font-size: 14px; }
-        #g_id_onload, .g_id_signin { display: none; }
+        
+        .draft-notice { background: #fff3e0; border-left: 4px solid #ff9800; padding: 12px 15px; margin: 15px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .draft-notice button { background: #ff9800; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+        
         @media (max-width: 768px) {
             .screen { padding: 30px 20px; }
             .title { font-size: 24px; }
@@ -57,80 +82,73 @@
             .user-info { padding: 15px; }
             .user-avatar { width: 50px; height: 50px; font-size: 20px; }
         }
-        @media (max-width: 480px) {
-            body { padding: 10px; }
-            .container { border-radius: 15px; }
-            .screen { padding: 40px 20px; }
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- ШАГ 1: Получение Telegram ID -->
+        <!-- ШАГ 1: Загрузка и проверка сессии -->
         <div class="screen" id="step1">
-            <i class="fas fa-robot icon"></i>
-            <h1 class="title">Получаем ваши данные...</h1>
-            <p class="subtitle">
-                Пожалуйста, подождите, мы получаем ваш Telegram ID
-            </p>
-            <div id="step1Loader">
+            <i class="fas fa-spinner icon fa-spin"></i>
+            <h1 class="title">Flower Market</h1>
+            <p class="subtitle">Загружаем вашу сессию...</p>
+            <div id="loader1">
                 <div class="loader"></div>
-                <p style="margin-top: 15px; color: #666;">Определяем пользователя...</p>
+                <p style="margin-top: 15px; color: var(--gray);">Проверяем авторизацию...</p>
             </div>
-            <div id="manualIdInput" style="display: none; max-width: 400px; margin: 30px auto 0;">
-                <p style="color: #666; margin-bottom: 15px;">Не удалось автоматически получить ID. Введите вручную:</p>
-                <input type="text" id="telegramIdInput" class="form-input" 
-                       placeholder="Ваш Telegram ID (цифры)" 
-                       style="margin-bottom: 15px; text-align: center;">
-                <button class="btn" onclick="saveManualTelegramId()" style="background: #667eea;">
-                    <i class="fas fa-check"></i>
-                    <span>Продолжить</span>
+            <div id="step1Error" style="display: none; max-width: 400px; margin: 0 auto;">
+                <div class="alert alert-warning">
+                    <p><strong>Сессия не найдена</strong></p>
+                    <p>Для создания объявления нужно авторизоваться через Google.</p>
+                </div>
+                <button class="btn btn-google" onclick="startGoogleAuth()">
+                    <i class="fab fa-google"></i>
+                    <span>Войти через Google</span>
                 </button>
-                <p style="color: #666; margin-top: 15px; font-size: 14px;">
-                    Получите ID через бота: @Flowers_free_bot командой /id
-                </p>
             </div>
         </div>
         
         <!-- ШАГ 2: Авторизация через Google -->
-        <div class="screen" id="step2" style="display: none;">
-            <i class="fas fa-store icon"></i>
-            <h1 class="title">Flower Market</h1>
+        <div class="screen" id="step2">
+            <i class="fas fa-user-lock icon"></i>
+            <h1 class="title">Авторизация</h1>
             <p class="subtitle">
-                Войдите через Google, чтобы создавать объявления о продаже цветов
+                Войдите через Google, чтобы создавать объявления
             </p>
             
             <div style="max-width: 400px; margin: 0 auto;">
-                <div id="userTelegramInfo" style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 30px;">
-                    <p style="margin: 0; color: #333;">
-                        <i class="fas fa-user-check" style="color: #667eea; margin-right: 8px;"></i>
-                        Telegram ID: <strong id="displayTelegramId"></strong>
-                    </p>
-                    <p style="margin: 5px 0 0; color: #666; font-size: 14px;">
-                        <i class="fas fa-info-circle" style="margin-right: 5px;"></i>
-                        Вы вошли через Telegram WebApp
-                    </p>
+                <div class="alert alert-info">
+                    <p><i class="fas fa-info-circle"></i> После авторизации ваши контакты будут автоматически отправлены администратору канала.</p>
                 </div>
                 
-                <!-- Кнопка Google Sign-In -->
-                <div id="googleSignInButton" style="margin: 20px 0;"></div>
+                <!-- Контейнер для контактов -->
+                <div id="contactsContainer" class="contacts-container" style="display: none;">
+                    <h3 style="font-size: 18px; margin-bottom: 15px; color: var(--dark);">Ваши контакты</h3>
+                    <div id="contactsList"></div>
+                    <button type="button" class="add-contact-btn" onclick="addContactField()">
+                        <i class="fas fa-plus"></i>
+                        <span>Добавить контакт</span>
+                    </button>
+                </div>
+                
+                <!-- Кнопка Google -->
+                <div id="googleButtonContainer" style="margin: 25px 0;"></div>
                 
                 <div id="authLoader" style="display: none;">
                     <div class="loader"></div>
-                    <p style="margin-top: 15px; color: #666;">Выполняется вход через Google...</p>
+                    <p style="margin-top: 15px; color: var(--gray);">Авторизуемся...</p>
                 </div>
                 
-                <p style="color: #666; margin-top: 30px; font-size: 14px;">
-                    После входа вы сможете создавать объявления
+                <p style="color: var(--gray); margin-top: 25px; font-size: 14px;">
+                    <i class="fas fa-shield-alt"></i> Мы используем безопасную авторизацию Google
                 </p>
             </div>
         </div>
         
         <!-- ШАГ 3: Форма создания объявления -->
-        <div class="screen" id="step3" style="display: none; text-align: left;">
-            <div class="form-header" style="text-align: center; margin-bottom: 30px;">
-                <h2 style="font-size: 28px; color: #333; margin-bottom: 10px;">Создать объявление</h2>
-                <p style="color: #666;">Заполните форму, чтобы опубликовать объявление</p>
+        <div class="screen" id="step3">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h1 class="title">Создать объявление</h1>
+                <p class="subtitle">Заполните форму для публикации в канале</p>
             </div>
             
             <div class="user-info">
@@ -140,14 +158,25 @@
                 <div class="user-details">
                     <h3 id="userName">Пользователь</h3>
                     <p id="userEmail">email@example.com</p>
-                    <p id="userApprovalStatus" style="margin: 3px 0 0; font-size: 12px; color: #666;"></p>
+                    <p id="userStatus" style="margin: 3px 0 0; font-size: 12px; color: var(--success);">
+                        <i class="fas fa-check-circle"></i> Авторизован
+                    </p>
                 </div>
             </div>
             
-            <form id="adForm" onsubmit="event.preventDefault(); submitAd();">
+            <!-- Уведомление о черновике -->
+            <div id="draftNotice" class="draft-notice" style="display: none;">
+                <div>
+                    <strong><i class="fas fa-save"></i> Найден черновик</strong>
+                    <p style="margin: 5px 0 0; font-size: 14px;">У вас есть сохраненный черновик от <span id="draftTime"></span></p>
+                </div>
+                <button onclick="loadDraft()">Загрузить</button>
+            </div>
+            
+            <form id="adForm" onsubmit="event.preventDefault(); saveDraft();">
                 <div class="form-group">
                     <label class="form-label" for="adTitle">
-                        Заголовок объявления <span style="color: #ff3b30;">*</span>
+                        Заголовок объявления *
                     </label>
                     <input type="text" id="adTitle" class="form-input" 
                            placeholder="Например: Свежие розы, букет невесты" 
@@ -156,16 +185,16 @@
                 
                 <div class="form-group">
                     <label class="form-label" for="adDescription">
-                        Описание <span style="color: #ff3b30;">*</span>
+                        Описание *
                     </label>
-                    <textarea id="adDescription" class="form-input form-textarea" 
+                    <textarea id="adDescription" class="form-textarea form-input" 
                               placeholder="Опишите ваши цветы, условия доставки и т.д." 
                               required maxlength="500"></textarea>
                 </div>
                 
                 <div class="form-group">
                     <label class="form-label" for="adPrice">
-                        Цена <span style="color: #ff3b30;">*</span>
+                        Цена *
                     </label>
                     <input type="text" id="adPrice" class="form-input" 
                            placeholder="Например: 1000 сом или Договорная" required>
@@ -173,7 +202,7 @@
                 
                 <div class="form-group">
                     <label class="form-label" for="adPhone">
-                        Контактный телефон <span style="color: #ff3b30;">*</span>
+                        Контактный телефон *
                     </label>
                     <input type="tel" id="adPhone" class="form-input" 
                            placeholder="+996 XXX XXX XXX" required>
@@ -181,10 +210,11 @@
                 
                 <div class="form-group">
                     <label class="form-label">Фотографии (до 5 штук)</label>
-                    <div class="photo-upload" onclick="document.getElementById('photoInput').click()">
-                        <i class="fas fa-camera photo-icon"></i>
+                    <div style="border: 2px dashed var(--primary); border-radius: 10px; padding: 30px 20px; text-align: center; cursor: pointer; background: var(--light);" 
+                         onclick="document.getElementById('photoInput').click()">
+                        <i class="fas fa-camera" style="font-size: 48px; color: var(--primary); margin-bottom: 15px;"></i>
                         <p><strong>Загрузить фотографии</strong></p>
-                        <p style="color: #666; font-size: 14px; margin-top: 10px;">Нажмите для выбора файлов</p>
+                        <p style="color: var(--gray); font-size: 14px; margin-top: 10px;">Нажмите для выбора файлов</p>
                     </div>
                     <input type="file" id="photoInput" accept="image/*" multiple 
                            style="display: none;" onchange="handlePhotoUpload(event)">
@@ -192,182 +222,161 @@
                     <div class="photo-preview" id="photoPreview"></div>
                 </div>
                 
-                <button type="submit" class="submit-btn" id="submitBtn">
-                    <i class="fas fa-paper-plane"></i>
-                    <span>ОПУБЛИКОВАТЬ ОБЪЯВЛЕНИЕ</span>
-                </button>
-                
-                <div class="warning-box" id="notApprovedWarning" style="display: none;">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <strong>Требуется одобрение администратора</strong>
-                    <p style="margin: 5px 0 0; font-size: 14px;">Вы сможете публиковать объявления после одобрения администратора.</p>
+                <div style="display: flex; gap: 15px; margin-top: 30px;">
+                    <button type="button" class="btn" onclick="saveDraft()" style="flex: 1; background: var(--gray);">
+                        <i class="fas fa-save"></i>
+                        <span>Сохранить черновик</span>
+                    </button>
+                    <button type="submit" class="btn btn-success" id="submitBtn" style="flex: 2;">
+                        <i class="fas fa-paper-plane"></i>
+                        <span>ОПУБЛИКОВАТЬ</span>
+                    </button>
                 </div>
             </form>
             
             <div id="formLoader" style="display: none; text-align: center; padding: 30px;">
                 <div class="loader"></div>
-                <p style="margin-top: 15px; color: #666;">Публикуем объявление...</p>
+                <p style="margin-top: 15px; color: var(--gray);">Публикуем объявление...</p>
             </div>
             
-            <div style="text-align: center; margin-top: 20px;">
-                <button onclick="logout()" style="background: none; border: none; color: #666; cursor: pointer; padding: 10px;">
-                    <i class="fas fa-sign-out-alt"></i> Выйти из аккаунта
+            <div style="text-align: center; margin-top: 25px; padding-top: 20px; border-top: 1px solid #eee;">
+                <button onclick="logout()" class="btn btn-danger" style="max-width: 200px;">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Выйти</span>
                 </button>
+                <p style="color: var(--gray); margin-top: 15px; font-size: 14px;">
+                    Telegram ID: <strong id="displayTelegramId"></strong>
+                </p>
             </div>
         </div>
         
         <!-- ШАГ 4: Успешная публикация -->
-        <div class="screen" id="step4" style="display: none;">
-            <i class="fas fa-check-circle icon" style="color: #34c759;"></i>
-            <h2 class="title">Успешно опубликовано!</h2>
+        <div class="screen" id="step4">
+            <i class="fas fa-check-circle icon" style="color: var(--success);"></i>
+            <h1 class="title">Успешно!</h1>
             <p class="subtitle" id="successMessage">
-                Ваше объявление опубликовано в нашем Telegram канале
+                Ваше объявление опубликовано в Telegram канале
             </p>
             
-            <button class="btn" onclick="createNewAd()" style="background: #667eea; max-width: 250px;">
-                <i class="fas fa-plus"></i>
-                <span>Создать еще одно</span>
-            </button>
-            
-            <p style="margin-top: 30px; color: #666; font-size: 14px;">
-                <i class="fas fa-info-circle"></i>
-                Чтобы посмотреть объявление, перейдите в наш канал
-                <a href="https://t.me/flowers_market_kg" target="_blank" style="color: #667eea; text-decoration: none;">@flowers_market_kg</a>
-            </p>
+            <div style="max-width: 400px; margin: 0 auto;">
+                <div class="alert alert-success">
+                    <p><i class="fas fa-check"></i> <strong>Объявление отправлено</strong></p>
+                    <p style="margin: 10px 0;">Теперь его могут видеть все подписчики канала.</p>
+                </div>
+                
+                <button class="btn" onclick="createNewAd()" style="margin-top: 20px;">
+                    <i class="fas fa-plus"></i>
+                    <span>Создать еще одно</span>
+                </button>
+                
+                <button class="btn" onclick="viewChannel()" style="background: #0088cc; margin-top: 10px;">
+                    <i class="fab fa-telegram"></i>
+                    <span>Перейти в канал</span>
+                </button>
+                
+                <p style="color: var(--gray); margin-top: 30px; font-size: 14px;">
+                    <i class="fas fa-info-circle"></i>
+                    Канал: <a href="https://t.me/flowers_market_kg" target="_blank" style="color: var(--primary);">@flowers_market_kg</a>
+                </p>
+            </div>
         </div>
     </div>
     
     <div class="notification" id="notification"></div>
 
     <script>
-        // КОНФИГУРАЦИЯ
+        // Конфигурация
         const BACKEND_URL = 'https://backend-flower2-production.up.railway.app';
         const GOOGLE_CLIENT_ID = '316866498988-v1pqivbgh0eupcb9rs53m26nrqukn9hb.apps.googleusercontent.com';
         
         // Глобальные переменные
-        let userId = null;
+        let userSession = null;
         let userData = null;
         let uploadedPhotos = [];
-        let tgWebApp = null;
+        let contacts = [];
+        let autoSaveInterval = null;
         
-        // Инициализация при загрузке страницы
+        // Инициализация при загрузке
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('🌺 Flower Market запущен');
             
             // Показываем первый шаг
             showStep(1);
             
-            // Пробуем получить Telegram ID из WebApp
-            await getTelegramUserId();
+            // Проверяем сессию из URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const sessionToken = urlParams.get('session');
+            const telegramId = urlParams.get('tg_id');
+            
+            if (sessionToken) {
+                await checkSession(sessionToken);
+            } else if (telegramId) {
+                // Если есть telegramId но нет сессии, пробуем найти пользователя
+                await checkUserByTelegramId(telegramId);
+            } else {
+                // Нет сессии - показываем авторизацию
+                showStep(2);
+                initializeGoogleAuth();
+            }
         });
         
-        // Получение Telegram ID из WebApp
-        async function getTelegramUserId() {
+        // Проверка сессии
+        async function checkSession(sessionToken) {
             try {
-                // Проверяем, запущен ли в Telegram WebApp
-                if (window.Telegram && window.Telegram.WebApp) {
-                    tgWebApp = Telegram.WebApp;
-                    console.log('📱 Telegram WebApp доступен');
-                    
-                    // Расширяем на весь экран и готовим
-                    tgWebApp.expand();
-                    tgWebApp.ready();
-                    
-                    // Получаем данные пользователя
-                    const tgUser = tgWebApp.initDataUnsafe.user;
-                    
-                    if (tgUser && tgUser.id) {
-                        userId = tgUser.id.toString();
-                        console.log('✅ Telegram User ID получен:', userId);
-                        
-                        // Сохраняем в localStorage для будущих сессий
-                        localStorage.setItem('flower_telegram_id', userId);
-                        
-                        // Обновляем UI
-                        document.getElementById('displayTelegramId').textContent = userId;
-                        
-                        // Проверяем статус пользователя
-                        await checkUserStatus();
-                        return;
-                    }
-                }
+                console.log('🔍 Проверяем сессию...');
                 
-                // Если WebApp недоступен, пробуем получить ID из localStorage
-                userId = localStorage.getItem('flower_telegram_id');
+                const response = await fetch(`${BACKEND_URL}/api/session/${sessionToken}`);
+                const result = await response.json();
                 
-                if (userId) {
-                    console.log('📝 Telegram ID из localStorage:', userId);
-                    document.getElementById('displayTelegramId').textContent = userId;
-                    await checkUserStatus();
+                if (result.success) {
+                    userSession = sessionToken;
+                    userData = result.user;
+                    
+                    console.log('✅ Сессия активна:', userData.name);
+                    
+                    // Сохраняем в localStorage для будущих сессий
+                    localStorage.setItem('flower_session', sessionToken);
+                    
+                    // Обновляем UI
+                    updateUserInfo();
+                    document.getElementById('displayTelegramId').textContent = userData.telegramId;
+                    
+                    // Показываем форму
+                    showStep(3);
+                    
+                    // Проверяем черновик
+                    await checkDraft();
+                    
+                    // Запускаем автосохранение
+                    startAutoSave();
                 } else {
-                    // Если ID нет нигде, показываем поле для ручного ввода
-                    showManualIdInput();
-                }
-                
-            } catch (error) {
-                console.error('❌ Ошибка получения Telegram ID:', error);
-                showManualIdInput();
-            }
-        }
-        
-        // Показать поле для ручного ввода ID
-        function showManualIdInput() {
-            document.getElementById('step1Loader').style.display = 'none';
-            document.getElementById('manualIdInput').style.display = 'block';
-        }
-        
-        // Сохранить Telegram ID вручную
-        function saveManualTelegramId() {
-            const input = document.getElementById('telegramIdInput');
-            const telegramId = input.value.trim();
-            
-            if (!telegramId || isNaN(telegramId)) {
-                showNotification('Ошибка', 'Введите правильный Telegram ID (только цифры)', 'error');
-                return;
-            }
-            
-            userId = telegramId;
-            localStorage.setItem('flower_telegram_id', userId);
-            document.getElementById('displayTelegramId').textContent = userId;
-            
-            // Показываем второй шаг
-            showStep(2);
-            initializeGoogleAuth();
-        }
-        
-        // Проверка статуса пользователя
-        async function checkUserStatus() {
-            try {
-                console.log('🔍 Проверяем статус пользователя:', userId);
-                
-                const response = await fetch(`${BACKEND_URL}/api/user/${userId}/status`);
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('📊 Статус пользователя:', data);
-                    
-                    if (data.isLoggedIn && data.user) {
-                        // Пользователь уже авторизован
-                        userData = data.user;
-                        console.log('✅ Пользователь уже авторизован');
-                        showStep(3);
-                        updateUserInfo();
-                        await checkApprovalStatus();
-                    } else {
-                        // Пользователь не авторизован - показываем Google авторизацию
-                        console.log('👤 Пользователь не авторизован');
-                        showStep(2);
-                        initializeGoogleAuth();
-                    }
-                } else {
-                    // Сервер недоступен или ошибка
-                    console.log('⚠️ Ошибка проверки статуса');
+                    console.log('❌ Сессия недействительна');
                     showStep(2);
                     initializeGoogleAuth();
                 }
-                
             } catch (error) {
-                console.error('❌ Ошибка проверки статуса:', error);
+                console.error('Ошибка проверки сессии:', error);
+                showStep(2);
+                initializeGoogleAuth();
+            }
+        }
+        
+        // Проверка пользователя по telegramId
+        async function checkUserByTelegramId(telegramId) {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/user/telegram/${telegramId}`);
+                const result = await response.json();
+                
+                if (result.success && result.user.isLoggedIn) {
+                    // Пользователь уже авторизован - нужна сессия
+                    showStep(2);
+                    initializeGoogleAuth();
+                } else {
+                    showStep(2);
+                    initializeGoogleAuth();
+                }
+            } catch (error) {
+                console.error('Ошибка проверки пользователя:', error);
                 showStep(2);
                 initializeGoogleAuth();
             }
@@ -375,15 +384,11 @@
         
         // Инициализация Google авторизации
         function initializeGoogleAuth() {
-            console.log('🔑 Инициализация Google Auth...');
-            
             if (typeof google === 'undefined') {
-                console.error('❌ Google API не загрузился');
                 showNotification('Ошибка', 'Google сервис недоступен', 'error');
                 return;
             }
             
-            // Инициализируем Google Identity Services
             google.accounts.id.initialize({
                 client_id: GOOGLE_CLIENT_ID,
                 callback: handleGoogleAuthResponse,
@@ -392,9 +397,13 @@
                 context: 'signin'
             });
             
-            // Создаем кнопку Google Sign-In
+            // Показываем контейнер для контактов
+            document.getElementById('contactsContainer').style.display = 'block';
+            addContactField(); // Добавляем первое поле для контакта
+            
+            // Рендерим кнопку Google
             google.accounts.id.renderButton(
-                document.getElementById('googleSignInButton'),
+                document.getElementById('googleButtonContainer'),
                 {
                     type: 'standard',
                     theme: 'outline',
@@ -405,33 +414,83 @@
                     width: '350'
                 }
             );
-            
-            // Пытаемся автоматически авторизовать пользователя
-            google.accounts.id.prompt();
-            
-            console.log('✅ Google Auth инициализирован');
         }
         
         // Обработка ответа Google
-        function handleGoogleAuthResponse(response) {
+        async function handleGoogleAuthResponse(response) {
             console.log('✅ Google ответ получен');
             
             if (response.credential) {
-                authenticateWithBackend(response.credential);
+                await authenticateWithBackend(response.credential);
             } else {
-                console.error('❌ Ошибка Google Auth:', response.error);
-                showNotification('Ошибка', 'Не удалось авторизоваться через Google', 'error');
+                showNotification('Ошибка', 'Ошибка авторизации Google', 'error');
             }
         }
         
-        // Аутентификация через бэкенд
+        // Сбор контактов из формы
+        function collectContacts() {
+            contacts = [];
+            const contactItems = document.querySelectorAll('.contact-item');
+            
+            contactItems.forEach(item => {
+                const typeSelect = item.querySelector('.contact-type');
+                const valueInput = item.querySelector('.contact-value');
+                
+                if (typeSelect && valueInput && valueInput.value.trim()) {
+                    contacts.push({
+                        type: typeSelect.value,
+                        value: valueInput.value.trim()
+                    });
+                }
+            });
+            
+            return contacts;
+        }
+        
+        // Добавление поля для контакта
+        function addContactField() {
+            const contactsList = document.getElementById('contactsList');
+            const contactId = Date.now();
+            
+            const contactItem = document.createElement('div');
+            contactItem.className = 'contact-item';
+            contactItem.innerHTML = `
+                <select class="form-input contact-type" style="flex: 1;">
+                    <option value="Телефон">Телефон</option>
+                    <option value="WhatsApp">WhatsApp</option>
+                    <option value="Instagram">Instagram</option>
+                    <option value="Email">Email</option>
+                    <option value="Telegram">Telegram</option>
+                    <option value="Другое">Другое</option>
+                </select>
+                <input type="text" class="form-input contact-value" placeholder="Номер или ссылка" style="flex: 2;">
+                <button type="button" onclick="removeContactField(this)" style="background: var(--danger); color: white; border: none; width: 40px; height: 40px; border-radius: 8px; cursor: pointer;">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            contactsList.appendChild(contactItem);
+        }
+        
+        // Удаление поля контакта
+        function removeContactField(button) {
+            const contactItem = button.closest('.contact-item');
+            if (document.querySelectorAll('.contact-item').length > 1) {
+                contactItem.remove();
+            }
+        }
+        
+        // Авторизация через бэкенд с контактами
         async function authenticateWithBackend(token) {
             try {
-                // Показываем индикатор загрузки
-                document.getElementById('googleSignInButton').style.display = 'none';
+                // Показываем загрузку
+                document.getElementById('googleButtonContainer').style.display = 'none';
                 document.getElementById('authLoader').style.display = 'block';
                 
-                console.log('🔐 Отправляем токен на сервер...');
+                // Собираем контакты
+                const userContacts = collectContacts();
+                
+                console.log('🔐 Отправляем данные на сервер...');
                 
                 const response = await fetch(`${BACKEND_URL}/api/auth/google`, {
                     method: 'POST',
@@ -441,23 +500,37 @@
                     },
                     body: JSON.stringify({
                         token: token,
-                        telegramUserId: userId
+                        userContacts: userContacts
                     })
                 });
                 
                 const result = await response.json();
                 
-                // Скрываем индикатор загрузки
-                document.getElementById('authLoader').style.display = 'none';
-                
                 if (result.success) {
+                    userSession = result.sessionToken;
                     userData = result.user;
-                    console.log('✅ Авторизация успешна:', userData);
                     
-                    // Показываем форму создания объявления
-                    showStep(3);
+                    console.log('✅ Авторизация успешна:', userData.name);
+                    
+                    // Сохраняем сессию
+                    localStorage.setItem('flower_session', userSession);
+                    
+                    // Обновляем URL с сессией
+                    const newUrl = window.location.pathname + '?session=' + userSession;
+                    window.history.replaceState({}, '', newUrl);
+                    
+                    // Обновляем UI
                     updateUserInfo();
-                    await checkApprovalStatus();
+                    document.getElementById('displayTelegramId').textContent = userData.telegramId;
+                    
+                    // Показываем форму
+                    showStep(3);
+                    
+                    // Проверяем черновик
+                    await checkDraft();
+                    
+                    // Запускаем автосохранение
+                    startAutoSave();
                     
                     showNotification('Успех', `Добро пожаловать, ${userData.name}!`, 'success');
                 } else {
@@ -467,41 +540,11 @@
             } catch (error) {
                 console.error('❌ Ошибка авторизации:', error);
                 
-                // Восстанавливаем кнопку Google
-                document.getElementById('googleSignInButton').style.display = 'block';
+                // Восстанавливаем кнопку
+                document.getElementById('googleButtonContainer').style.display = 'block';
                 document.getElementById('authLoader').style.display = 'none';
                 
                 showNotification('Ошибка', error.message, 'error');
-            }
-        }
-        
-        // Проверка статуса одобрения
-        async function checkApprovalStatus() {
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/user/${userId}/approval-status`);
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    const statusElement = document.getElementById('userApprovalStatus');
-                    const warningBox = document.getElementById('notApprovedWarning');
-                    const submitBtn = document.getElementById('submitBtn');
-                    
-                    if (data.isApproved) {
-                        statusElement.textContent = '✅ Аккаунт одобрен';
-                        statusElement.style.color = '#34c759';
-                        warningBox.style.display = 'none';
-                        submitBtn.disabled = false;
-                        submitBtn.style.opacity = '1';
-                    } else {
-                        statusElement.textContent = '⏳ Ожидает одобрения';
-                        statusElement.style.color = '#f39c12';
-                        warningBox.style.display = 'block';
-                        submitBtn.disabled = true;
-                        submitBtn.style.opacity = '0.7';
-                    }
-                }
-            } catch (error) {
-                console.error('Ошибка проверки одобрения:', error);
             }
         }
         
@@ -514,11 +557,111 @@
             
             const userAvatar = document.getElementById('userAvatar');
             if (userData.picture) {
-                userAvatar.innerHTML = `<img src="${userData.picture}" alt="Аватар" onerror="this.style.display='none'">`;
+                userAvatar.innerHTML = `<img src="${userData.picture}" alt="Аватар">`;
             } else {
                 const firstName = userData.name ? userData.name.charAt(0).toUpperCase() : 'U';
                 userAvatar.innerHTML = firstName;
             }
+        }
+        
+        // Проверка черновика
+        async function checkDraft() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/draft/${userSession}`);
+                const result = await response.json();
+                
+                if (result.success && result.exists) {
+                    const draftNotice = document.getElementById('draftNotice');
+                    const draftTime = document.getElementById('draftTime');
+                    
+                    const savedAt = new Date(result.draft.savedAt);
+                    draftTime.textContent = savedAt.toLocaleString('ru-RU');
+                    
+                    draftNotice.style.display = 'flex';
+                }
+            } catch (error) {
+                console.error('Ошибка проверки черновика:', error);
+            }
+        }
+        
+        // Загрузка черновика
+        async function loadDraft() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/draft/${userSession}`);
+                const result = await response.json();
+                
+                if (result.success && result.draft) {
+                    const draft = result.draft;
+                    
+                    document.getElementById('adTitle').value = draft.title || '';
+                    document.getElementById('adDescription').value = draft.description || '';
+                    document.getElementById('adPrice').value = draft.price || '';
+                    document.getElementById('adPhone').value = draft.contactInfo || '';
+                    
+                    // Загружаем фото если есть
+                    if (draft.photos && draft.photos.length > 0) {
+                        uploadedPhotos = draft.photos;
+                        updatePhotoPreview();
+                    }
+                    
+                    showNotification('Успех', 'Черновик загружен', 'success');
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки черновика:', error);
+                showNotification('Ошибка', 'Не удалось загрузить черновик', 'error');
+            }
+        }
+        
+        // Сохранение черновика
+        async function saveDraft() {
+            try {
+                const draftData = collectFormData();
+                
+                const response = await fetch(`${BACKEND_URL}/api/draft/save`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        sessionToken: userSession,
+                        draftData: draftData
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification('Сохранено', 'Черновик сохранен', 'success');
+                }
+            } catch (error) {
+                console.error('Ошибка сохранения черновика:', error);
+            }
+        }
+        
+        // Автосохранение
+        function startAutoSave() {
+            if (autoSaveInterval) {
+                clearInterval(autoSaveInterval);
+            }
+            
+            autoSaveInterval = setInterval(() => {
+                const formData = collectFormData();
+                if (formData.title || formData.description || formData.price || formData.contactInfo) {
+                    saveDraft();
+                }
+            }, 30000); // Сохраняем каждые 30 секунд
+        }
+        
+        // Сбор данных формы
+        function collectFormData() {
+            return {
+                title: document.getElementById('adTitle').value.trim(),
+                description: document.getElementById('adDescription').value.trim(),
+                price: document.getElementById('adPrice').value.trim(),
+                contactInfo: document.getElementById('adPhone').value.trim(),
+                photos: uploadedPhotos,
+                savedAt: new Date().toISOString()
+            };
         }
         
         // Загрузка фотографий
@@ -539,18 +682,14 @@
                     return;
                 }
                 
-                if (file.size > 10 * 1024 * 1024) {
-                    showNotification('Внимание', `Файл "${file.name}" слишком большой (макс. 10MB)`, 'warning');
-                    return;
-                }
-                
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const photoData = {
                         id: Date.now() + Math.random(),
-                        file: file,
-                        url: e.target.result,
-                        name: file.name
+                        name: file.name,
+                        type: file.type,
+                        size: file.size,
+                        data: e.target.result // сохраняем как base64
                     };
                     
                     uploadedPhotos.push(photoData);
@@ -571,7 +710,7 @@
                 const item = document.createElement('div');
                 item.className = 'photo-item';
                 item.innerHTML = `
-                    <img src="${photo.url}" alt="Фото ${index + 1}" loading="lazy">
+                    <img src="${photo.data}" alt="Фото ${index + 1}" loading="lazy">
                     <button class="remove-photo" onclick="removePhoto(${index})">
                         <i class="fas fa-times"></i>
                     </button>
@@ -588,18 +727,10 @@
         
         // Отправка объявления
         async function submitAd() {
-            const title = document.getElementById('adTitle').value.trim();
-            const description = document.getElementById('adDescription').value.trim();
-            const price = document.getElementById('adPrice').value.trim();
-            const phone = document.getElementById('adPhone').value.trim();
+            const formData = collectFormData();
             
-            if (!title || !description || !price || !phone) {
+            if (!formData.title || !formData.description || !formData.price || !formData.contactInfo) {
                 showNotification('Ошибка', 'Заполните все обязательные поля', 'error');
-                return;
-            }
-            
-            if (!userData) {
-                showNotification('Ошибка', 'Вы не авторизованы', 'error');
                 return;
             }
             
@@ -611,21 +742,15 @@
             formLoader.style.display = 'block';
             
             try {
-                const formData = {
-                    userId: userId,
-                    title: title,
-                    description: description,
-                    price: price,
-                    contactInfo: phone,
-                    images: []
-                };
-                
                 const response = await fetch(`${BACKEND_URL}/api/publish-ad`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(formData)
+                    body: JSON.stringify({
+                        sessionToken: userSession,
+                        ...formData
+                    })
                 });
                 
                 const result = await response.json();
@@ -634,7 +759,18 @@
                     document.getElementById('successMessage').textContent = 
                         result.telegramMessageId 
                             ? '✅ Ваше объявление опубликовано в Telegram канале!'
-                            : '✅ Объявление сохранено! Ошибка публикации в Telegram.';
+                            : '✅ Объявление сохранено!';
+                    
+                    // Очищаем форму
+                    document.getElementById('adForm').reset();
+                    uploadedPhotos = [];
+                    updatePhotoPreview();
+                    
+                    // Останавливаем автосохранение
+                    if (autoSaveInterval) {
+                        clearInterval(autoSaveInterval);
+                        autoSaveInterval = null;
+                    }
                     
                     showStep(4);
                 } else {
@@ -653,22 +789,44 @@
         
         // Создать новое объявление
         function createNewAd() {
-            document.getElementById('adForm').reset();
-            uploadedPhotos = [];
-            updatePhotoPreview();
             showStep(3);
+            startAutoSave();
         }
         
-        // Выйти из аккаунта
-        function logout() {
-            if (confirm('Вы уверены, что хотите выйти из аккаунта?')) {
-                localStorage.removeItem('flower_telegram_id');
-                userId = null;
+        // Перейти в канал
+        function viewChannel() {
+            window.open('https://t.me/flowers_market_kg', '_blank');
+        }
+        
+        // Выйти
+        async function logout() {
+            if (confirm('Вы уверены, что хотите выйти?')) {
+                try {
+                    await fetch(`${BACKEND_URL}/api/session/logout`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            sessionToken: userSession
+                        })
+                    });
+                } catch (error) {
+                    console.error('Ошибка выхода:', error);
+                }
+                
+                localStorage.removeItem('flower_session');
+                userSession = null;
                 userData = null;
                 uploadedPhotos = [];
                 
+                if (autoSaveInterval) {
+                    clearInterval(autoSaveInterval);
+                    autoSaveInterval = null;
+                }
+                
                 // Перезагружаем страницу
-                location.reload();
+                window.location.href = window.location.pathname;
             }
         }
         
@@ -677,13 +835,13 @@
             // Скрыть все шаги
             for (let i = 1; i <= 4; i++) {
                 const step = document.getElementById('step' + i);
-                if (step) step.style.display = 'none';
+                if (step) step.classList.remove('active');
             }
             
             // Показать нужный шаг
             const currentStep = document.getElementById('step' + stepNumber);
             if (currentStep) {
-                currentStep.style.display = 'block';
+                currentStep.classList.add('active');
             }
         }
         
@@ -694,11 +852,11 @@
             notification.innerHTML = `
                 <div style="display: flex; align-items: center;">
                     <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}" 
-                       style="color: ${type === 'success' ? '#34c759' : type === 'error' ? '#ff3b30' : '#007aff'}; 
+                       style="color: ${type === 'success' ? 'var(--success)' : type === 'error' ? 'var(--danger)' : 'var(--primary)'}; 
                               margin-right: 10px; font-size: 20px;"></i>
                     <div>
                         <div style="font-weight: 600; margin-bottom: 5px;">${title}</div>
-                        <div style="color: #666; font-size: 14px;">${message}</div>
+                        <div style="color: var(--gray); font-size: 14px;">${message}</div>
                     </div>
                 </div>
             `;
@@ -709,6 +867,12 @@
             setTimeout(() => {
                 notification.style.display = 'none';
             }, 5000);
+        }
+        
+        // Начать Google авторизацию
+        function startGoogleAuth() {
+            showStep(2);
+            initializeGoogleAuth();
         }
         
         console.log('✅ Flower Market инициализирован');
