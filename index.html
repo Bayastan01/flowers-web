@@ -29,6 +29,10 @@
         .btn { background: var(--primary); color: white; border: none; padding: 18px 30px; border-radius: 12px; font-size: 18px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 15px; transition: all 0.3s ease; width: 100%; max-width: 350px; margin: 15px auto; }
         .btn:hover { background: #5a6fd8; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,126,234,0.3); }
         .btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none !important; }
+        .btn-google { background: #4285f4; }
+        .btn-google:hover { background: #3367d6; }
+        .btn-success { background: var(--success); }
+        .btn-danger { background: var(--danger); }
         
         .form-group { margin-bottom: 25px; text-align: left; }
         .form-label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--dark); }
@@ -63,10 +67,13 @@
         .draft-notice { background: #fff3e0; border-left: 4px solid #ff9800; padding: 12px 15px; margin: 15px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
         .draft-notice button { background: #ff9800; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 14px; }
         
-        #googleSignInButton { margin: 30px auto; max-width: 350px; }
-        
         .telegram-info { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 10px; padding: 15px; margin: 20px 0; text-align: left; }
         .telegram-info p { margin: 5px 0; color: #1565c0; }
+        
+        /* Стили для Google кнопки */
+        #googleSignInContainer { margin: 30px auto; text-align: center; }
+        .g_id_signin { margin: 0 auto; display: inline-block; }
+        #googleSignInButton { margin: 30px auto; text-align: center; }
         
         @media (max-width: 768px) {
             .screen { padding: 30px 20px; }
@@ -96,7 +103,7 @@
             <i class="fas fa-user-lock icon"></i>
             <h1 class="title">Авторизация</h1>
             <p class="subtitle">
-                Войдите через Google, чтобы создавать объявления о продаже цветов
+                Нажмите кнопку ниже, чтобы войти через Google
             </p>
             
             <div style="max-width: 400px; margin: 0 auto;">
@@ -107,11 +114,19 @@
                 </div>
                 
                 <div class="alert alert-info">
-                    <p><i class="fas fa-info-circle"></i> Нажмите кнопку ниже, чтобы войти через Google.</p>
+                    <p><i class="fas fa-info-circle"></i> Для создания объявлений нужно войти через Google</p>
                 </div>
                 
                 <!-- Кнопка Google Sign-In -->
-                <div id="googleSignInButton"></div>
+                <div id="googleSignInContainer">
+                    <div id="googleSignInButton"></div>
+                    <div id="fallbackGoogleButton" style="display: none; margin-top: 20px;">
+                        <button class="btn btn-google" onclick="startGoogleAuthManually()">
+                            <i class="fab fa-google"></i>
+                            <span>Войти через Google</span>
+                        </button>
+                    </div>
+                </div>
                 
                 <div id="authLoader" style="display: none;">
                     <div class="loader"></div>
@@ -217,7 +232,7 @@
                         <i class="fas fa-save"></i>
                         <span>Сохранить</span>
                     </button>
-                    <button type="submit" class="btn" id="submitBtn" style="flex: 2; background: var(--success);">
+                    <button type="submit" class="btn btn-success" id="submitBtn" style="flex: 2;">
                         <i class="fas fa-paper-plane"></i>
                         <span>ОПУБЛИКОВАТЬ</span>
                     </button>
@@ -230,7 +245,7 @@
             </div>
             
             <div style="text-align: center; margin-top: 25px; padding-top: 20px; border-top: 1px solid #eee;">
-                <button onclick="logout()" class="btn" style="max-width: 200px; background: var(--danger);">
+                <button onclick="logout()" class="btn btn-danger" style="max-width: 200px;">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Выйти</span>
                 </button>
@@ -307,8 +322,10 @@
                 await checkUser(telegramId);
             } else {
                 // Нет параметров - показываем авторизацию
-                showStep(2);
-                initializeGoogleAuth();
+                setTimeout(() => {
+                    showStep(2);
+                    initializeGoogleAuth();
+                }, 1500);
             }
         });
         
@@ -412,7 +429,9 @@
         // Инициализация Google авторизации
         function initializeGoogleAuth() {
             if (typeof google === 'undefined') {
-                showNotification('Ошибка', 'Google сервис недоступен', 'error');
+                console.error('❌ Google API не загрузился');
+                // Показываем fallback кнопку
+                document.getElementById('fallbackGoogleButton').style.display = 'block';
                 return;
             }
             
@@ -448,8 +467,42 @@
             if (response.credential) {
                 await authenticateWithGoogle(response.credential);
             } else {
-                showNotification('Ошибка', 'Ошибка авторизации Google', 'error');
+                console.error('❌ Ошибка Google Auth:', response.error);
+                showNotification('Ошибка', 'Не удалось авторизоваться через Google', 'error');
             }
+        }
+        
+        // Ручная авторизация через Google
+        function startGoogleAuthManually() {
+            // Показываем загрузку
+            document.getElementById('googleSignInButton').style.display = 'none';
+            document.getElementById('fallbackGoogleButton').style.display = 'none';
+            document.getElementById('authLoader').style.display = 'block';
+            
+            // Создаем iframe для Google OAuth
+            const googleAuthUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(window.location.origin)}&response_type=token&scope=email%20profile&state=${telegramId}`;
+            
+            // Открываем в новом окне
+            const authWindow = window.open(googleAuthUrl, 'GoogleAuth', 'width=500,height=600,scrollbars=yes');
+            
+            if (!authWindow) {
+                document.getElementById('authLoader').style.display = 'none';
+                document.getElementById('googleSignInButton').style.display = 'block';
+                document.getElementById('fallbackGoogleButton').style.display = 'block';
+                showNotification('Ошибка', 'Разрешите всплывающие окна', 'error');
+                return;
+            }
+            
+            // Проверяем закрытие окна
+            const checkWindowClosed = setInterval(() => {
+                if (authWindow.closed) {
+                    clearInterval(checkWindowClosed);
+                    document.getElementById('authLoader').style.display = 'none';
+                    document.getElementById('googleSignInButton').style.display = 'block';
+                    document.getElementById('fallbackGoogleButton').style.display = 'block';
+                    showNotification('Информация', 'Окно авторизации закрыто', 'info');
+                }
+            }, 1000);
         }
         
         // Авторизация через Google
@@ -457,6 +510,7 @@
             try {
                 // Показываем загрузку
                 document.getElementById('googleSignInButton').style.display = 'none';
+                document.getElementById('fallbackGoogleButton').style.display = 'none';
                 document.getElementById('authLoader').style.display = 'block';
                 
                 console.log('🔐 Отправляем данные на сервер...');
@@ -512,6 +566,7 @@
                 
                 // Восстанавливаем кнопку
                 document.getElementById('googleSignInButton').style.display = 'block';
+                document.getElementById('fallbackGoogleButton').style.display = 'block';
                 document.getElementById('authLoader').style.display = 'none';
                 
                 showNotification('Ошибка', error.message, 'error');
