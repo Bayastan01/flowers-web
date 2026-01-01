@@ -330,7 +330,7 @@
     <div class="notification" id="notification"></div>
 
     <script>
-        // Конфигурация
+        // Конфигурация - ОБЯЗАТЕЛЬНО ЗАМЕНИТЕ НА ВАШ БЭКЕНД URL
         const BACKEND_URL = 'https://backend-flower2-production.up.railway.app';
         const TELEGRAM_BOT_URL = 'https://t.me/Flowers_free_bot';
         const TELEGRAM_CHANNEL_URL = 'https://t.me/flowers_market_kg';
@@ -345,6 +345,18 @@
         // Инициализация при загрузке
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('🌺 Flower Market запущен');
+            console.log('Backend URL:', BACKEND_URL);
+            
+            // Проверяем доступность бэкенда
+            try {
+                const healthResponse = await fetch(`${BACKEND_URL}/health`);
+                const healthData = await healthResponse.json();
+                console.log('✅ Backend health check:', healthData);
+            } catch (error) {
+                console.error('❌ Backend not accessible:', error.message);
+                showError('Ошибка сервера', 'Не удалось подключиться к серверу');
+                return;
+            }
             
             // Получаем параметры из URL
             const urlParams = new URLSearchParams(window.location.search);
@@ -353,8 +365,10 @@
             const sessionToken = urlParams.get('session');
             const error = urlParams.get('error');
             
+            console.log('URL params:', { telegramId, tempId, sessionToken, error });
+            
             if (error) {
-                showError('Ошибка авторизации', error);
+                showError('Ошибка авторизации', decodeURIComponent(error));
                 return;
             }
             
@@ -371,7 +385,7 @@
                 // Нет параметров - показываем шаг авторизации
                 setTimeout(() => {
                     showStep(2);
-                }, 1500);
+                }, 1000);
             }
         });
         
@@ -395,6 +409,7 @@
                     // Проверяем, есть ли уже авторизованный пользователь
                     await checkUser(telegramId);
                 } else {
+                    console.log('Telegram data not found, showing auth step');
                     showStep(2);
                 }
             } catch (error) {
@@ -413,12 +428,15 @@
                 if (result.success) {
                     if (result.exists && result.isLoggedIn) {
                         // Пользователь уже авторизован
+                        console.log('User already logged in, need session');
                         showStep(2);
                     } else {
                         // Пользователь не авторизован
+                        console.log('User not logged in, showing auth step');
                         showStep(2);
                     }
                 } else {
+                    console.log('User check failed, showing auth step');
                     showStep(2);
                 }
             } catch (error) {
@@ -461,6 +479,7 @@
                     startAutoSave();
                 } else {
                     // Сессия недействительна
+                    console.log('Session invalid, showing auth step');
                     showStep(2);
                 }
             } catch (error) {
@@ -497,8 +516,7 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    console.log('✅ Google OAuth URL получен');
-                    console.log('Auth URL:', result.authUrl);
+                    console.log('✅ Google OAuth URL получен:', result.authUrl);
                     
                     // Открываем окно авторизации
                     const authWindow = window.open(
