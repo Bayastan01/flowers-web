@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Flower Market - Создать объявление</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         :root {
@@ -23,29 +22,19 @@
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); min-height: 100vh; padding: 20px; }
         .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); overflow: hidden; }
         .screen { padding: 40px 30px; text-align: center; display: none; }
-        .active { display: block; }
+        .screen.active { display: block; }
         .icon { font-size: 80px; color: var(--primary); margin-bottom: 25px; }
         .title { font-size: 32px; color: var(--dark); margin-bottom: 15px; font-weight: 600; }
         .subtitle { font-size: 18px; color: var(--gray); line-height: 1.5; margin-bottom: 30px; max-width: 500px; margin-left: auto; margin-right: auto; }
         .btn { background: var(--primary); color: white; border: none; padding: 18px 30px; border-radius: 12px; font-size: 18px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 15px; transition: all 0.3s ease; width: 100%; max-width: 350px; margin: 15px auto; }
         .btn:hover { background: #5a6fd8; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,126,234,0.3); }
-        .btn-google { background: #4285f4; }
-        .btn-google:hover { background: #3367d6; }
-        .btn-success { background: var(--success); }
-        .btn-danger { background: var(--danger); }
         .btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none !important; }
         
         .form-group { margin-bottom: 25px; text-align: left; }
         .form-label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--dark); }
-        .form-input, .form-textarea, .form-select { width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; transition: border-color 0.3s ease; }
-        .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--primary); outline: none; }
+        .form-input, .form-textarea { width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; transition: border-color 0.3s ease; }
+        .form-input:focus, .form-textarea:focus { border-color: var(--primary); outline: none; }
         .form-textarea { min-height: 120px; resize: vertical; }
-        
-        .contacts-container { margin-top: 10px; }
-        .contact-item { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
-        .contact-type { flex: 1; }
-        .contact-value { flex: 2; }
-        .add-contact-btn { background: var(--success); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; margin-top: 10px; }
         
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -74,6 +63,11 @@
         .draft-notice { background: #fff3e0; border-left: 4px solid #ff9800; padding: 12px 15px; margin: 15px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
         .draft-notice button { background: #ff9800; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 14px; }
         
+        #googleSignInButton { margin: 30px auto; max-width: 350px; }
+        
+        .telegram-info { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 10px; padding: 15px; margin: 20px 0; text-align: left; }
+        .telegram-info p { margin: 5px 0; color: #1565c0; }
+        
         @media (max-width: 768px) {
             .screen { padding: 30px 20px; }
             .title { font-size: 24px; }
@@ -86,24 +80,14 @@
 </head>
 <body>
     <div class="container">
-        <!-- ШАГ 1: Загрузка и проверка сессии -->
-        <div class="screen" id="step1">
+        <!-- ШАГ 1: Загрузка и проверка -->
+        <div class="screen active" id="step1">
             <i class="fas fa-spinner icon fa-spin"></i>
             <h1 class="title">Flower Market</h1>
-            <p class="subtitle">Загружаем вашу сессию...</p>
+            <p class="subtitle">Загружаем данные...</p>
             <div id="loader1">
                 <div class="loader"></div>
-                <p style="margin-top: 15px; color: var(--gray);">Проверяем авторизацию...</p>
-            </div>
-            <div id="step1Error" style="display: none; max-width: 400px; margin: 0 auto;">
-                <div class="alert alert-warning">
-                    <p><strong>Сессия не найдена</strong></p>
-                    <p>Для создания объявления нужно авторизоваться через Google.</p>
-                </div>
-                <button class="btn btn-google" onclick="startGoogleAuth()">
-                    <i class="fab fa-google"></i>
-                    <span>Войти через Google</span>
-                </button>
+                <p style="margin-top: 15px; color: var(--gray);">Проверяем ваши данные...</p>
             </div>
         </div>
         
@@ -112,35 +96,36 @@
             <i class="fas fa-user-lock icon"></i>
             <h1 class="title">Авторизация</h1>
             <p class="subtitle">
-                Войдите через Google, чтобы создавать объявления
+                Войдите через Google, чтобы создавать объявления о продаже цветов
             </p>
             
             <div style="max-width: 400px; margin: 0 auto;">
+                <!-- Информация о Telegram пользователе -->
+                <div id="telegramInfo" class="telegram-info" style="display: none;">
+                    <p><i class="fab fa-telegram"></i> <strong>Telegram:</strong> <span id="telegramName"></span></p>
+                    <p><i class="fas fa-id-card"></i> <strong>ID:</strong> <span id="telegramId"></span></p>
+                </div>
+                
                 <div class="alert alert-info">
-                    <p><i class="fas fa-info-circle"></i> После авторизации ваши контакты будут автоматически отправлены администратору канала.</p>
+                    <p><i class="fas fa-info-circle"></i> Нажмите кнопку ниже, чтобы войти через Google.</p>
                 </div>
                 
-                <!-- Контейнер для контактов -->
-                <div id="contactsContainer" class="contacts-container" style="display: none;">
-                    <h3 style="font-size: 18px; margin-bottom: 15px; color: var(--dark);">Ваши контакты</h3>
-                    <div id="contactsList"></div>
-                    <button type="button" class="add-contact-btn" onclick="addContactField()">
-                        <i class="fas fa-plus"></i>
-                        <span>Добавить контакт</span>
-                    </button>
-                </div>
-                
-                <!-- Кнопка Google -->
-                <div id="googleButtonContainer" style="margin: 25px 0;"></div>
+                <!-- Кнопка Google Sign-In -->
+                <div id="googleSignInButton"></div>
                 
                 <div id="authLoader" style="display: none;">
                     <div class="loader"></div>
-                    <p style="margin-top: 15px; color: var(--gray);">Авторизуемся...</p>
+                    <p style="margin-top: 15px; color: var(--gray);">Выполняется вход...</p>
                 </div>
                 
-                <p style="color: var(--gray); margin-top: 25px; font-size: 14px;">
-                    <i class="fas fa-shield-alt"></i> Мы используем безопасную авторизацию Google
-                </p>
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+                    <p style="color: var(--gray); font-size: 14px;">
+                        <i class="fas fa-shield-alt"></i> Ваши данные защищены
+                    </p>
+                    <p style="color: var(--gray); font-size: 12px; margin-top: 10px;">
+                        После входа вы сможете создавать и публиковать объявления
+                    </p>
+                </div>
             </div>
         </div>
         
@@ -148,7 +133,7 @@
         <div class="screen" id="step3">
             <div style="text-align: center; margin-bottom: 30px;">
                 <h1 class="title">Создать объявление</h1>
-                <p class="subtitle">Заполните форму для публикации в канале</p>
+                <p class="subtitle">Заполните форму для публикации в Telegram канале</p>
             </div>
             
             <div class="user-info">
@@ -158,9 +143,14 @@
                 <div class="user-details">
                     <h3 id="userName">Пользователь</h3>
                     <p id="userEmail">email@example.com</p>
-                    <p id="userStatus" style="margin: 3px 0 0; font-size: 12px; color: var(--success);">
-                        <i class="fas fa-check-circle"></i> Авторизован
-                    </p>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+                        <span style="background: var(--success); color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px;">
+                            <i class="fas fa-check"></i> Авторизован
+                        </span>
+                        <span style="background: var(--primary); color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px;">
+                            <i class="fab fa-telegram"></i> Telegram
+                        </span>
+                    </div>
                 </div>
             </div>
             
@@ -168,12 +158,12 @@
             <div id="draftNotice" class="draft-notice" style="display: none;">
                 <div>
                     <strong><i class="fas fa-save"></i> Найден черновик</strong>
-                    <p style="margin: 5px 0 0; font-size: 14px;">У вас есть сохраненный черновик от <span id="draftTime"></span></p>
+                    <p style="margin: 5px 0 0; font-size: 14px;">Сохранено <span id="draftTime"></span></p>
                 </div>
                 <button onclick="loadDraft()">Загрузить</button>
             </div>
             
-            <form id="adForm" onsubmit="event.preventDefault(); saveDraft();">
+            <form id="adForm" onsubmit="event.preventDefault(); submitAd();">
                 <div class="form-group">
                     <label class="form-label" for="adTitle">
                         Заголовок объявления *
@@ -225,9 +215,9 @@
                 <div style="display: flex; gap: 15px; margin-top: 30px;">
                     <button type="button" class="btn" onclick="saveDraft()" style="flex: 1; background: var(--gray);">
                         <i class="fas fa-save"></i>
-                        <span>Сохранить черновик</span>
+                        <span>Сохранить</span>
                     </button>
-                    <button type="submit" class="btn btn-success" id="submitBtn" style="flex: 2;">
+                    <button type="submit" class="btn" id="submitBtn" style="flex: 2; background: var(--success);">
                         <i class="fas fa-paper-plane"></i>
                         <span>ОПУБЛИКОВАТЬ</span>
                     </button>
@@ -240,12 +230,12 @@
             </div>
             
             <div style="text-align: center; margin-top: 25px; padding-top: 20px; border-top: 1px solid #eee;">
-                <button onclick="logout()" class="btn btn-danger" style="max-width: 200px;">
+                <button onclick="logout()" class="btn" style="max-width: 200px; background: var(--danger);">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Выйти</span>
                 </button>
                 <p style="color: var(--gray); margin-top: 15px; font-size: 14px;">
-                    Telegram ID: <strong id="displayTelegramId"></strong>
+                    <i class="fab fa-telegram"></i> Telegram ID: <strong id="displayTelegramId"></strong>
                 </p>
             </div>
         </div>
@@ -292,56 +282,114 @@
         // Глобальные переменные
         let userSession = null;
         let userData = null;
+        let telegramId = null;
         let uploadedPhotos = [];
-        let contacts = [];
         let autoSaveInterval = null;
         
         // Инициализация при загрузке
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('🌺 Flower Market запущен');
             
-            // Показываем первый шаг
-            showStep(1);
-            
-            // Проверяем сессию из URL
+            // Получаем параметры из URL
             const urlParams = new URLSearchParams(window.location.search);
+            telegramId = urlParams.get('telegram_id');
+            const tempId = urlParams.get('temp_id');
             const sessionToken = urlParams.get('session');
-            const telegramId = urlParams.get('tg_id');
             
             if (sessionToken) {
+                // Есть сессия - проверяем ее
                 await checkSession(sessionToken);
+            } else if (tempId && telegramId) {
+                // Есть временный ID - получаем данные Telegram
+                await getTelegramData(tempId, telegramId);
             } else if (telegramId) {
-                // Если есть telegramId но нет сессии, пробуем найти пользователя
-                await checkUserByTelegramId(telegramId);
+                // Только telegram_id - проверяем пользователя
+                await checkUser(telegramId);
             } else {
-                // Нет сессии - показываем авторизацию
+                // Нет параметров - показываем авторизацию
                 showStep(2);
                 initializeGoogleAuth();
             }
         });
         
+        // Получение данных Telegram
+        async function getTelegramData(tempId, telegramId) {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/telegram-data/${tempId}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Показываем информацию о Telegram пользователе
+                    document.getElementById('telegramInfo').style.display = 'block';
+                    document.getElementById('telegramName').textContent = result.firstName;
+                    document.getElementById('telegramId').textContent = result.telegramId;
+                    
+                    // Сохраняем telegramId
+                    telegramId = result.telegramId;
+                    
+                    // Проверяем, есть ли уже авторизованный пользователь
+                    await checkUser(telegramId);
+                } else {
+                    // Не удалось получить Telegram данные
+                    showStep(2);
+                    initializeGoogleAuth();
+                }
+            } catch (error) {
+                console.error('Ошибка получения Telegram данных:', error);
+                showStep(2);
+                initializeGoogleAuth();
+            }
+        }
+        
+        // Проверка пользователя
+        async function checkUser(telegramId) {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/user/check/${telegramId}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    if (result.exists && result.isLoggedIn) {
+                        // Пользователь существует и авторизован
+                        // Нужно получить сессию через Google авторизацию
+                        showStep(2);
+                        initializeGoogleAuth();
+                    } else {
+                        // Пользователь не авторизован
+                        showStep(2);
+                        initializeGoogleAuth();
+                    }
+                } else {
+                    showStep(2);
+                    initializeGoogleAuth();
+                }
+            } catch (error) {
+                console.error('Ошибка проверки пользователя:', error);
+                showStep(2);
+                initializeGoogleAuth();
+            }
+        }
+        
         // Проверка сессии
         async function checkSession(sessionToken) {
             try {
-                console.log('🔍 Проверяем сессию...');
-                
                 const response = await fetch(`${BACKEND_URL}/api/session/${sessionToken}`);
                 const result = await response.json();
                 
                 if (result.success) {
                     userSession = sessionToken;
                     userData = result.user;
+                    telegramId = result.user.telegramId;
                     
                     console.log('✅ Сессия активна:', userData.name);
                     
-                    // Сохраняем в localStorage для будущих сессий
+                    // Сохраняем сессию
                     localStorage.setItem('flower_session', sessionToken);
                     
-                    // Обновляем UI
-                    updateUserInfo();
-                    document.getElementById('displayTelegramId').textContent = userData.telegramId;
+                    // Обновляем URL
+                    updateUrlWithSession(sessionToken);
                     
-                    // Показываем форму
+                    // Обновляем UI и показываем форму
+                    updateUserInfo();
                     showStep(3);
                     
                     // Проверяем черновик
@@ -350,33 +398,12 @@
                     // Запускаем автосохранение
                     startAutoSave();
                 } else {
-                    console.log('❌ Сессия недействительна');
+                    // Сессия недействительна
                     showStep(2);
                     initializeGoogleAuth();
                 }
             } catch (error) {
                 console.error('Ошибка проверки сессии:', error);
-                showStep(2);
-                initializeGoogleAuth();
-            }
-        }
-        
-        // Проверка пользователя по telegramId
-        async function checkUserByTelegramId(telegramId) {
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/user/telegram/${telegramId}`);
-                const result = await response.json();
-                
-                if (result.success && result.user.isLoggedIn) {
-                    // Пользователь уже авторизован - нужна сессия
-                    showStep(2);
-                    initializeGoogleAuth();
-                } else {
-                    showStep(2);
-                    initializeGoogleAuth();
-                }
-            } catch (error) {
-                console.error('Ошибка проверки пользователя:', error);
                 showStep(2);
                 initializeGoogleAuth();
             }
@@ -397,13 +424,9 @@
                 context: 'signin'
             });
             
-            // Показываем контейнер для контактов
-            document.getElementById('contactsContainer').style.display = 'block';
-            addContactField(); // Добавляем первое поле для контакта
-            
             // Рендерим кнопку Google
             google.accounts.id.renderButton(
-                document.getElementById('googleButtonContainer'),
+                document.getElementById('googleSignInButton'),
                 {
                     type: 'standard',
                     theme: 'outline',
@@ -414,6 +437,8 @@
                     width: '350'
                 }
             );
+            
+            console.log('✅ Google Auth инициализирован');
         }
         
         // Обработка ответа Google
@@ -421,74 +446,18 @@
             console.log('✅ Google ответ получен');
             
             if (response.credential) {
-                await authenticateWithBackend(response.credential);
+                await authenticateWithGoogle(response.credential);
             } else {
                 showNotification('Ошибка', 'Ошибка авторизации Google', 'error');
             }
         }
         
-        // Сбор контактов из формы
-        function collectContacts() {
-            contacts = [];
-            const contactItems = document.querySelectorAll('.contact-item');
-            
-            contactItems.forEach(item => {
-                const typeSelect = item.querySelector('.contact-type');
-                const valueInput = item.querySelector('.contact-value');
-                
-                if (typeSelect && valueInput && valueInput.value.trim()) {
-                    contacts.push({
-                        type: typeSelect.value,
-                        value: valueInput.value.trim()
-                    });
-                }
-            });
-            
-            return contacts;
-        }
-        
-        // Добавление поля для контакта
-        function addContactField() {
-            const contactsList = document.getElementById('contactsList');
-            const contactId = Date.now();
-            
-            const contactItem = document.createElement('div');
-            contactItem.className = 'contact-item';
-            contactItem.innerHTML = `
-                <select class="form-input contact-type" style="flex: 1;">
-                    <option value="Телефон">Телефон</option>
-                    <option value="WhatsApp">WhatsApp</option>
-                    <option value="Instagram">Instagram</option>
-                    <option value="Email">Email</option>
-                    <option value="Telegram">Telegram</option>
-                    <option value="Другое">Другое</option>
-                </select>
-                <input type="text" class="form-input contact-value" placeholder="Номер или ссылка" style="flex: 2;">
-                <button type="button" onclick="removeContactField(this)" style="background: var(--danger); color: white; border: none; width: 40px; height: 40px; border-radius: 8px; cursor: pointer;">
-                    <i class="fas fa-times"></i>
-                </button>
-            `;
-            
-            contactsList.appendChild(contactItem);
-        }
-        
-        // Удаление поля контакта
-        function removeContactField(button) {
-            const contactItem = button.closest('.contact-item');
-            if (document.querySelectorAll('.contact-item').length > 1) {
-                contactItem.remove();
-            }
-        }
-        
-        // Авторизация через бэкенд с контактами
-        async function authenticateWithBackend(token) {
+        // Авторизация через Google
+        async function authenticateWithGoogle(token) {
             try {
                 // Показываем загрузку
-                document.getElementById('googleButtonContainer').style.display = 'none';
+                document.getElementById('googleSignInButton').style.display = 'none';
                 document.getElementById('authLoader').style.display = 'block';
-                
-                // Собираем контакты
-                const userContacts = collectContacts();
                 
                 console.log('🔐 Отправляем данные на сервер...');
                 
@@ -500,11 +469,13 @@
                     },
                     body: JSON.stringify({
                         token: token,
-                        userContacts: userContacts
+                        telegramId: telegramId
                     })
                 });
                 
                 const result = await response.json();
+                
+                document.getElementById('authLoader').style.display = 'none';
                 
                 if (result.success) {
                     userSession = result.sessionToken;
@@ -515,13 +486,12 @@
                     // Сохраняем сессию
                     localStorage.setItem('flower_session', userSession);
                     
-                    // Обновляем URL с сессией
-                    const newUrl = window.location.pathname + '?session=' + userSession;
-                    window.history.replaceState({}, '', newUrl);
+                    // Обновляем URL
+                    updateUrlWithSession(userSession);
                     
                     // Обновляем UI
                     updateUserInfo();
-                    document.getElementById('displayTelegramId').textContent = userData.telegramId;
+                    document.getElementById('displayTelegramId').textContent = telegramId;
                     
                     // Показываем форму
                     showStep(3);
@@ -541,7 +511,7 @@
                 console.error('❌ Ошибка авторизации:', error);
                 
                 // Восстанавливаем кнопку
-                document.getElementById('googleButtonContainer').style.display = 'block';
+                document.getElementById('googleSignInButton').style.display = 'block';
                 document.getElementById('authLoader').style.display = 'none';
                 
                 showNotification('Ошибка', error.message, 'error');
@@ -598,7 +568,6 @@
                     document.getElementById('adPrice').value = draft.price || '';
                     document.getElementById('adPhone').value = draft.contactInfo || '';
                     
-                    // Загружаем фото если есть
                     if (draft.photos && draft.photos.length > 0) {
                         uploadedPhotos = draft.photos;
                         updatePhotoPreview();
@@ -649,7 +618,7 @@
                 if (formData.title || formData.description || formData.price || formData.contactInfo) {
                     saveDraft();
                 }
-            }, 30000); // Сохраняем каждые 30 секунд
+            }, 30000); // Каждые 30 секунд
         }
         
         // Сбор данных формы
@@ -689,7 +658,7 @@
                         name: file.name,
                         type: file.type,
                         size: file.size,
-                        data: e.target.result // сохраняем как base64
+                        data: e.target.result
                     };
                     
                     uploadedPhotos.push(photoData);
@@ -802,7 +771,7 @@
         async function logout() {
             if (confirm('Вы уверены, что хотите выйти?')) {
                 try {
-                    await fetch(`${BACKEND_URL}/api/session/logout`, {
+                    await fetch(`${BACKEND_URL}/api/logout`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -825,9 +794,15 @@
                     autoSaveInterval = null;
                 }
                 
-                // Перезагружаем страницу
+                // Возвращаемся на главную
                 window.location.href = window.location.pathname;
             }
+        }
+        
+        // Обновить URL с сессией
+        function updateUrlWithSession(sessionToken) {
+            const newUrl = `${window.location.pathname}?session=${sessionToken}`;
+            window.history.replaceState({}, '', newUrl);
         }
         
         // Показать шаг
@@ -869,13 +844,7 @@
             }, 5000);
         }
         
-        // Начать Google авторизацию
-        function startGoogleAuth() {
-            showStep(2);
-            initializeGoogleAuth();
-        }
-        
-        console.log('✅ Flower Market инициализирован');
+        console.log('✅ Flower Market готов к работе');
     </script>
 </body>
 </html>
