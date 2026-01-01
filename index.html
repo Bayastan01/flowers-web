@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Flower Market - Создать объявление</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         :root {
             --primary: #667eea;
@@ -31,13 +30,15 @@
         .btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none !important; }
         .btn-google { background: #4285f4; }
         .btn-google:hover { background: #3367d6; }
+        .btn-telegram { background: #0088cc; }
+        .btn-telegram:hover { background: #0077b3; }
         .btn-success { background: var(--success); }
         .btn-danger { background: var(--danger); }
         
         .form-group { margin-bottom: 25px; text-align: left; }
         .form-label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--dark); }
-        .form-input, .form-textarea { width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; transition: border-color 0.3s ease; }
-        .form-input:focus, .form-textarea:focus { border-color: var(--primary); outline: none; }
+        .form-input, .form-textarea, .form-select { width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; transition: border-color 0.3s ease; }
+        .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--primary); outline: none; }
         .form-textarea { min-height: 120px; resize: vertical; }
         
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
@@ -58,22 +59,24 @@
         .alert-info { background: #e7f3ff; border: 1px solid #b3d7ff; color: #0066cc; }
         .alert-warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
         .alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .alert-error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
         
         .photo-preview { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 20px; }
         .photo-item { position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 1; background: #f0f0f0; }
         .photo-item img { width: 100%; height: 100%; object-fit: cover; }
         .remove-photo { position: absolute; top: 5px; right: 5px; background: rgba(255,107,107,0.9); color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; border: none; }
         
-        .draft-notice { background: #fff3e0; border-left: 4px solid #ff9800; padding: 12px 15px; margin: 15px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .draft-notice button { background: #ff9800; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 14px; }
-        
         .telegram-info { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 10px; padding: 15px; margin: 20px 0; text-align: left; }
         .telegram-info p { margin: 5px 0; color: #1565c0; }
         
-        /* Стили для Google кнопки */
-        #googleSignInContainer { margin: 30px auto; text-align: center; }
-        .g_id_signin { margin: 0 auto; display: inline-block; }
-        #googleSignInButton { margin: 30px auto; text-align: center; }
+        .google-signin-container { margin: 30px auto; text-align: center; }
+        
+        .draft-notice { background: #fff3e0; border-left: 4px solid #ff9800; padding: 12px 15px; margin: 15px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .draft-notice button { background: #ff9800; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+        
+        .ad-status { padding: 10px 15px; border-radius: 8px; margin: 10px 0; }
+        .ad-status.published { background: #d4edda; color: #155724; }
+        .ad-status.failed { background: #f8d7da; color: #721c24; }
         
         @media (max-width: 768px) {
             .screen { padding: 30px 20px; }
@@ -91,10 +94,10 @@
         <div class="screen active" id="step1">
             <i class="fas fa-spinner icon fa-spin"></i>
             <h1 class="title">Flower Market</h1>
-            <p class="subtitle">Загружаем данные...</p>
+            <p class="subtitle">Загружаем ваши данные...</p>
             <div id="loader1">
                 <div class="loader"></div>
-                <p style="margin-top: 15px; color: var(--gray);">Проверяем ваши данные...</p>
+                <p style="margin-top: 15px; color: var(--gray);">Проверяем авторизацию...</p>
             </div>
         </div>
         
@@ -118,19 +121,21 @@
                 </div>
                 
                 <!-- Кнопка Google Sign-In -->
-                <div id="googleSignInContainer">
-                    <div id="googleSignInButton"></div>
-                    <div id="fallbackGoogleButton" style="display: none; margin-top: 20px;">
-                        <button class="btn btn-google" onclick="startGoogleAuthManually()">
-                            <i class="fab fa-google"></i>
-                            <span>Войти через Google</span>
-                        </button>
-                    </div>
+                <div class="google-signin-container">
+                    <button class="btn btn-google" onclick="signInWithGoogle()" id="googleSignInBtn">
+                        <i class="fab fa-google"></i>
+                        <span>Войти через Google</span>
+                    </button>
                 </div>
                 
                 <div id="authLoader" style="display: none;">
                     <div class="loader"></div>
                     <p style="margin-top: 15px; color: var(--gray);">Выполняется вход...</p>
+                </div>
+                
+                <div id="authError" class="alert alert-error" style="display: none;">
+                    <p><i class="fas fa-exclamation-triangle"></i> <strong>Ошибка авторизации</strong></p>
+                    <p id="authErrorMessage" style="margin-top: 5px; font-size: 14px;"></p>
                 </div>
                 
                 <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
@@ -264,9 +269,9 @@
             </p>
             
             <div style="max-width: 400px; margin: 0 auto;">
-                <div class="alert alert-success">
+                <div id="adStatus" class="ad-status published">
                     <p><i class="fas fa-check"></i> <strong>Объявление отправлено</strong></p>
-                    <p style="margin: 10px 0;">Теперь его могут видеть все подписчики канала.</p>
+                    <p style="margin: 10px 0;" id="adDetails"></p>
                 </div>
                 
                 <button class="btn" onclick="createNewAd()" style="margin-top: 20px;">
@@ -274,14 +279,49 @@
                     <span>Создать еще одно</span>
                 </button>
                 
-                <button class="btn" onclick="viewChannel()" style="background: #0088cc; margin-top: 10px;">
+                <button class="btn btn-telegram" onclick="viewChannel()" style="margin-top: 10px;">
                     <i class="fab fa-telegram"></i>
                     <span>Перейти в канал</span>
+                </button>
+                
+                <button class="btn" onclick="closeWebApp()" style="background: var(--gray); margin-top: 10px;">
+                    <i class="fas fa-times"></i>
+                    <span>Закрыть</span>
                 </button>
                 
                 <p style="color: var(--gray); margin-top: 30px; font-size: 14px;">
                     <i class="fas fa-info-circle"></i>
                     Канал: <a href="https://t.me/flowers_market_kg" target="_blank" style="color: var(--primary);">@flowers_market_kg</a>
+                </p>
+            </div>
+        </div>
+        
+        <!-- ШАГ 5: Ошибка -->
+        <div class="screen" id="step5">
+            <i class="fas fa-exclamation-triangle icon" style="color: var(--warning);"></i>
+            <h1 class="title">Ошибка</h1>
+            <p class="subtitle" id="errorMessage">
+                Произошла ошибка
+            </p>
+            
+            <div style="max-width: 400px; margin: 0 auto;">
+                <div class="alert alert-error" id="errorDetails">
+                    <p><i class="fas fa-times-circle"></i> <strong>Ошибка</strong></p>
+                    <p style="margin: 10px 0;" id="errorText"></p>
+                </div>
+                
+                <button class="btn" onclick="retry()" style="margin-top: 20px;">
+                    <i class="fas fa-redo"></i>
+                    <span>Попробовать снова</span>
+                </button>
+                
+                <button class="btn btn-telegram" onclick="openTelegramBot()" style="margin-top: 10px;">
+                    <i class="fab fa-telegram"></i>
+                    <span>Открыть бота</span>
+                </button>
+                
+                <p style="color: var(--gray); margin-top: 30px; font-size: 14px;">
+                    Если проблема повторяется, напишите в поддержку
                 </p>
             </div>
         </div>
@@ -293,6 +333,8 @@
         // Конфигурация
         const BACKEND_URL = 'https://backend-flower2-production.up.railway.app';
         const GOOGLE_CLIENT_ID = '316866498988-v1pqivbgh0eupcb9rs53m26nrqukn9hb.apps.googleusercontent.com';
+        const TELEGRAM_BOT_URL = 'https://t.me/Flowers_free_bot';
+        const TELEGRAM_CHANNEL_URL = 'https://t.me/flowers_market_kg';
         
         // Глобальные переменные
         let userSession = null;
@@ -300,6 +342,7 @@
         let telegramId = null;
         let uploadedPhotos = [];
         let autoSaveInterval = null;
+        let googleAuthWindow = null;
         
         // Инициализация при загрузке
         document.addEventListener('DOMContentLoaded', async function() {
@@ -310,6 +353,12 @@
             telegramId = urlParams.get('telegram_id');
             const tempId = urlParams.get('temp_id');
             const sessionToken = urlParams.get('session');
+            const error = urlParams.get('error');
+            
+            if (error) {
+                showError('Ошибка авторизации', error);
+                return;
+            }
             
             if (sessionToken) {
                 // Есть сессия - проверяем ее
@@ -321,10 +370,9 @@
                 // Только telegram_id - проверяем пользователя
                 await checkUser(telegramId);
             } else {
-                // Нет параметров - показываем авторизацию
+                // Нет параметров - показываем ошибку
                 setTimeout(() => {
                     showStep(2);
-                    initializeGoogleAuth();
                 }, 1500);
             }
         });
@@ -332,6 +380,7 @@
         // Получение данных Telegram
         async function getTelegramData(tempId, telegramId) {
             try {
+                console.log('📱 Получаем Telegram данные...');
                 const response = await fetch(`${BACKEND_URL}/api/telegram-data/${tempId}`);
                 const result = await response.json();
                 
@@ -343,52 +392,47 @@
                     
                     // Сохраняем telegramId
                     telegramId = result.telegramId;
+                    document.getElementById('displayTelegramId').textContent = telegramId;
                     
                     // Проверяем, есть ли уже авторизованный пользователь
                     await checkUser(telegramId);
                 } else {
-                    // Не удалось получить Telegram данные
-                    showStep(2);
-                    initializeGoogleAuth();
+                    showError('Ошибка Telegram', 'Не удалось получить данные Telegram');
                 }
             } catch (error) {
                 console.error('Ошибка получения Telegram данных:', error);
                 showStep(2);
-                initializeGoogleAuth();
             }
         }
         
         // Проверка пользователя
         async function checkUser(telegramId) {
             try {
+                console.log('🔍 Проверяем пользователя...');
                 const response = await fetch(`${BACKEND_URL}/api/user/check/${telegramId}`);
                 const result = await response.json();
                 
                 if (result.success) {
                     if (result.exists && result.isLoggedIn) {
-                        // Пользователь существует и авторизован
-                        // Нужно получить сессию через Google авторизацию
+                        // Пользователь уже авторизован - нужна сессия
                         showStep(2);
-                        initializeGoogleAuth();
                     } else {
                         // Пользователь не авторизован
                         showStep(2);
-                        initializeGoogleAuth();
                     }
                 } else {
                     showStep(2);
-                    initializeGoogleAuth();
                 }
             } catch (error) {
                 console.error('Ошибка проверки пользователя:', error);
                 showStep(2);
-                initializeGoogleAuth();
             }
         }
         
         // Проверка сессии
         async function checkSession(sessionToken) {
             try {
+                console.log('🔐 Проверяем сессию...');
                 const response = await fetch(`${BACKEND_URL}/api/session/${sessionToken}`);
                 const result = await response.json();
                 
@@ -407,6 +451,9 @@
                     
                     // Обновляем UI и показываем форму
                     updateUserInfo();
+                    document.getElementById('displayTelegramId').textContent = telegramId;
+                    
+                    // Показываем форму
                     showStep(3);
                     
                     // Проверяем черновик
@@ -417,104 +464,84 @@
                 } else {
                     // Сессия недействительна
                     showStep(2);
-                    initializeGoogleAuth();
                 }
             } catch (error) {
                 console.error('Ошибка проверки сессии:', error);
                 showStep(2);
-                initializeGoogleAuth();
             }
         }
         
-        // Инициализация Google авторизации
-        function initializeGoogleAuth() {
-            if (typeof google === 'undefined') {
-                console.error('❌ Google API не загрузился');
-                // Показываем fallback кнопку
-                document.getElementById('fallbackGoogleButton').style.display = 'block';
-                return;
-            }
+        // Войти через Google
+        async function signInWithGoogle() {
+            const googleBtn = document.getElementById('googleSignInBtn');
+            const authLoader = document.getElementById('authLoader');
+            const authError = document.getElementById('authError');
             
-            google.accounts.id.initialize({
-                client_id: GOOGLE_CLIENT_ID,
-                callback: handleGoogleAuthResponse,
-                auto_select: false,
-                ux_mode: 'popup',
-                context: 'signin'
-            });
+            googleBtn.style.display = 'none';
+            authLoader.style.display = 'block';
+            authError.style.display = 'none';
             
-            // Рендерим кнопку Google
-            google.accounts.id.renderButton(
-                document.getElementById('googleSignInButton'),
-                {
-                    type: 'standard',
-                    theme: 'outline',
-                    size: 'large',
-                    text: 'signin_with',
-                    shape: 'rectangular',
-                    logo_alignment: 'left',
-                    width: '350'
-                }
-            );
-            
-            console.log('✅ Google Auth инициализирован');
-        }
-        
-        // Обработка ответа Google
-        async function handleGoogleAuthResponse(response) {
-            console.log('✅ Google ответ получен');
-            
-            if (response.credential) {
-                await authenticateWithGoogle(response.credential);
-            } else {
-                console.error('❌ Ошибка Google Auth:', response.error);
-                showNotification('Ошибка', 'Не удалось авторизоваться через Google', 'error');
-            }
-        }
-        
-        // Ручная авторизация через Google
-        function startGoogleAuthManually() {
-            // Показываем загрузку
-            document.getElementById('googleSignInButton').style.display = 'none';
-            document.getElementById('fallbackGoogleButton').style.display = 'none';
-            document.getElementById('authLoader').style.display = 'block';
-            
-            // Создаем iframe для Google OAuth
-            const googleAuthUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(window.location.origin)}&response_type=token&scope=email%20profile&state=${telegramId}`;
-            
-            // Открываем в новом окне
-            const authWindow = window.open(googleAuthUrl, 'GoogleAuth', 'width=500,height=600,scrollbars=yes');
-            
-            if (!authWindow) {
-                document.getElementById('authLoader').style.display = 'none';
-                document.getElementById('googleSignInButton').style.display = 'block';
-                document.getElementById('fallbackGoogleButton').style.display = 'block';
-                showNotification('Ошибка', 'Разрешите всплывающие окна', 'error');
-                return;
-            }
-            
-            // Проверяем закрытие окна
-            const checkWindowClosed = setInterval(() => {
-                if (authWindow.closed) {
-                    clearInterval(checkWindowClosed);
-                    document.getElementById('authLoader').style.display = 'none';
-                    document.getElementById('googleSignInButton').style.display = 'block';
-                    document.getElementById('fallbackGoogleButton').style.display = 'block';
-                    showNotification('Информация', 'Окно авторизации закрыто', 'info');
-                }
-            }, 1000);
-        }
-        
-        // Авторизация через Google
-        async function authenticateWithGoogle(token) {
             try {
-                // Показываем загрузку
-                document.getElementById('googleSignInButton').style.display = 'none';
-                document.getElementById('fallbackGoogleButton').style.display = 'none';
-                document.getElementById('authLoader').style.display = 'block';
+                // Создаем Google OAuth URL
+                const redirectUri = encodeURIComponent(window.location.origin);
+                const scope = encodeURIComponent('email profile');
+                const googleAuthUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}&state=${telegramId}`;
                 
-                console.log('🔐 Отправляем данные на сервер...');
+                // Открываем в новом окне
+                googleAuthWindow = window.open(googleAuthUrl, 'GoogleAuth', 'width=500,height=600,scrollbars=yes');
                 
+                if (!googleAuthWindow) {
+                    throw new Error('Разрешите всплывающие окна для авторизации');
+                }
+                
+                // Проверяем результат
+                const checkAuthResult = setInterval(() => {
+                    try {
+                        if (googleAuthWindow.closed) {
+                            clearInterval(checkAuthResult);
+                            authLoader.style.display = 'none';
+                            googleBtn.style.display = 'flex';
+                            showNotification('Информация', 'Окно авторизации закрыто', 'info');
+                        }
+                    } catch (e) {
+                        clearInterval(checkAuthResult);
+                        authLoader.style.display = 'none';
+                        googleBtn.style.display = 'flex';
+                    }
+                }, 1000);
+                
+                // Слушаем сообщения от окна авторизации
+                window.addEventListener('message', async function(event) {
+                    if (event.origin !== window.location.origin) return;
+                    
+                    if (event.data.type === 'GOOGLE_AUTH_SUCCESS') {
+                        clearInterval(checkAuthResult);
+                        await handleGoogleAuthToken(event.data.token);
+                        if (googleAuthWindow) {
+                            googleAuthWindow.close();
+                        }
+                    } else if (event.data.type === 'GOOGLE_AUTH_ERROR') {
+                        clearInterval(checkAuthResult);
+                        authLoader.style.display = 'none';
+                        googleBtn.style.display = 'flex';
+                        showAuthError(event.data.error);
+                    }
+                });
+                
+            } catch (error) {
+                console.error('❌ Ошибка авторизации:', error);
+                authLoader.style.display = 'none';
+                googleBtn.style.display = 'flex';
+                showAuthError(error.message);
+            }
+        }
+        
+        // Обработка Google токена
+        async function handleGoogleAuthToken(token) {
+            try {
+                console.log('🔐 Обрабатываем Google токен...');
+                
+                // Отправляем на бэкенд
                 const response = await fetch(`${BACKEND_URL}/api/auth/google`, {
                     method: 'POST',
                     headers: {
@@ -563,14 +590,19 @@
                 
             } catch (error) {
                 console.error('❌ Ошибка авторизации:', error);
-                
-                // Восстанавливаем кнопку
-                document.getElementById('googleSignInButton').style.display = 'block';
-                document.getElementById('fallbackGoogleButton').style.display = 'block';
                 document.getElementById('authLoader').style.display = 'none';
-                
-                showNotification('Ошибка', error.message, 'error');
+                document.getElementById('googleSignInBtn').style.display = 'flex';
+                showAuthError(error.message);
             }
+        }
+        
+        // Показать ошибку авторизации
+        function showAuthError(message) {
+            const authError = document.getElementById('authError');
+            const authErrorMessage = document.getElementById('authErrorMessage');
+            
+            authErrorMessage.textContent = message;
+            authError.style.display = 'block';
         }
         
         // Обновление информации о пользователе
@@ -706,6 +738,11 @@
                     return;
                 }
                 
+                if (file.size > 10 * 1024 * 1024) {
+                    showNotification('Внимание', `Файл "${file.name}" слишком большой (макс. 10MB)`, 'warning');
+                    return;
+                }
+                
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const photoData = {
@@ -780,10 +817,24 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    document.getElementById('successMessage').textContent = 
-                        result.telegramMessageId 
-                            ? '✅ Ваше объявление опубликовано в Telegram канале!'
-                            : '✅ Объявление сохранено!';
+                    if (result.telegramMessageId) {
+                        document.getElementById('successMessage').textContent = '✅ Ваше объявление опубликовано в Telegram канале!';
+                        document.getElementById('adDetails').innerHTML = `
+                            <strong>Заголовок:</strong> ${formData.title}<br>
+                            <strong>Цена:</strong> ${formData.price}<br>
+                            <strong>ID сообщения:</strong> ${result.telegramMessageId}
+                        `;
+                        document.getElementById('adStatus').className = 'ad-status published';
+                    } else {
+                        document.getElementById('successMessage').textContent = '✅ Объявление сохранено!';
+                        document.getElementById('adDetails').innerHTML = `
+                            <strong>Заголовок:</strong> ${formData.title}<br>
+                            <strong>Цена:</strong> ${formData.price}<br>
+                            <strong>Статус:</strong> Сохранено (не опубликовано)<br>
+                            <strong>Причина:</strong> ${result.error || 'Ошибка публикации'}
+                        `;
+                        document.getElementById('adStatus').className = 'ad-status failed';
+                    }
                     
                     // Очищаем форму
                     document.getElementById('adForm').reset();
@@ -819,7 +870,21 @@
         
         // Перейти в канал
         function viewChannel() {
-            window.open('https://t.me/flowers_market_kg', '_blank');
+            window.open(TELEGRAM_CHANNEL_URL, '_blank');
+        }
+        
+        // Открыть бота
+        function openTelegramBot() {
+            window.open(TELEGRAM_BOT_URL, '_blank');
+        }
+        
+        // Закрыть WebApp
+        function closeWebApp() {
+            if (window.Telegram && window.Telegram.WebApp) {
+                Telegram.WebApp.close();
+            } else {
+                showNotification('Информация', 'Вернитесь в Telegram вручную', 'info');
+            }
         }
         
         // Выйти
@@ -863,7 +928,7 @@
         // Показать шаг
         function showStep(stepNumber) {
             // Скрыть все шаги
-            for (let i = 1; i <= 4; i++) {
+            for (let i = 1; i <= 5; i++) {
                 const step = document.getElementById('step' + i);
                 if (step) step.classList.remove('active');
             }
@@ -873,6 +938,18 @@
             if (currentStep) {
                 currentStep.classList.add('active');
             }
+        }
+        
+        // Показать ошибку
+        function showError(title, message) {
+            document.getElementById('errorMessage').textContent = title;
+            document.getElementById('errorText').textContent = message;
+            showStep(5);
+        }
+        
+        // Попробовать снова
+        function retry() {
+            window.location.reload();
         }
         
         // Показать уведомление
@@ -897,6 +974,36 @@
             setTimeout(() => {
                 notification.style.display = 'none';
             }, 5000);
+        }
+        
+        // Авторизация через Google Popup (для iframe/popup)
+        function handleGooglePopupAuth() {
+            try {
+                // Получаем токен из URL hash
+                const hash = window.location.hash.substring(1);
+                const params = new URLSearchParams(hash);
+                const accessToken = params.get('access_token');
+                const error = params.get('error');
+                
+                if (error) {
+                    window.opener.postMessage({
+                        type: 'GOOGLE_AUTH_ERROR',
+                        error: error
+                    }, window.location.origin);
+                } else if (accessToken) {
+                    window.opener.postMessage({
+                        type: 'GOOGLE_AUTH_SUCCESS',
+                        token: accessToken
+                    }, window.location.origin);
+                }
+            } catch (e) {
+                console.error('Ошибка обработки Google auth:', e);
+            }
+        }
+        
+        // Проверяем, если это окно авторизации Google
+        if (window.location.hash.includes('access_token')) {
+            handleGooglePopupAuth();
         }
         
         console.log('✅ Flower Market готов к работе');
