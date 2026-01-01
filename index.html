@@ -87,8 +87,6 @@
             .user-avatar { width: 50px; height: 50px; font-size: 20px; }
         }
     </style>
-    <!-- Google Sign-In API -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
     <div class="container">
@@ -122,24 +120,12 @@
                     <p><i class="fas fa-info-circle"></i> Для создания объявлений нужно войти через Google</p>
                 </div>
                 
-                <!-- Google Sign-In Button -->
+                <!-- Кнопка Google Sign-In -->
                 <div class="google-signin-container">
-                    <div id="g_id_onload"
-                         data-client_id="316866498988-v1pqivbgh0eupcb9rs53m26nrqukn9hb.apps.googleusercontent.com"
-                         data-context="signin"
-                         data-ux_mode="popup"
-                         data-callback="handleGoogleSignIn"
-                         data-auto_prompt="false">
-                    </div>
-                    
-                    <div class="g_id_signin"
-                         data-type="standard"
-                         data-shape="rectangular"
-                         data-theme="outline"
-                         data-text="signin_with"
-                         data-size="large"
-                         data-logo_alignment="left">
-                    </div>
+                    <button class="btn btn-google" onclick="signInWithGoogle()" id="googleSignInBtn">
+                        <i class="fab fa-google"></i>
+                        <span>Войти через Google</span>
+                    </button>
                 </div>
                 
                 <div id="authLoader" style="display: none;">
@@ -483,85 +469,82 @@
             }
         }
         
-        // Обработка Google Sign-In
-        async function handleGoogleSignIn(response) {
-            console.log('🔐 Google Sign-In response received');
-            
+        // Войти через Google
+        async function signInWithGoogle() {
+            const googleBtn = document.getElementById('googleSignInBtn');
             const authLoader = document.getElementById('authLoader');
             const authError = document.getElementById('authError');
             
-            // Скрыть кнопку Google Sign-In
-            const googleSignInDiv = document.querySelector('.g_id_signin');
-            if (googleSignInDiv) googleSignInDiv.style.display = 'none';
-            
+            googleBtn.disabled = true;
             authLoader.style.display = 'block';
             authError.style.display = 'none';
             
             try {
-                // Получаем credential
-                const credential = response.credential;
-                console.log('Google credential received');
+                console.log('🔐 Получаем Google OAuth URL...');
                 
-                if (!credential) {
-                    throw new Error('Не получены учетные данные Google');
-                }
-                
-                // Отправляем на бэкенд
-                const backendResponse = await fetch(`${BACKEND_URL}/api/auth/google`, {
+                // Запрашиваем у сервера URL для авторизации
+                const response = await fetch(`${BACKEND_URL}/api/auth/google/url`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
                     body: JSON.stringify({
-                        token: credential,
                         telegramId: telegramId
                     })
                 });
                 
-                const result = await backendResponse.json();
-                
-                authLoader.style.display = 'none';
+                const result = await response.json();
                 
                 if (result.success) {
-                    userSession = result.sessionToken;
-                    userData = result.user;
+                    console.log('✅ Google OAuth URL получен');
+                    console.log('Auth URL:', result.authUrl);
                     
-                    console.log('✅ Авторизация успешна:', userData.name);
+                    // Открываем окно авторизации
+                    const authWindow = window.open(
+                        result.authUrl,
+                        'GoogleAuth',
+                        'width=500,height=600,scrollbars=yes,resizable=yes'
+                    );
                     
-                    // Сохраняем сессию
-                    localStorage.setItem('flower_session', userSession);
+                    if (!authWindow) {
+                        throw new Error('Разрешите всплывающие окна для авторизации');
+                    }
                     
-                    // Обновляем URL
-                    updateUrlWithSession(userSession);
+                    // Проверяем закрытие окна
+                    const checkWindowClosed = setInterval(() => {
+                        try {
+                            if (authWindow.closed) {
+                                clearInterval(checkWindowClosed);
+                                authLoader.style.display = 'none';
+                                googleBtn.disabled = false;
+                            }
+                        } catch (e) {
+                            clearInterval(checkWindowClosed);
+                            authLoader.style.display = 'none';
+                            googleBtn.disabled = false;
+                        }
+                    }, 1000);
                     
-                    // Обновляем UI
-                    updateUserInfo();
-                    document.getElementById('displayTelegramId').textContent = telegramId;
-                    
-                    // Показываем форму
-                    showStep(3);
-                    
-                    // Проверяем черновик
-                    await checkDraft();
-                    
-                    // Запускаем автосохранение
-                    startAutoSave();
-                    
-                    showNotification('Успех', `Добро пожаловать, ${userData.name}!`, 'success');
                 } else {
-                    throw new Error(result.error || 'Ошибка авторизации');
+                    throw new Error(result.error || 'Ошибка получения URL авторизации');
                 }
                 
             } catch (error) {
                 console.error('❌ Ошибка авторизации:', error);
                 authLoader.style.display = 'none';
-                authError.style.display = 'block';
-                document.getElementById('authErrorMessage').textContent = error.message;
-                
-                // Показываем кнопку Google снова
-                if (googleSignInDiv) googleSignInDiv.style.display = 'block';
+                googleBtn.disabled = false;
+                showAuthError(error.message);
             }
+        }
+        
+        // Показать ошибку авторизации
+        function showAuthError(message) {
+            const authError = document.getElementById('authError');
+            const authErrorMessage = document.getElementById('authErrorMessage');
+            
+            authErrorMessage.textContent = message;
+            authError.style.display = 'block';
         }
         
         // Обновление информации о пользователе
