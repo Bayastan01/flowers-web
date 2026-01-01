@@ -11,7 +11,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        /* Стили остаются такими же, как в вашем коде */
+        /* Стили остаются такими же */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; -webkit-font-smoothing: antialiased; }
         .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); overflow: hidden; }
@@ -55,6 +55,10 @@
         .notification.success { border-left-color: #34c759; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         
+        /* Новые стили */
+        .warning-box { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 10px; padding: 15px; margin: 20px 0; color: #856404; }
+        .warning-box i { color: #f39c12; margin-right: 10px; }
+        
         /* Адаптивность */
         @media (max-width: 768px) {
             .auth-screen, .form-container, .success-screen { padding: 30px 20px; }
@@ -95,6 +99,13 @@
                 <div class="loader"></div>
                 <p style="margin-top: 15px; color: #666;">Входим в аккаунт...</p>
             </div>
+            
+            <!-- Блок для отображения статуса одобрения -->
+            <div class="warning-box" id="approvalWarning" style="display: none; margin-top: 20px;">
+                <i class="fas fa-clock"></i>
+                <strong>Ожидание одобрения</strong>
+                <p style="margin: 5px 0 0; font-size: 14px;">Ваш аккаунт ожидает одобрения администратора. Мы уведомим вас, когда вас добавят в канал.</p>
+            </div>
         </div>
         
         <!-- ФОРМА СОЗДАНИЯ ОБЪЯВЛЕНИЯ -->
@@ -112,6 +123,7 @@
                 <div class="user-details">
                     <h3 id="userName">Пользователь</h3>
                     <p id="userEmail">email@example.com</p>
+                    <p id="userApprovalStatus" style="margin: 3px 0 0; font-size: 12px; color: #666;"></p>
                 </div>
             </div>
             
@@ -168,6 +180,13 @@
                     <i class="fas fa-paper-plane"></i>
                     <span>ОПУБЛИКОВАТЬ ОБЪЯВЛЕНИЕ</span>
                 </button>
+                
+                <!-- Сообщение об ожидании одобрения -->
+                <div class="warning-box" id="notApprovedWarning" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Требуется одобрение администратора</strong>
+                    <p style="margin: 5px 0 0; font-size: 14px;">Вы сможете публиковать объявления после одобрения администратора. Обычно это занимает несколько минут.</p>
+                </div>
             </form>
             
             <div id="formLoader" style="display: none; text-align: center; padding: 30px;">
@@ -201,8 +220,8 @@
     <div class="notification" id="notification"></div>
 
     <script>
-        // Конфигурация
-        const BACKEND_URL = 'https://backend-flower-kyrgyz.up.railway.app';
+        // Конфигурация - УБРАТЬ СЛЭШ В КОНЦЕ!
+        const BACKEND_URL = 'https://backend-flower2-production.up.railway.app';
         const GOOGLE_CLIENT_ID = '316866498988-v1pqivbgh0eupcb9rs53m26nrqukn9hb.apps.googleusercontent.com';
         
         // Глобальные переменные
@@ -210,33 +229,55 @@
         let userData = null;
         let uploadedPhotos = [];
         let googleAuthClient = null;
+        let tgWebApp = null;
+        let approvalCheckInterval = null;
         
         // Инициализация при загрузке страницы
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('🌺 Flower Market запущен');
             
-            // Получаем параметры из URL
-            const urlParams = new URLSearchParams(window.location.search);
-            userId = urlParams.get('tg_user_id') || localStorage.getItem('flower_user_id') || generateUserId();
+            // Проверяем, запущен ли в Telegram WebApp
+            try {
+                if (window.Telegram && window.Telegram.WebApp) {
+                    tgWebApp = Telegram.WebApp;
+                    tgWebApp.expand();
+                    tgWebApp.ready();
+                    console.log('📱 Telegram WebApp detected');
+                    
+                    // Получаем данные пользователя из Telegram
+                    const tgUser = tgWebApp.initDataUnsafe.user;
+                    if (tgUser) {
+                        userId = tgUser.id.toString();
+                        console.log('👤 Telegram User ID:', userId);
+                        
+                        // Показываем информацию о пользователе Telegram
+                        document.getElementById('userName').textContent = tgUser.first_name || 'Telegram User';
+                        if (tgUser.username) {
+                            document.getElementById('userEmail').textContent = `@${tgUser.username}`;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.log('Telegram WebApp not available:', error.message);
+            }
+            
+            // Если нет Telegram ID, используем другой источник
+            if (!userId) {
+                const urlParams = new URLSearchParams(window.location.search);
+                userId = urlParams.get('tg_user_id') || localStorage.getItem('flower_user_id') || generateUserId();
+                console.log('👤 Generated User ID:', userId);
+            }
             
             // Сохраняем ID пользователя
             localStorage.setItem('flower_user_id', userId);
-            
-            console.log('👤 User ID:', userId);
             
             // Инициализация Google Sign-In
             if (typeof google !== 'undefined') {
                 google.accounts.id.initialize({
                     client_id: GOOGLE_CLIENT_ID,
                     callback: handleGoogleAuthResponse,
-                    auto_select: false
-                });
-                
-                // Создаем клиент для Google One Tap
-                googleAuthClient = google.accounts.oauth2.initTokenClient({
-                    client_id: GOOGLE_CLIENT_ID,
-                    scope: 'email profile openid',
-                    callback: handleGoogleTokenResponse,
+                    auto_select: false,
+                    ux_mode: 'popup'
                 });
             }
             
@@ -261,12 +302,17 @@
                     if (data.isLoggedIn && data.user) {
                         // Пользователь авторизован
                         userData = data.user;
+                        
+                        // Проверяем статус одобрения
+                        await checkApprovalStatus();
+                        
                         showForm();
                     } else {
                         // Нужна авторизация
                         showAuthScreen();
                     }
                 } else {
+                    console.log('User not authenticated, showing auth screen');
                     showAuthScreen();
                 }
             } catch (error) {
@@ -275,11 +321,75 @@
             }
         }
         
+        // Проверка статуса одобрения
+        async function checkApprovalStatus() {
+            if (!userId) return;
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/user/${userId}/approval-status`);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('📋 Approval status:', data);
+                    
+                    // Обновляем UI в зависимости от статуса
+                    updateApprovalUI(data.isApproved);
+                    
+                    // Если не одобрен, запускаем периодическую проверку
+                    if (!data.isApproved && !approvalCheckInterval) {
+                        startApprovalCheck();
+                    } else if (data.isApproved && approvalCheckInterval) {
+                        clearInterval(approvalCheckInterval);
+                        approvalCheckInterval = null;
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking approval:', error);
+            }
+        }
+        
+        // Запуск периодической проверки одобрения
+        function startApprovalCheck() {
+            if (approvalCheckInterval) {
+                clearInterval(approvalCheckInterval);
+            }
+            
+            approvalCheckInterval = setInterval(async () => {
+                await checkApprovalStatus();
+            }, 30000); // Проверка каждые 30 секунд
+        }
+        
+        // Обновление UI в зависимости от статуса одобрения
+        function updateApprovalUI(isApproved) {
+            const approvalStatus = document.getElementById('userApprovalStatus');
+            const notApprovedWarning = document.getElementById('notApprovedWarning');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (isApproved) {
+                approvalStatus.textContent = '✅ Аккаунт одобрен';
+                approvalStatus.style.color = '#34c759';
+                notApprovedWarning.style.display = 'none';
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = '1';
+            } else {
+                approvalStatus.textContent = '⏳ Ожидает одобрения';
+                approvalStatus.style.color = '#f39c12';
+                notApprovedWarning.style.display = 'block';
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.7';
+            }
+        }
+        
         // Показать экран авторизации
         function showAuthScreen() {
             document.getElementById('authScreen').style.display = 'block';
             document.getElementById('formContainer').style.display = 'none';
             document.getElementById('successScreen').style.display = 'none';
+            
+            // Проверяем, не ожидает ли пользователь одобрения
+            if (userData && !userData.isApproved) {
+                document.getElementById('approvalWarning').style.display = 'block';
+                startApprovalCheck();
+            }
         }
         
         // Показать форму объявления
@@ -300,6 +410,9 @@
                     const firstName = userData.name ? userData.name.charAt(0).toUpperCase() : 'U';
                     userAvatar.innerHTML = firstName;
                 }
+                
+                // Проверяем статус одобрения
+                updateApprovalUI(userData.isApproved);
             }
         }
         
@@ -310,7 +423,7 @@
             document.getElementById('successScreen').style.display = 'block';
         }
         
-        // Вход через Google (упрощенная версия)
+        // Вход через Google
         function handleGoogleSignIn() {
             const googleBtn = document.getElementById('googleSignInBtn');
             const authLoader = document.getElementById('authLoader');
@@ -319,11 +432,9 @@
             googleBtn.style.display = 'none';
             authLoader.style.display = 'block';
             
-            // Используем Google One Tap
-            if (googleAuthClient) {
-                googleAuthClient.requestAccessToken();
-            } else {
-                // Fallback: обычная кнопка Google
+            // Используем Google Identity Services
+            if (typeof google !== 'undefined') {
+                // Создаем и показываем кнопку Google
                 const container = document.getElementById('googleSignInContainer');
                 container.innerHTML = `
                     <div id="g_id_onload"
@@ -339,13 +450,12 @@
                          data-theme="outline"
                          data-text="signin_with"
                          data-size="large"
-                         data-logo_alignment="left"
-                         data-width="350">
+                         data-logo_alignment="left">
                     </div>
                 `;
                 
-                // Перезагружаем Google скрипт
-                if (typeof google !== 'undefined') {
+                // Рендерим кнопку Google
+                setTimeout(() => {
                     google.accounts.id.renderButton(
                         document.querySelector('.g_id_signin'),
                         { 
@@ -355,27 +465,32 @@
                             width: '350'
                         }
                     );
-                }
+                    
+                    // Также предлагаем One Tap
+                    google.accounts.id.prompt();
+                }, 100);
+            } else {
+                showNotification('Ошибка', 'Google сервис недоступен', 'error');
+                resetGoogleButton();
             }
         }
         
-        // Обработка ответа Google (One Tap)
-        function handleGoogleTokenResponse(tokenResponse) {
-            console.log('✅ Google Token Response:', tokenResponse);
-            
-            if (tokenResponse && tokenResponse.access_token) {
-                // Отправляем токен на наш бэкенд
-                authenticateWithBackend(tokenResponse.access_token);
-            }
+        // Сброс кнопки Google
+        function resetGoogleButton() {
+            document.getElementById('googleSignInBtn').disabled = false;
+            document.getElementById('googleSignInBtn').style.display = 'flex';
+            document.getElementById('authLoader').style.display = 'none';
         }
         
-        // Обработка ответа Google (стандартная кнопка)
+        // Обработка ответа Google
         function handleGoogleAuthResponse(response) {
-            console.log('✅ Google Auth Response:', response);
+            console.log('✅ Google Auth Response received');
             
             if (response.credential) {
-                // Отправляем токен на наш бэкенд
                 authenticateWithBackend(response.credential);
+            } else {
+                showNotification('Ошибка', 'Ошибка авторизации Google', 'error');
+                resetGoogleButton();
             }
         }
         
@@ -393,15 +508,15 @@
                     })
                 });
                 
-                if (!response.ok) {
-                    throw new Error(`Ошибка сервера: ${response.status}`);
-                }
-                
                 const result = await response.json();
                 
                 if (result.success) {
                     userData = result.user;
                     showNotification('Успешный вход', `Добро пожаловать, ${userData.name}!`, 'success');
+                    
+                    // Проверяем статус одобрения
+                    await checkApprovalStatus();
+                    
                     showForm();
                 } else {
                     throw new Error(result.error || 'Ошибка авторизации');
@@ -410,11 +525,7 @@
             } catch (error) {
                 console.error('❌ Ошибка авторизации:', error);
                 showNotification('Ошибка входа', error.message, 'error');
-                
-                // Восстанавливаем кнопку
-                document.getElementById('googleSignInBtn').disabled = false;
-                document.getElementById('googleSignInBtn').style.display = 'flex';
-                document.getElementById('authLoader').style.display = 'none';
+                resetGoogleButton();
             }
         }
         
@@ -438,7 +549,7 @@
                     return;
                 }
                 
-                if (file.size > 10 * 1024 * 1024) { // 10MB
+                if (file.size > 10 * 1024 * 1024) {
                     showNotification('Внимание', `Файл "${file.name}" слишком большой (макс. 10MB)`, 'warning');
                     return;
                 }
@@ -503,6 +614,12 @@
                 return;
             }
             
+            // Проверяем одобрение
+            if (!userData.isApproved) {
+                showNotification('Внимание', 'Ваш аккаунт еще не одобрен администратором', 'warning');
+                return;
+            }
+            
             const submitBtn = document.getElementById('submitBtn');
             const formLoader = document.getElementById('formLoader');
             
@@ -511,14 +628,14 @@
             formLoader.style.display = 'block';
             
             try {
-                // Подготавливаем данные (без отправки больших фото для простоты)
+                // Подготавливаем данные
                 const formData = {
                     userId: userId,
                     title: title,
                     description: description,
                     price: price,
                     contactInfo: phone,
-                    images: []
+                    images: [] // Пока без фото
                 };
                 
                 // Отправляем на бэкенд
@@ -532,18 +649,15 @@
                 
                 const result = await response.json();
                 
-                if (!response.ok) {
-                    throw new Error(result.error || `Ошибка публикации: ${response.status}`);
-                }
-                
                 if (result.success) {
                     // Показываем успех
-                    document.getElementById('successMessage').innerHTML = `
-                        ${result.message}<br>
-                        ${uploadedPhotos.length > 0 ? `📸 Фотографий: ${uploadedPhotos.length}` : ''}
-                    `;
+                    const successMsg = result.telegramMessageId 
+                        ? `✅ Объявление опубликовано в Telegram канале!<br>ID сообщения: ${result.telegramMessageId}`
+                        : `✅ Объявление сохранено!<br>${result.error ? 'Ошибка Telegram: ' + result.error : ''}`;
                     
-                    showNotification('Успешно', 'Объявление опубликовано!', 'success');
+                    document.getElementById('successMessage').innerHTML = successMsg;
+                    
+                    showNotification('Успешно', 'Объявление отправлено!', 'success');
                     showSuccessScreen();
                 } else {
                     throw new Error(result.error || 'Ошибка публикации');
@@ -597,6 +711,7 @@
         }
         
         console.log('✅ Flower Market готов!');
+        console.log('🔗 Backend URL:', BACKEND_URL);
     </script>
 </body>
 </html>
