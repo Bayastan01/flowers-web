@@ -11,378 +11,63 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
-            -webkit-tap-highlight-color: transparent; 
-        }
-        
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-            min-height: 100vh; 
-            padding: 20px; 
-            -webkit-font-smoothing: antialiased; 
-        }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-        
-        /* Экран авторизации */
-        .auth-screen {
-            padding: 50px 30px;
-            text-align: center;
-        }
-        
-        .auth-icon {
-            font-size: 80px;
-            color: #667eea;
-            margin-bottom: 25px;
-        }
-        
-        .auth-title {
-            font-size: 32px;
-            color: #333;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-        
-        .auth-subtitle {
-            font-size: 18px;
-            color: #666;
-            line-height: 1.5;
-            margin-bottom: 40px;
-            max-width: 500px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        /* Кнопка Google */
-        .google-btn {
-            background: #4285f4;
-            color: white;
-            border: none;
-            padding: 18px 30px;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: 500;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            margin: 20px 0;
-            transition: all 0.3s ease;
-            width: 100%;
-            max-width: 350px;
-        }
-        
-        .google-btn:hover {
-            background: #3367d6;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(66,133,244,0.3);
-        }
-        
-        .google-btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-        
-        /* Форма объявления */
-        .form-container {
-            padding: 30px;
-            display: none;
-        }
-        
-        .form-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .user-info {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .user-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 24px;
-            font-weight: bold;
-        }
-        
-        .user-avatar img {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-        
-        .user-details h3 {
-            margin: 0;
-            color: #333;
-            font-size: 18px;
-        }
-        
-        .user-details p {
-            margin: 5px 0 0;
-            color: #666;
-            font-size: 14px;
-        }
-        
-        /* Поля формы */
-        .form-group {
-            margin-bottom: 25px;
-        }
-        
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #333;
-            font-size: 16px;
-        }
-        
-        .form-label .required {
-            color: #ff3b30;
-        }
-        
-        .form-input {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: border-color 0.3s ease;
-        }
-        
-        .form-input:focus {
-            border-color: #667eea;
-            outline: none;
-        }
-        
-        .form-textarea {
-            min-height: 120px;
-            resize: vertical;
-            font-family: inherit;
-        }
-        
-        /* Загрузка фото */
-        .photo-upload {
-            border: 2px dashed #667eea;
-            border-radius: 10px;
-            padding: 40px 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: #f8f9fa;
-        }
-        
-        .photo-upload:hover {
-            background: rgba(102,126,234,0.05);
-            border-color: #764ba2;
-        }
-        
-        .photo-icon {
-            font-size: 48px;
-            color: #667eea;
-            margin-bottom: 15px;
-        }
-        
-        .photo-hint {
-            color: #666;
-            font-size: 14px;
-            margin-top: 10px;
-        }
-        
-        /* Предпросмотр фото */
-        .photo-preview {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        .photo-item {
-            position: relative;
-            border-radius: 8px;
-            overflow: hidden;
-            aspect-ratio: 1;
-            background: #f0f0f0;
-        }
-        
-        .photo-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .remove-photo {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: rgba(255,107,107,0.9);
-            color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 14px;
-            border: none;
-        }
-        
-        /* Кнопка отправки */
-        .submit-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 18px 30px;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: 500;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            transition: all 0.3s ease;
-            width: 100%;
-            margin-top: 30px;
-        }
-        
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102,126,234,0.3);
-        }
-        
-        .submit-btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-        
-        /* Экран успеха */
-        .success-screen {
-            padding: 50px 30px;
-            text-align: center;
-            display: none;
-        }
-        
-        .success-icon {
-            font-size: 80px;
-            color: #34c759;
-            margin-bottom: 25px;
-        }
-        
-        /* Лоадер */
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* Уведомления */
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: white;
-            border-left: 4px solid #667eea;
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 1000;
-            max-width: 350px;
-            animation: slideIn 0.3s ease;
-            display: none;
-        }
-        
-        .notification.error {
-            border-left-color: #ff3b30;
-        }
-        
-        .notification.success {
-            border-left-color: #34c759;
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
+        /* Стили остаются такими же, как в вашем коде */
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); overflow: hidden; }
+        .auth-screen { padding: 50px 30px; text-align: center; }
+        .auth-icon { font-size: 80px; color: #667eea; margin-bottom: 25px; }
+        .auth-title { font-size: 32px; color: #333; margin-bottom: 15px; font-weight: 600; }
+        .auth-subtitle { font-size: 18px; color: #666; line-height: 1.5; margin-bottom: 40px; max-width: 500px; margin-left: auto; margin-right: auto; }
+        .google-btn { background: #4285f4; color: white; border: none; padding: 18px 30px; border-radius: 12px; font-size: 18px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 15px; margin: 20px 0; transition: all 0.3s ease; width: 100%; max-width: 350px; }
+        .google-btn:hover { background: #3367d6; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(66,133,244,0.3); }
+        .google-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none !important; }
+        .form-container { padding: 30px; display: none; }
+        .form-header { text-align: center; margin-bottom: 30px; }
+        .user-info { background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 30px; display: flex; align-items: center; gap: 15px; }
+        .user-avatar { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold; }
+        .user-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        .user-details h3 { margin: 0; color: #333; font-size: 18px; }
+        .user-details p { margin: 5px 0 0; color: #666; font-size: 14px; }
+        .form-group { margin-bottom: 25px; }
+        .form-label { display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 16px; }
+        .form-label .required { color: #ff3b30; }
+        .form-input { width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; transition: border-color 0.3s ease; }
+        .form-input:focus { border-color: #667eea; outline: none; }
+        .form-textarea { min-height: 120px; resize: vertical; font-family: inherit; }
+        .photo-upload { border: 2px dashed #667eea; border-radius: 10px; padding: 40px 20px; text-align: center; cursor: pointer; transition: all 0.3s ease; background: #f8f9fa; }
+        .photo-upload:hover { background: rgba(102,126,234,0.05); border-color: #764ba2; }
+        .photo-icon { font-size: 48px; color: #667eea; margin-bottom: 15px; }
+        .photo-hint { color: #666; font-size: 14px; margin-top: 10px; }
+        .photo-preview { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 20px; }
+        .photo-item { position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 1; background: #f0f0f0; }
+        .photo-item img { width: 100%; height: 100%; object-fit: cover; }
+        .remove-photo { position: absolute; top: 5px; right: 5px; background: rgba(255,107,107,0.9); color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; border: none; }
+        .submit-btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 18px 30px; border-radius: 12px; font-size: 18px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: all 0.3s ease; width: 100%; margin-top: 30px; }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,126,234,0.3); }
+        .submit-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none !important; }
+        .success-screen { padding: 50px 30px; text-align: center; display: none; }
+        .success-icon { font-size: 80px; color: #34c759; margin-bottom: 25px; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .notification { position: fixed; top: 20px; right: 20px; background: white; border-left: 4px solid #667eea; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; max-width: 350px; animation: slideIn 0.3s ease; display: none; }
+        .notification.error { border-left-color: #ff3b30; }
+        .notification.success { border-left-color: #34c759; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         
         /* Адаптивность */
         @media (max-width: 768px) {
-            .auth-screen, .form-container, .success-screen {
-                padding: 30px 20px;
-            }
-            
-            .auth-title {
-                font-size: 24px;
-            }
-            
-            .auth-subtitle {
-                font-size: 16px;
-            }
-            
-            .google-btn, .submit-btn {
-                padding: 15px 20px;
-                font-size: 16px;
-            }
-            
-            .user-info {
-                padding: 15px;
-            }
-            
-            .user-avatar {
-                width: 50px;
-                height: 50px;
-                font-size: 20px;
-            }
+            .auth-screen, .form-container, .success-screen { padding: 30px 20px; }
+            .auth-title { font-size: 24px; }
+            .auth-subtitle { font-size: 16px; }
+            .google-btn, .submit-btn { padding: 15px 20px; font-size: 16px; }
+            .user-info { padding: 15px; }
+            .user-avatar { width: 50px; height: 50px; font-size: 20px; }
         }
-        
         @media (max-width: 480px) {
-            body {
-                padding: 10px;
-            }
-            
-            .container {
-                border-radius: 15px;
-            }
-            
-            .auth-screen {
-                padding: 40px 20px;
-            }
+            body { padding: 10px; }
+            .container { border-radius: 15px; }
+            .auth-screen { padding: 40px 20px; }
         }
     </style>
 </head>
@@ -397,7 +82,7 @@
             </p>
             
             <div id="googleSignInContainer">
-                <button class="google-btn" onclick="signInWithGoogle()" id="googleSignInBtn">
+                <button class="google-btn" onclick="handleGoogleSignIn()" id="googleSignInBtn">
                     <i class="fab fa-google"></i>
                     <span>Войти через Google</span>
                 </button>
@@ -463,8 +148,7 @@
                         Контактный телефон <span class="required">*</span>
                     </label>
                     <input type="tel" id="adPhone" class="form-input" 
-                           placeholder="+996 XXX XXX XXX" 
-                           pattern="^\+996\s?\d{3}\s?\d{3}\s?\d{3}$" required>
+                           placeholder="+996 XXX XXX XXX" required>
                 </div>
                 
                 <div class="form-group">
@@ -525,6 +209,7 @@
         let userId = null;
         let userData = null;
         let uploadedPhotos = [];
+        let googleAuthClient = null;
         
         // Инициализация при загрузке страницы
         document.addEventListener('DOMContentLoaded', async function() {
@@ -532,24 +217,53 @@
             
             // Получаем параметры из URL
             const urlParams = new URLSearchParams(window.location.search);
-            userId = urlParams.get('tg_user_id') || urlParams.get('userId') || generateUserId();
+            userId = urlParams.get('tg_user_id') || localStorage.getItem('flower_user_id') || generateUserId();
+            
+            // Сохраняем ID пользователя
+            localStorage.setItem('flower_user_id', userId);
             
             console.log('👤 User ID:', userId);
             
+            // Инициализация Google Sign-In
+            if (typeof google !== 'undefined') {
+                google.accounts.id.initialize({
+                    client_id: GOOGLE_CLIENT_ID,
+                    callback: handleGoogleAuthResponse,
+                    auto_select: false
+                });
+                
+                // Создаем клиент для Google One Tap
+                googleAuthClient = google.accounts.oauth2.initTokenClient({
+                    client_id: GOOGLE_CLIENT_ID,
+                    scope: 'email profile openid',
+                    callback: handleGoogleTokenResponse,
+                });
+            }
+            
+            // Проверяем статус пользователя
+            await checkUserStatus();
+        });
+        
+        // Генерация ID пользователя
+        function generateUserId() {
+            return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+        
+        // Проверка статуса пользователя
+        async function checkUserStatus() {
             try {
-                // Проверяем, авторизован ли пользователь через Google
                 const response = await fetch(`${BACKEND_URL}/api/user/${userId}/status`);
                 
                 if (response.ok) {
                     const data = await response.json();
                     console.log('📊 Статус пользователя:', data);
                     
-                    if (data.isLoggedIn) {
-                        // Пользователь уже авторизован - показываем форму сразу
+                    if (data.isLoggedIn && data.user) {
+                        // Пользователь авторизован
                         userData = data.user;
                         showForm();
                     } else {
-                        // Нужна авторизация - показываем кнопку Google
+                        // Нужна авторизация
                         showAuthScreen();
                     }
                 } else {
@@ -559,20 +273,6 @@
                 console.error('❌ Ошибка проверки статуса:', error);
                 showAuthScreen();
             }
-            
-            // Инициализация Google Sign-In
-            if (typeof google !== 'undefined') {
-                google.accounts.id.initialize({
-                    client_id: GOOGLE_CLIENT_ID,
-                    callback: handleGoogleAuthResponse,
-                    auto_select: false
-                });
-            }
-        });
-        
-        // Генерация ID пользователя, если нет Telegram ID
-        function generateUserId() {
-            return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         }
         
         // Показать экран авторизации
@@ -595,9 +295,8 @@
                 
                 const userAvatar = document.getElementById('userAvatar');
                 if (userData.picture) {
-                    userAvatar.innerHTML = `<img src="${userData.picture}" alt="Аватар">`;
+                    userAvatar.innerHTML = `<img src="${userData.picture}" alt="Аватар" onerror="this.style.display='none'">`;
                 } else {
-                    // Если нет фото, показываем первую букву имени
                     const firstName = userData.name ? userData.name.charAt(0).toUpperCase() : 'U';
                     userAvatar.innerHTML = firstName;
                 }
@@ -611,8 +310,8 @@
             document.getElementById('successScreen').style.display = 'block';
         }
         
-        // Вход через Google
-        function signInWithGoogle() {
+        // Вход через Google (упрощенная версия)
+        function handleGoogleSignIn() {
             const googleBtn = document.getElementById('googleSignInBtn');
             const authLoader = document.getElementById('authLoader');
             
@@ -620,56 +319,92 @@
             googleBtn.style.display = 'none';
             authLoader.style.display = 'block';
             
-            // Запрашиваем разрешение
-            if (typeof google !== 'undefined') {
-                google.accounts.id.prompt((notification) => {
-                    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-                        // Если всплывающее окно не показалось, создаем кнопку
-                        renderGoogleButton();
-                    }
-                });
+            // Используем Google One Tap
+            if (googleAuthClient) {
+                googleAuthClient.requestAccessToken();
             } else {
-                showNotification('Ошибка', 'Google API не загружен', 'error');
-                googleBtn.disabled = false;
-                googleBtn.style.display = 'flex';
-                authLoader.style.display = 'none';
-            }
-        }
-        
-        // Рендер кнопки Google
-        function renderGoogleButton() {
-            const container = document.getElementById('googleSignInContainer');
-            container.innerHTML = `
-                <div id="googleButtonContainer"></div>
-            `;
-            
-            if (typeof google !== 'undefined') {
-                google.accounts.id.renderButton(
-                    document.getElementById('googleButtonContainer'),
-                    { 
-                        theme: 'outline', 
-                        size: 'large',
-                        text: 'continue_with',
-                        width: '350px'
-                    }
-                );
-            }
-        }
-        
-        // Обработка ответа Google
-        async function handleGoogleAuthResponse(response) {
-            console.log('✅ Google ответ:', response);
-            
-            try {
-                // Отправляем токен на наш бэкенд
-                const authResult = await authenticateWithBackend(response.credential);
+                // Fallback: обычная кнопка Google
+                const container = document.getElementById('googleSignInContainer');
+                container.innerHTML = `
+                    <div id="g_id_onload"
+                         data-client_id="${GOOGLE_CLIENT_ID}"
+                         data-context="signin"
+                         data-ux_mode="popup"
+                         data-callback="handleGoogleAuthResponse"
+                         data-auto_prompt="false">
+                    </div>
+                    <div class="g_id_signin"
+                         data-type="standard"
+                         data-shape="rectangular"
+                         data-theme="outline"
+                         data-text="signin_with"
+                         data-size="large"
+                         data-logo_alignment="left"
+                         data-width="350">
+                    </div>
+                `;
                 
-                if (authResult.success) {
-                    userData = authResult.user;
+                // Перезагружаем Google скрипт
+                if (typeof google !== 'undefined') {
+                    google.accounts.id.renderButton(
+                        document.querySelector('.g_id_signin'),
+                        { 
+                            theme: 'outline', 
+                            size: 'large',
+                            text: 'continue_with',
+                            width: '350'
+                        }
+                    );
+                }
+            }
+        }
+        
+        // Обработка ответа Google (One Tap)
+        function handleGoogleTokenResponse(tokenResponse) {
+            console.log('✅ Google Token Response:', tokenResponse);
+            
+            if (tokenResponse && tokenResponse.access_token) {
+                // Отправляем токен на наш бэкенд
+                authenticateWithBackend(tokenResponse.access_token);
+            }
+        }
+        
+        // Обработка ответа Google (стандартная кнопка)
+        function handleGoogleAuthResponse(response) {
+            console.log('✅ Google Auth Response:', response);
+            
+            if (response.credential) {
+                // Отправляем токен на наш бэкенд
+                authenticateWithBackend(response.credential);
+            }
+        }
+        
+        // Аутентификация через бэкенд
+        async function authenticateWithBackend(token) {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/auth/google`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        token: token,
+                        telegramUserId: userId
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Ошибка сервера: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    userData = result.user;
                     showNotification('Успешный вход', `Добро пожаловать, ${userData.name}!`, 'success');
                     showForm();
                 } else {
-                    throw new Error(authResult.error || 'Ошибка авторизации');
+                    throw new Error(result.error || 'Ошибка авторизации');
                 }
                 
             } catch (error) {
@@ -680,39 +415,7 @@
                 document.getElementById('googleSignInBtn').disabled = false;
                 document.getElementById('googleSignInBtn').style.display = 'flex';
                 document.getElementById('authLoader').style.display = 'none';
-                
-                // Возвращаем оригинальную кнопку
-                const container = document.getElementById('googleSignInContainer');
-                container.innerHTML = `
-                    <button class="google-btn" onclick="signInWithGoogle()" id="googleSignInBtn">
-                        <i class="fab fa-google"></i>
-                        <span>Войти через Google</span>
-                    </button>
-                    <p style="color: #666; margin-top: 15px; font-size: 14px;">
-                        После входа вы сможете создать объявление
-                    </p>
-                `;
             }
-        }
-        
-        // Аутентификация через бэкенд
-        async function authenticateWithBackend(token) {
-            const response = await fetch(`${BACKEND_URL}/api/auth/google`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    token: token,
-                    telegramUserId: userId
-                })
-            });
-            
-            if (!response.ok) {
-                throw new Error(`Ошибка сервера: ${response.status}`);
-            }
-            
-            return await response.json();
         }
         
         // Загрузка фотографий
@@ -808,7 +511,7 @@
             formLoader.style.display = 'block';
             
             try {
-                // Подготавливаем данные
+                // Подготавливаем данные (без отправки больших фото для простоты)
                 const formData = {
                     userId: userId,
                     title: title,
@@ -817,16 +520,6 @@
                     contactInfo: phone,
                     images: []
                 };
-                
-                // Конвертируем фото в base64
-                for (const photo of uploadedPhotos) {
-                    const base64Data = photo.url.split(',')[1];
-                    formData.images.push({
-                        name: photo.name,
-                        data: base64Data,
-                        type: photo.file.type
-                    });
-                }
                 
                 // Отправляем на бэкенд
                 const response = await fetch(`${BACKEND_URL}/api/publish-ad`, {
@@ -837,17 +530,16 @@
                     body: JSON.stringify(formData)
                 });
                 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Ошибка публикации: ${response.status} - ${errorText}`);
-                }
-                
                 const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.error || `Ошибка публикации: ${response.status}`);
+                }
                 
                 if (result.success) {
                     // Показываем успех
                     document.getElementById('successMessage').innerHTML = `
-                        Ваше объявление опубликовано в нашем Telegram канале.<br>
+                        ${result.message}<br>
                         ${uploadedPhotos.length > 0 ? `📸 Фотографий: ${uploadedPhotos.length}` : ''}
                     `;
                     
