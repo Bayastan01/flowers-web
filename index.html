@@ -11,7 +11,6 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        /* Стили остаются такими же */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; -webkit-font-smoothing: antialiased; }
         .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); overflow: hidden; }
@@ -55,11 +54,9 @@
         .notification.success { border-left-color: #34c759; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         
-        /* Новые стили */
         .warning-box { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 10px; padding: 15px; margin: 20px 0; color: #856404; }
         .warning-box i { color: #f39c12; margin-right: 10px; }
         
-        /* Адаптивность */
         @media (max-width: 768px) {
             .auth-screen, .form-container, .success-screen { padding: 30px 20px; }
             .auth-title { font-size: 24px; }
@@ -100,11 +97,26 @@
                 <p style="margin-top: 15px; color: #666;">Входим в аккаунт...</p>
             </div>
             
-            <!-- Блок для отображения статуса одобрения -->
             <div class="warning-box" id="approvalWarning" style="display: none; margin-top: 20px;">
                 <i class="fas fa-clock"></i>
                 <strong>Ожидание одобрения</strong>
                 <p style="margin: 5px 0 0; font-size: 14px;">Ваш аккаунт ожидает одобрения администратора. Мы уведомим вас, когда вас добавят в канал.</p>
+            </div>
+            
+            <div style="margin-top: 30px; padding: 15px; background: #f8f9fa; border-radius: 10px; text-align: left;">
+                <p style="color: #666; font-size: 14px; margin-bottom: 10px;">
+                    <i class="fas fa-info-circle" style="color: #667eea;"></i>
+                    <strong>Как получить Telegram ID:</strong>
+                </p>
+                <ol style="color: #666; font-size: 13px; padding-left: 20px; margin-bottom: 10px;">
+                    <li>Напишите боту <a href="https://t.me/Flowers_free_bot" target="_blank" style="color: #667eea;">@Flowers_free_bot</a></li>
+                    <li>Отправьте команду <code>/id</code></li>
+                    <li>Скопируйте ваш ID</li>
+                    <li>Используйте его при входе</li>
+                </ol>
+                <p style="color: #666; font-size: 12px; margin-top: 10px;">
+                    Бот: <a href="https://t.me/Flowers_free_bot" target="_blank" style="color: #667eea;">@Flowers_free_bot</a> | Канал: <a href="https://t.me/flowers_market_kg" target="_blank" style="color: #667eea;">@flowers_market_kg</a>
+                </p>
             </div>
         </div>
         
@@ -115,7 +127,6 @@
                 <p style="color: #666;">Заполните форму, чтобы опубликовать объявление</p>
             </div>
             
-            <!-- Информация о пользователе -->
             <div class="user-info" id="userInfo">
                 <div class="user-avatar" id="userAvatar">
                     <i class="fas fa-user"></i>
@@ -127,7 +138,6 @@
                 </div>
             </div>
             
-            <!-- Форма -->
             <form id="adForm" onsubmit="event.preventDefault(); submitAd();">
                 <div class="form-group">
                     <label class="form-label" for="adTitle">
@@ -181,7 +191,6 @@
                     <span>ОПУБЛИКОВАТЬ ОБЪЯВЛЕНИЕ</span>
                 </button>
                 
-                <!-- Сообщение об ожидании одобрения -->
                 <div class="warning-box" id="notApprovedWarning" style="display: none;">
                     <i class="fas fa-exclamation-triangle"></i>
                     <strong>Требуется одобрение администратора</strong>
@@ -192,6 +201,13 @@
             <div id="formLoader" style="display: none; text-align: center; padding: 30px;">
                 <div class="loader"></div>
                 <p style="margin-top: 15px; color: #666;">Публикуем объявление...</p>
+            </div>
+            
+            <div style="margin-top: 20px; text-align: center;">
+                <button class="google-btn" onclick="logout()" style="background: #dc3545; max-width: 200px;">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Выйти</span>
+                </button>
             </div>
         </div>
         
@@ -216,11 +232,10 @@
         </div>
     </div>
     
-    <!-- УВЕДОМЛЕНИЯ -->
     <div class="notification" id="notification"></div>
 
     <script>
-        // Конфигурация - УБРАТЬ СЛЭШ В КОНЦЕ!
+        // КОНФИГУРАЦИЯ - УБРАТЬ СЛЭШ В КОНЦЕ!
         const BACKEND_URL = 'https://backend-flower2-production.up.railway.app';
         const GOOGLE_CLIENT_ID = '316866498988-v1pqivbgh0eupcb9rs53m26nrqukn9hb.apps.googleusercontent.com';
         
@@ -228,13 +243,14 @@
         let userId = null;
         let userData = null;
         let uploadedPhotos = [];
-        let googleAuthClient = null;
-        let tgWebApp = null;
         let approvalCheckInterval = null;
+        let tgWebApp = null;
         
         // Инициализация при загрузке страницы
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('🌺 Flower Market запущен');
+            console.log('🔗 Backend URL:', BACKEND_URL);
+            console.log('🔑 Google Client ID:', GOOGLE_CLIENT_ID);
             
             // Проверяем, запущен ли в Telegram WebApp
             try {
@@ -244,13 +260,11 @@
                     tgWebApp.ready();
                     console.log('📱 Telegram WebApp detected');
                     
-                    // Получаем данные пользователя из Telegram
                     const tgUser = tgWebApp.initDataUnsafe.user;
                     if (tgUser) {
                         userId = tgUser.id.toString();
                         console.log('👤 Telegram User ID:', userId);
                         
-                        // Показываем информацию о пользователе Telegram
                         document.getElementById('userName').textContent = tgUser.first_name || 'Telegram User';
                         if (tgUser.username) {
                             document.getElementById('userEmail').textContent = `@${tgUser.username}`;
@@ -261,11 +275,18 @@
                 console.log('Telegram WebApp not available:', error.message);
             }
             
-            // Если нет Telegram ID, используем другой источник
+            // Если нет Telegram ID из WebApp, пробуем получить из URL или localStorage
             if (!userId) {
                 const urlParams = new URLSearchParams(window.location.search);
-                userId = urlParams.get('tg_user_id') || localStorage.getItem('flower_user_id') || generateUserId();
-                console.log('👤 Generated User ID:', userId);
+                userId = urlParams.get('tg_user_id') || localStorage.getItem('flower_user_id');
+                
+                if (!userId) {
+                    // Показываем форму для ввода Telegram ID
+                    showTelegramIdInput();
+                    return;
+                }
+                
+                console.log('👤 User ID from storage/URL:', userId);
             }
             
             // Сохраняем ID пользователя
@@ -277,22 +298,75 @@
                     client_id: GOOGLE_CLIENT_ID,
                     callback: handleGoogleAuthResponse,
                     auto_select: false,
-                    ux_mode: 'popup'
+                    ux_mode: 'popup',
+                    prompt_parent_id: 'googleSignInContainer'
                 });
+            } else {
+                console.warn('Google API не загрузился');
             }
             
             // Проверяем статус пользователя
             await checkUserStatus();
         });
         
-        // Генерация ID пользователя
-        function generateUserId() {
-            return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        // Показать форму для ввода Telegram ID
+        function showTelegramIdInput() {
+            const authScreen = document.getElementById('authScreen');
+            authScreen.innerHTML = `
+                <i class="fas fa-key auth-icon"></i>
+                <h1 class="auth-title">Введите ваш Telegram ID</h1>
+                <p class="auth-subtitle">
+                    Чтобы создать объявление, нам нужно знать ваш Telegram ID
+                </p>
+                
+                <div style="max-width: 400px; margin: 0 auto;">
+                    <input type="text" id="telegramIdInput" class="form-input" 
+                           placeholder="Например: 1234567890" 
+                           style="margin-bottom: 15px; text-align: center; font-size: 18px;">
+                    
+                    <button class="google-btn" onclick="saveTelegramId()" style="background: #667eea;">
+                        <i class="fas fa-check"></i>
+                        <span>Продолжить</span>
+                    </button>
+                    
+                    <div style="margin-top: 30px; padding: 15px; background: #f8f9fa; border-radius: 10px; text-align: left;">
+                        <p style="color: #666; font-size: 14px; margin-bottom: 10px;">
+                            <i class="fas fa-info-circle" style="color: #667eea;"></i>
+                            <strong>Как получить Telegram ID:</strong>
+                        </p>
+                        <ol style="color: #666; font-size: 13px; padding-left: 20px; margin-bottom: 10px;">
+                            <li>Напишите боту <a href="https://t.me/Flowers_free_bot" target="_blank" style="color: #667eea;">@Flowers_free_bot</a></li>
+                            <li>Отправьте команду <code>/id</code></li>
+                            <li>Скопируйте ваш ID (это число)</li>
+                            <li>Вставьте его в поле выше</li>
+                        </ol>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Сохранить Telegram ID
+        function saveTelegramId() {
+            const input = document.getElementById('telegramIdInput');
+            const telegramId = input.value.trim();
+            
+            if (!telegramId || isNaN(telegramId)) {
+                showNotification('Ошибка', 'Введите правильный Telegram ID (только цифры)', 'error');
+                return;
+            }
+            
+            userId = telegramId;
+            localStorage.setItem('flower_user_id', userId);
+            console.log('✅ Telegram ID сохранен:', userId);
+            
+            // Перезагружаем страницу для инициализации
+            location.reload();
         }
         
         // Проверка статуса пользователя
         async function checkUserStatus() {
             try {
+                console.log('🔍 Проверяем статус пользователя...');
                 const response = await fetch(`${BACKEND_URL}/api/user/${userId}/status`);
                 
                 if (response.ok) {
@@ -300,15 +374,13 @@
                     console.log('📊 Статус пользователя:', data);
                     
                     if (data.isLoggedIn && data.user) {
-                        // Пользователь авторизован
                         userData = data.user;
+                        console.log('✅ Пользователь авторизован:', userData);
                         
-                        // Проверяем статус одобрения
                         await checkApprovalStatus();
-                        
                         showForm();
                     } else {
-                        // Нужна авторизация
+                        console.log('👤 Пользователь не авторизован');
                         showAuthScreen();
                     }
                 } else {
@@ -317,6 +389,7 @@
                 }
             } catch (error) {
                 console.error('❌ Ошибка проверки статуса:', error);
+                showNotification('Ошибка', 'Не удалось проверить статус. Проверьте подключение.', 'error');
                 showAuthScreen();
             }
         }
@@ -331,10 +404,8 @@
                     const data = await response.json();
                     console.log('📋 Approval status:', data);
                     
-                    // Обновляем UI в зависимости от статуса
                     updateApprovalUI(data.isApproved);
                     
-                    // Если не одобрен, запускаем периодическую проверку
                     if (!data.isApproved && !approvalCheckInterval) {
                         startApprovalCheck();
                     } else if (data.isApproved && approvalCheckInterval) {
@@ -355,7 +426,7 @@
             
             approvalCheckInterval = setInterval(async () => {
                 await checkApprovalStatus();
-            }, 30000); // Проверка каждые 30 секунд
+            }, 30000);
         }
         
         // Обновление UI в зависимости от статуса одобрения
@@ -385,7 +456,6 @@
             document.getElementById('formContainer').style.display = 'none';
             document.getElementById('successScreen').style.display = 'none';
             
-            // Проверяем, не ожидает ли пользователь одобрения
             if (userData && !userData.isApproved) {
                 document.getElementById('approvalWarning').style.display = 'block';
                 startApprovalCheck();
@@ -398,7 +468,6 @@
             document.getElementById('formContainer').style.display = 'block';
             document.getElementById('successScreen').style.display = 'none';
             
-            // Заполняем информацию о пользователе
             if (userData) {
                 document.getElementById('userName').textContent = userData.name || 'Пользователь';
                 document.getElementById('userEmail').textContent = userData.email || '';
@@ -411,7 +480,6 @@
                     userAvatar.innerHTML = firstName;
                 }
                 
-                // Проверяем статус одобрения
                 updateApprovalUI(userData.isApproved);
             }
         }
@@ -432,43 +500,20 @@
             googleBtn.style.display = 'none';
             authLoader.style.display = 'block';
             
-            // Используем Google Identity Services
             if (typeof google !== 'undefined') {
                 // Создаем и показываем кнопку Google
-                const container = document.getElementById('googleSignInContainer');
-                container.innerHTML = `
-                    <div id="g_id_onload"
-                         data-client_id="${GOOGLE_CLIENT_ID}"
-                         data-context="signin"
-                         data-ux_mode="popup"
-                         data-callback="handleGoogleAuthResponse"
-                         data-auto_prompt="false">
-                    </div>
-                    <div class="g_id_signin"
-                         data-type="standard"
-                         data-shape="rectangular"
-                         data-theme="outline"
-                         data-text="signin_with"
-                         data-size="large"
-                         data-logo_alignment="left">
-                    </div>
-                `;
+                google.accounts.id.renderButton(
+                    document.getElementById('googleSignInContainer'),
+                    { 
+                        theme: 'outline', 
+                        size: 'large',
+                        text: 'continue_with',
+                        width: '350'
+                    }
+                );
                 
-                // Рендерим кнопку Google
-                setTimeout(() => {
-                    google.accounts.id.renderButton(
-                        document.querySelector('.g_id_signin'),
-                        { 
-                            theme: 'outline', 
-                            size: 'large',
-                            text: 'continue_with',
-                            width: '350'
-                        }
-                    );
-                    
-                    // Также предлагаем One Tap
-                    google.accounts.id.prompt();
-                }, 100);
+                // Также предлагаем One Tap
+                google.accounts.id.prompt();
             } else {
                 showNotification('Ошибка', 'Google сервис недоступен', 'error');
                 resetGoogleButton();
@@ -477,9 +522,16 @@
         
         // Сброс кнопки Google
         function resetGoogleButton() {
-            document.getElementById('googleSignInBtn').disabled = false;
-            document.getElementById('googleSignInBtn').style.display = 'flex';
-            document.getElementById('authLoader').style.display = 'none';
+            const googleBtn = document.getElementById('googleSignInBtn');
+            const authLoader = document.getElementById('authLoader');
+            
+            if (googleBtn) {
+                googleBtn.disabled = false;
+                googleBtn.style.display = 'flex';
+            }
+            if (authLoader) {
+                authLoader.style.display = 'none';
+            }
         }
         
         // Обработка ответа Google
@@ -497,10 +549,16 @@
         // Аутентификация через бэкенд
         async function authenticateWithBackend(token) {
             try {
+                const authLoader = document.getElementById('authLoader');
+                if (authLoader) authLoader.style.display = 'block';
+
+                console.log('🔐 Отправляем токен на сервер...');
+                
                 const response = await fetch(`${BACKEND_URL}/api/auth/google`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify({
                         token: token,
@@ -510,13 +568,14 @@
                 
                 const result = await response.json();
                 
+                if (authLoader) authLoader.style.display = 'none';
+                
                 if (result.success) {
                     userData = result.user;
+                    console.log('✅ Авторизация успешна:', userData);
                     showNotification('Успешный вход', `Добро пожаловать, ${userData.name}!`, 'success');
                     
-                    // Проверяем статус одобрения
                     await checkApprovalStatus();
-                    
                     showForm();
                 } else {
                     throw new Error(result.error || 'Ошибка авторизации');
@@ -536,13 +595,11 @@
             
             if (files.length === 0) return;
             
-            // Проверяем лимит
             if (uploadedPhotos.length + files.length > maxFiles) {
                 showNotification('Ошибка', `Можно загрузить не более ${maxFiles} фото`, 'error');
                 return;
             }
             
-            // Обрабатываем файлы
             files.forEach(file => {
                 if (!file.type.startsWith('image/')) {
                     showNotification('Внимание', `Файл "${file.name}" не является изображением`, 'warning');
@@ -598,7 +655,6 @@
         
         // Отправка объявления
         async function submitAd() {
-            // Валидация формы
             const title = document.getElementById('adTitle').value.trim();
             const description = document.getElementById('adDescription').value.trim();
             const price = document.getElementById('adPrice').value.trim();
@@ -614,7 +670,6 @@
                 return;
             }
             
-            // Проверяем одобрение
             if (!userData.isApproved) {
                 showNotification('Внимание', 'Ваш аккаунт еще не одобрен администратором', 'warning');
                 return;
@@ -628,17 +683,15 @@
             formLoader.style.display = 'block';
             
             try {
-                // Подготавливаем данные
                 const formData = {
                     userId: userId,
                     title: title,
                     description: description,
                     price: price,
                     contactInfo: phone,
-                    images: [] // Пока без фото
+                    images: []
                 };
                 
-                // Отправляем на бэкенд
                 const response = await fetch(`${BACKEND_URL}/api/publish-ad`, {
                     method: 'POST',
                     headers: {
@@ -650,13 +703,11 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    // Показываем успех
                     const successMsg = result.telegramMessageId 
                         ? `✅ Объявление опубликовано в Telegram канале!<br>ID сообщения: ${result.telegramMessageId}`
                         : `✅ Объявление сохранено!<br>${result.error ? 'Ошибка Telegram: ' + result.error : ''}`;
                     
                     document.getElementById('successMessage').innerHTML = successMsg;
-                    
                     showNotification('Успешно', 'Объявление отправлено!', 'success');
                     showSuccessScreen();
                 } else {
@@ -667,7 +718,6 @@
                 console.error('❌ Ошибка публикации:', error);
                 showNotification('Ошибка', error.message, 'error');
                 
-                // Восстанавливаем кнопку
                 submitBtn.disabled = false;
                 submitBtn.style.display = 'flex';
                 formLoader.style.display = 'none';
@@ -676,13 +726,25 @@
         
         // Создать новое объявление
         function createNewAd() {
-            // Сбрасываем форму
             document.getElementById('adForm').reset();
             uploadedPhotos = [];
             updatePhotoPreview();
-            
-            // Показываем форму
             showForm();
+        }
+        
+        // Выйти из аккаунта
+        function logout() {
+            if (confirm('Вы уверены, что хотите выйти?')) {
+                localStorage.removeItem('flower_user_id');
+                userData = null;
+                userId = null;
+                if (approvalCheckInterval) {
+                    clearInterval(approvalCheckInterval);
+                    approvalCheckInterval = null;
+                }
+                
+                showTelegramIdInput();
+            }
         }
         
         // Показать уведомление
@@ -704,14 +766,12 @@
             notification.className = `notification ${type}`;
             notification.style.display = 'block';
             
-            // Автоматическое скрытие
             setTimeout(() => {
                 notification.style.display = 'none';
             }, 5000);
         }
         
         console.log('✅ Flower Market готов!');
-        console.log('🔗 Backend URL:', BACKEND_URL);
     </script>
 </body>
 </html>
